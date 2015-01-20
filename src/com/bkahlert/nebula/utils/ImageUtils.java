@@ -2,8 +2,6 @@ package com.bkahlert.nebula.utils;
 
 import com.bkahlert.nebula.utils.colors.ColorUtils;
 import org.apache.log4j.Logger;
-import org.eclipse.core.runtime.Assert;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.*;
@@ -338,15 +336,5 @@ public class ImageUtils {
 		com.bkahlert.nebula.utils.colors.RGB border = borderLightness != null ? ColorUtils
 				.addLightness(background, borderLightness) : null;
 		return getDot(width, height, background, border);
-	}
-
-	public static ImageDescriptor getOverlayDot(
-			com.bkahlert.nebula.utils.colors.RGB color) {
-		Assert.isNotNull(color);
-		Image image = getDot(6, 6, color, ColorUtils.addLightness(color, -0.1f));
-		ImageDescriptor imageDescriptor = ImageDescriptor
-				.createFromImageData(image.getImageData());
-		image.dispose();
-		return imageDescriptor;
 	}
 }

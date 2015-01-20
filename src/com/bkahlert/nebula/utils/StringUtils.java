@@ -1,7 +1,5 @@
 package com.bkahlert.nebula.utils;
 
-import org.eclipse.jface.viewers.StyledString;
-
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
@@ -42,23 +40,6 @@ public class StringUtils {
 			}
 		}
 		return sb.toString();
-	}
-
-	public static StyledString join(ArrayList<StyledString> strings,
-			StyledString separator) {
-		StyledString string = new StyledString("");
-		for (int i = 0, m = strings.size(); i < m; i++) {
-			StyledString s = strings.get(i);
-			if (string == null) {
-				string = new StyledString("");
-			}
-
-			string.append(s);
-			if (i + 1 < m) {
-				string.append(separator);
-			}
-		}
-		return string;
 	}
 
 	/**
