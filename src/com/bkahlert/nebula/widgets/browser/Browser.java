@@ -36,7 +36,6 @@ import org.eclipse.swt.widgets.Listener;
 import com.bkahlert.nebula.utils.CompletedFuture;
 import com.bkahlert.nebula.utils.EventDelegator;
 import com.bkahlert.nebula.utils.ExecUtils;
-import com.bkahlert.nebula.utils.HandlerUtils;
 import com.bkahlert.nebula.utils.IConverter;
 import com.bkahlert.nebula.utils.SWTUtils;
 import com.bkahlert.nebula.utils.colors.RGB;
@@ -284,20 +283,15 @@ public class Browser extends Composite implements IBrowser {
 		};
 
 		this.browser.addLocationListener(new LocationAdapter() {
-			@Override
-			public void changing(LocationEvent event) {
-				if (!Browser.this.settingUri) {
-					event.doit = Browser.this.allowLocationChange
-							|| Browser.this.browserScriptRunner
-									.getBrowserStatus() == BrowserStatus.LOADING;
-				}
-			}
-		});
-
-		HandlerUtils.activateCustomPasteHandlerConsideration(this.browser,
-				FOCUS_CONTROL_ID, "application/x-java-file-list", "image");
-		this.addDisposeListener((DisposeListener) e -> HandlerUtils
-				.deactivateCustomPasteHandlerConsideration(Browser.this.browser));
+            @Override
+            public void changing(LocationEvent event) {
+                if (!Browser.this.settingUri) {
+                    event.doit = Browser.this.allowLocationChange
+                            || Browser.this.browserScriptRunner
+                            .getBrowserStatus() == BrowserStatus.LOADING;
+                }
+            }
+        });
 
 		this.addDisposeListener((DisposeListener) new DisposeListener() {
             @Override
