@@ -100,7 +100,6 @@ public class StringUtils {
 	 *      href="http://stackoverflow.com/questions/1916218/find-the-longest-common-starting-substring-in-a-set-of-strings">Find
 	 *      the longest common starting substring in a set of strings</a>
 	 */
-	@SafeVarargs
 	public static <T> String getLongestCommonPrefix(
 			IStringAdapter<T> stringAdapter, T... objects) {
 		if (objects == null) {
@@ -148,7 +147,6 @@ public class StringUtils {
 	 *
 	 * @return
 	 */
-	@SafeVarargs
 	public static <T> Map<String, Integer> getLongestCommonPrefix(
 			IStringAdapter<T> stringAdapter, int partitionLength, T... objects) {
 		if (objects == null) {
