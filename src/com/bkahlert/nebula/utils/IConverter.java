@@ -3,10 +3,10 @@ package com.bkahlert.nebula.utils;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * {@link IConverter} can convert an object of arbitrary type to type
@@ -168,8 +168,12 @@ public interface IConverter<SRC, DEST> {
             if (returnValue == null) {
                 return null;
             } else {
-                return CONVERTER_DOUBLELIST.convert(returnValue).stream()
-                                           .map(d -> (int) Math.round(d)).collect(Collectors.toList());
+                List<Double> doubleList = CONVERTER_DOUBLELIST.convert(returnValue);
+                ArrayList<Integer> res = new ArrayList<Integer>(doubleList.size());
+                for (Double d : doubleList) {
+                    res.add((int) Math.round(d));
+                }
+                return res;
             }
         }
     };
