@@ -1,23 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
-	<appender class="org.apache.log4j.ConsoleAppender" name="com.bkahlert.nebula.ConsoleAppender">
+	<appender class="org.apache.log4j.ConsoleAppender" name="de.fu_berlin.inf.ag_se.ConsoleAppender">
 		<layout class="org.apache.log4j.PatternLayout" />
 	</appender>
-	<logger name="com.bkahlert.nebula.utils">
+	<logger name="de.fu_berlin.inf.ag_se.utils">
 		<level value="warn" />
 	</logger>
-	<logger name="com.bkahlert.nebula.widgets.browser">
-		<level value="warn" />
-	</logger>
-	<logger name="com.bkahlert.nebula.utils.ExpressionDebugger">
-		<level value="debug" />
-	</logger>
-	<logger name="com.bkahlert.nebula.information">
+	<logger name="de.fu_berlin.inf.ag_se.widgets.browser">
 		<level value="warn" />
 	</logger>
 	<root>
 		<level value="warn" />
-		<appender-ref ref="com.bkahlert.nebula.ConsoleAppender" />
+		<appender-ref ref="de.fu_berlin.inf.ag_se.ConsoleAppender" />
 	</root>
 </log4j:configuration>
