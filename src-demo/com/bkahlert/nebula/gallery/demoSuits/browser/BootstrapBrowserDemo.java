@@ -83,7 +83,6 @@ public class BootstrapBrowserDemo extends AbstractDemo {
 		});
 	}
 
-	@Override
 	public void createDemo(Composite parent) {
 		this.bootstrapBrowser = new BootstrapBrowser(parent, SWT.BORDER) {
 			@Override

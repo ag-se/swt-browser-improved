@@ -80,7 +80,6 @@ public class JQueryBrowserDemo extends AbstractDemo {
 		});
 	}
 
-	@Override
 	public void createDemo(Composite parent) {
 		this.jQueryBrowserComposite = new JQueryBrowser(parent, SWT.BORDER) {
 			@Override

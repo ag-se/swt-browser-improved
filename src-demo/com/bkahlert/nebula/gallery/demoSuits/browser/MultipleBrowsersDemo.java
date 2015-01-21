@@ -6,7 +6,6 @@ import com.bkahlert.nebula.utils.ExecUtils;
 import com.bkahlert.nebula.widgets.browser.Browser;
 import com.bkahlert.nebula.widgets.browser.extended.html.IAnker;
 import com.bkahlert.nebula.widgets.browser.listener.IAnkerListener;
-import com.bkahlert.nebula.widgets.decoration.EmptyText;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -108,11 +107,8 @@ public class MultipleBrowsersDemo extends AbstractDemo {
 						.getSource()).getText();
 			}
 		});
-
-		new EmptyText(timeout, "Timeout for page load");
 	}
 
-	@Override
 	public void createDemo(Composite parent) {
 		parent.setLayout(new FillLayout());
 

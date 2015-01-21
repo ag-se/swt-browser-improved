@@ -21,7 +21,6 @@ public class DragnDropBrowserDemo extends AbstractDemo {
 	private Browser browser;
 	private Label dropArea;
 
-	@Override
 	public void createDemo(Composite parent) {
 		parent.setLayout(new FillLayout());
 		this.browser = new Browser(parent, SWT.BORDER) {

@@ -12,7 +12,6 @@ import com.bkahlert.nebula.widgets.browser.listener.IAnkerListener;
 import com.bkahlert.nebula.widgets.browser.listener.IFocusListener;
 import com.bkahlert.nebula.widgets.browser.listener.IMouseListener;
 import com.bkahlert.nebula.widgets.browser.runner.BrowserScriptRunner.JavaScriptExceptionListener;
-import com.bkahlert.nebula.widgets.decoration.EmptyText;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -106,8 +105,6 @@ public class BrowserDemo extends AbstractDemo {
                 				.getSource()).getText();
             }
         });
-
-		new EmptyText(timeout, "Timeout for page load");
 
 		this.createControlButton(
 				"change background color using CSS injection",
@@ -207,7 +204,6 @@ public class BrowserDemo extends AbstractDemo {
 
 	}
 
-	@Override
 	public void createDemo(Composite parent) {
 		this.browser = new Browser(parent, SWT.BORDER);
 		this.browser.addAnkerListener(new IAnkerListener() {
