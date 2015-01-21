@@ -5,6 +5,7 @@ import org.eclipse.core.runtime.FileLocator;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.regex.Pattern;
@@ -19,11 +20,23 @@ public class ClasspathFileUtils {
      * @return a file object
      */
     public static File getFile(Class<?> clazz, String clazzRelativePath) {
-        return new File(getFileUrl(clazz, clazzRelativePath));
+        return new File(getFileUri(clazz, clazzRelativePath));
     }
 
-    public static URI getFileUrl(Class<?> clazz, String clazzRelativePath) {
+    public static URI getFileUri(Class<?> clazz, String clazzRelativePath) {
         return getFileUrl(clazz, clazzRelativePath, "");
+    }
+
+    public static File getFile(String relativePath) {
+        return new File(ClasspathFileUtils.class.getResource(relativePath).getFile());
+    }
+
+    public static URI getFileUri(String relativePath) {
+        try {
+            return ClasspathFileUtils.class.getResource(relativePath).toURI();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static URI getFileUrl(Class<?> clazz, String clazzRelativePath, String suffix) {

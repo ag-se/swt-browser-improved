@@ -321,7 +321,7 @@ public class Browser extends Composite implements IBrowser {
 			return;
 		}
 
-		File events = ClasspathFileUtils.getFile(Browser.class, "events.js");
+		File events = ClasspathFileUtils.getFile("/events.js");
 		try {
 			Browser.this.runContentsImmediately(events);
 		} catch (Exception e) {
@@ -333,8 +333,8 @@ public class Browser extends Composite implements IBrowser {
 			}
 		}
 
-		File dnd = ClasspathFileUtils.getFile(Browser.class, "dnd.js");
-		File dndCss = ClasspathFileUtils.getFile(Browser.class, "dnd.css");
+		File dnd = ClasspathFileUtils.getFile("/dnd.js");
+		File dndCss = ClasspathFileUtils.getFile("/dnd.css");
 		try {
 			Browser.this.runContentsImmediately(dnd);
 			Browser.this.injectCssFile(new URI("file://" + dndCss));

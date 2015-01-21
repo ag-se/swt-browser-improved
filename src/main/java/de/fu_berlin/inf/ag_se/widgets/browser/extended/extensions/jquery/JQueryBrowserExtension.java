@@ -9,8 +9,7 @@ public class JQueryBrowserExtension extends BrowserExtension {
 
 	public JQueryBrowserExtension() {
 		super("jQuery 1.9.0", "return typeof jQuery !== 'undefined';", Arrays
-				.asList(ClasspathFileUtils.getFile(JQueryBrowserExtension.class,
-                        "jquery-1.9.0.js")), null, null);
+				.asList(ClasspathFileUtils.getFile("/jquery-1.9.0.js")), null, null);
 	}
 
 }
