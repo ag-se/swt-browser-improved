@@ -11,6 +11,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
+import de.fu_berlin.inf.ag_se.utils.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -32,11 +33,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
-import de.fu_berlin.inf.ag_se.utils.CompletedFuture;
-import de.fu_berlin.inf.ag_se.utils.EventDelegator;
-import de.fu_berlin.inf.ag_se.utils.ExecUtils;
-import de.fu_berlin.inf.ag_se.utils.IConverter;
-import de.fu_berlin.inf.ag_se.utils.SWTUtils;
 import de.fu_berlin.inf.ag_se.utils.colors.RGB;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Anker;
@@ -325,7 +321,7 @@ public class Browser extends Composite implements IBrowser {
 			return;
 		}
 
-		File events = BrowserUtils.getFile(Browser.class, "events.js");
+		File events = ClasspathFileUtils.getFile(Browser.class, "events.js");
 		try {
 			Browser.this.runContentsImmediately(events);
 		} catch (Exception e) {
@@ -337,8 +333,8 @@ public class Browser extends Composite implements IBrowser {
 			}
 		}
 
-		File dnd = BrowserUtils.getFile(Browser.class, "dnd.js");
-		File dndCss = BrowserUtils.getFile(Browser.class, "dnd.css");
+		File dnd = ClasspathFileUtils.getFile(Browser.class, "dnd.js");
+		File dndCss = ClasspathFileUtils.getFile(Browser.class, "dnd.css");
 		try {
 			Browser.this.runContentsImmediately(dnd);
 			Browser.this.injectCssFile(new URI("file://" + dndCss));
