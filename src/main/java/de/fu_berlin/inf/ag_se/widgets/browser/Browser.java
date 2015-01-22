@@ -337,7 +337,7 @@ public class Browser extends Composite implements IBrowser {
 		File dndCss = ClasspathFileUtils.getFile("/dnd.css");
 		try {
 			Browser.this.runContentsImmediately(dnd);
-			Browser.this.injectCssFile(new URI("file://" + dndCss));
+			Browser.this.injectCssFile(dndCss.toURI());
 		} catch (Exception e) {
 			if (e.getCause() instanceof SWTException) {
 				// disposed

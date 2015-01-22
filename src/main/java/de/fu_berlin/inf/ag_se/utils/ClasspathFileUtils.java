@@ -1,9 +1,14 @@
 package de.fu_berlin.inf.ag_se.utils;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.FileLocator;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -12,6 +17,7 @@ import java.util.regex.Pattern;
 
 public class ClasspathFileUtils {
 
+    private static final Logger LOGGER = Logger.getLogger(ClasspathFileUtils.class);
     /**
      * Gets a file object for a file path which is given relative to the location of a loaded class.
      *
@@ -28,15 +34,27 @@ public class ClasspathFileUtils {
     }
 
     public static File getFile(String relativePath) {
-        return new File(ClasspathFileUtils.class.getResource(relativePath).getFile());
+        URL resource = ClasspathFileUtils.class.getResource(relativePath);
+        if (resource.toString().contains("!/")) {
+            InputStream in = ClasspathFileUtils.class.getResourceAsStream(relativePath);
+            File tempFile;
+            try {
+                 tempFile = File.createTempFile(FilenameUtils.getName(relativePath), FilenameUtils.getExtension(relativePath));
+                FileWriter output = new FileWriter(tempFile);
+                IOUtils.copy(in, output);
+                in.close();
+                output.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return tempFile;
+
+        }
+        return new File(resource.getFile());
     }
 
     public static URI getFileUri(String relativePath) {
-        try {
-            return ClasspathFileUtils.class.getResource(relativePath).toURI();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+        return getFile(relativePath).toURI();
     }
 
     private static URI getFileUrl(Class<?> clazz, String clazzRelativePath, String suffix) {
