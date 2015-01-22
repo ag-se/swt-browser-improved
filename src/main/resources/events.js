@@ -88,6 +88,8 @@ function serialize(obj) {
     return jsons;
 }
 
+if (!window.console) console = {log: function() {}};
+
 console.log = function() {
     window.__consoleLog.apply(this, serialize(arguments));
 }
