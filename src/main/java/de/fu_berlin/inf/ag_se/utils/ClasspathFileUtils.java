@@ -3,14 +3,12 @@ package de.fu_berlin.inf.ag_se.utils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.eclipse.core.runtime.FileLocator;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.regex.Pattern;
@@ -18,6 +16,7 @@ import java.util.regex.Pattern;
 public class ClasspathFileUtils {
 
     private static final Logger LOGGER = Logger.getLogger(ClasspathFileUtils.class);
+
     /**
      * Gets a file object for a file path which is given relative to the location of a loaded class.
      *
@@ -39,7 +38,7 @@ public class ClasspathFileUtils {
             InputStream in = ClasspathFileUtils.class.getResourceAsStream(relativePath);
             File tempFile;
             try {
-                 tempFile = File.createTempFile(FilenameUtils.getName(relativePath), FilenameUtils.getExtension(relativePath));
+                tempFile = File.createTempFile(FilenameUtils.getName(relativePath), FilenameUtils.getExtension(relativePath));
                 FileWriter output = new FileWriter(tempFile);
                 IOUtils.copy(in, output);
                 in.close();
@@ -60,17 +59,9 @@ public class ClasspathFileUtils {
     private static URI getFileUrl(Class<?> clazz, String clazzRelativePath, String suffix) {
         try {
             URL classContainer = getURLForClass(clazz);
-            if (!classContainer.toString().contains("bundleresource:")) {
-                String parent = FilenameUtils.getFullPath(classContainer.getFile());
-                String path = FilenameUtils.concat(parent, clazzRelativePath + suffix);
-                return new File(path).toURI();
-            } else {
-                URL url = FileLocator.toFileURL(clazz
-                        .getResource(clazzRelativePath));
-                String timelineUrlString = url.toString().replace("file:",
-                        "file://");
-                return new URI(timelineUrlString + suffix);
-            }
+            String parent = FilenameUtils.getFullPath(classContainer.getFile());
+            String path = FilenameUtils.concat(parent, clazzRelativePath + suffix);
+            return new File(path).toURI();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

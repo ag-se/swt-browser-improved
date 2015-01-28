@@ -3,8 +3,8 @@ package de.fu_berlin.inf.ag_se.widgets.browser.listener;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import de.fu_berlin.inf.ag_se.utils.Assert;
 import org.apache.log4j.Logger;
-import org.eclipse.core.runtime.Assert;
 
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnker;
 

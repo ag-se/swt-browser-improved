@@ -1,7 +1,6 @@
 package de.fu_berlin.inf.ag_se.utils;
 
 import org.apache.log4j.Logger;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
 

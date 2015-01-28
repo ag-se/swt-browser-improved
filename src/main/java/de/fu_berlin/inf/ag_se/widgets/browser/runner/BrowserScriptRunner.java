@@ -10,20 +10,15 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 
+import de.fu_berlin.inf.ag_se.utils.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.BrowserFunction;
 
-import de.fu_berlin.inf.ag_se.utils.CompletedFuture;
-import de.fu_berlin.inf.ag_se.utils.ExecUtils;
-import de.fu_berlin.inf.ag_se.utils.IConverter;
-import de.fu_berlin.inf.ag_se.utils.OffWorker;
-import de.fu_berlin.inf.ag_se.utils.StringUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.BrowserUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserTimeoutException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserUninitializedException;

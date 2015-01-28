@@ -1,6 +1,5 @@
 package de.fu_berlin.inf.ag_se.utils;
 
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;

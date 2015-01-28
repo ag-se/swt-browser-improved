@@ -6,8 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.eclipse.core.runtime.Assert;
-
+import de.fu_berlin.inf.ag_se.utils.Assert;
 import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
 
 /**
