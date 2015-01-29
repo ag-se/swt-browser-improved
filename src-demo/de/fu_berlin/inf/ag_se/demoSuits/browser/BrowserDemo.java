@@ -16,11 +16,7 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseMoveListener;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -30,13 +26,13 @@ import java.util.concurrent.Future;
 @Demo
 public class BrowserDemo extends AbstractDemo {
 
-	private Browser browser;
-	private String alertString = "Hello World!";
-	private static String timeoutString = "15000";
+    private Browser browser;
+    private String alertString = "Hello World!";
+    private static String timeoutString = "15000";
 
-	@Override
-	public void createControls(Composite composite) {
-		this.createControlButton(
+    @Override
+    public void createControls(Composite composite) {
+        this.createControlButton(
                 "alert",
                 new Runnable() {
                     @Override
@@ -46,14 +42,10 @@ public class BrowserDemo extends AbstractDemo {
                             public void run() {
                                 log("alerting");
                                 try {
-                                    BrowserDemo.this.browser.run(
-                                            "alert(\"" + BrowserDemo.this.alertString
-                                                    + "\");").get();
+                                    browser.run("alert('" + alertString + "');").get();
                                 } catch (InterruptedException e1) {
-                                    // TODO Auto-generated catch block
                                     e1.printStackTrace();
                                 } catch (ExecutionException e2) {
-                                    // TODO Auto-generated catch block
                                     e2.printStackTrace();
                                 }
                                 log("alerted");
@@ -62,8 +54,8 @@ public class BrowserDemo extends AbstractDemo {
                     }
                 });
 
-		this.createControlButton(
-				"alert using external file",
+        this.createControlButton(
+                "alert using external file",
                 new Runnable() {
                     @Override
                     public void run() {
@@ -72,11 +64,9 @@ public class BrowserDemo extends AbstractDemo {
                             public void run() {
                                 log("alerting using external file");
                                 try {
-                                    File jsFile = File.createTempFile(
-                                            BrowserDemo.class.getSimpleName(), ".js");
-                                    FileUtils.write(jsFile, "alert(\""
-                                            + BrowserDemo.this.alertString + "\");");
-                                    BrowserDemo.this.browser.run(jsFile);
+                                    File jsFile = File.createTempFile(BrowserDemo.class.getSimpleName(), ".js");
+                                    FileUtils.write(jsFile, "alert(\"" + alertString + "\");");
+                                    browser.run(jsFile);
                                 } catch (Exception e) {
                                     log(e.toString());
                                 }
@@ -86,29 +76,27 @@ public class BrowserDemo extends AbstractDemo {
                     }
                 });
 
-		Text text = new Text(composite, SWT.BORDER);
-		text.setText(this.alertString);
-		text.addModifyListener(new ModifyListener() {
+        Text text = new Text(composite, SWT.BORDER);
+        text.setText(alertString);
+        text.addModifyListener(new ModifyListener() {
             @Override
             public void modifyText(ModifyEvent e) {
-                BrowserDemo.this.alertString = ((Text) e
-                				.getSource()).getText();
+                alertString = ((Text) e.getSource()).getText();
             }
         });
 
-		Text timeout = new Text(composite, SWT.BORDER);
-		timeout.setText(BrowserDemo.timeoutString);
-		timeout.addModifyListener(new ModifyListener() {
+        Text timeout = new Text(composite, SWT.BORDER);
+        timeout.setText(timeoutString);
+        timeout.addModifyListener(new ModifyListener() {
             @Override
             public void modifyText(ModifyEvent e) {
-                BrowserDemo.timeoutString = ((Text) e
-                				.getSource()).getText();
+                timeoutString = ((Text) e.getSource()).getText();
             }
         });
 
-		this.createControlButton(
-				"change background color using CSS injection",
-				new Runnable() {
+        this.createControlButton(
+                "change background color using CSS injection",
+                new Runnable() {
                     @Override
                     public void run() {
                         new Thread(new Runnable() {
@@ -116,10 +104,8 @@ public class BrowserDemo extends AbstractDemo {
                             public void run() {
                                 log("changing background");
                                 try {
-                                    BrowserDemo.this.browser
-                                            .injectCss("html, body { background-color: "
-                                                    + ColorUtils.getRandomRGB()
-                                                                .toDecString() + "; }");
+                                    browser.injectCss("html, body { background-color: "
+                                            + ColorUtils.getRandomRGB().toDecString() + "; }");
                                 } catch (Exception e) {
                                     log(e.toString());
                                 }
@@ -129,49 +115,49 @@ public class BrowserDemo extends AbstractDemo {
                     }
                 });
 
-		this.createControlButton("add focus border",
-				new Runnable() {
+        this.createControlButton("add focus border",
+                new Runnable() {
                     @Override
                     public void run() {
-                        BrowserDemo.this.browser.addFocusBorder();
+                        browser.addFocusBorder();
                     }
                 });
 
-		this.createControlButton("remove focus border",
-				new Runnable() {
+        this.createControlButton("remove focus border",
+                new Runnable() {
                     @Override
                     public void run() {
-                        BrowserDemo.this.browser.removeFocusBorder();
+                        browser.removeFocusBorder();
                     }
                 });
 
-		new Label(composite, SWT.NONE).setText("Exception Handling:");
+        new Label(composite, SWT.NONE).setText("Exception Handling:");
 
-		this.createControlButton("raise runtime exception", new Runnable() {
+        this.createControlButton("raise runtime exception", new Runnable() {
             @Override
             public void run() {
                 try {
-                    BrowserDemo.this.browser.run("alert(x);").get();
+                    browser.run("alert(x);").get();
                 } catch (Exception e) {
                     log(e);
                 }
             }
         });
 
-		this.createControlButton("raise syntax exception", new Runnable() {
+        this.createControlButton("raise syntax exception", new Runnable() {
             @Override
             public void run() {
                 try {
-                    BrowserDemo.this.browser.run("alert('x);").get();
+                    browser.run("alert('x);").get();
                 } catch (Exception e) {
                     log(e);
                 }
             }
         });
 
-		this.createControlButton(
-				"raise asynchronous runtime exception",
-				new Runnable() {
+        this.createControlButton(
+                "raise asynchronous runtime exception",
+                new Runnable() {
                     @Override
                     public void run() {
                         final JavaScriptExceptionListener javaScriptExceptionListener = new JavaScriptExceptionListener() {
@@ -180,18 +166,15 @@ public class BrowserDemo extends AbstractDemo {
                                 log(javaScriptException);
                             }
                         };
-                        BrowserDemo.this.browser
-                                .addJavaScriptExceptionListener(javaScriptExceptionListener);
+                        browser.addJavaScriptExceptionListener(javaScriptExceptionListener);
                         try {
-                            BrowserDemo.this.browser
-                                    .run("window.setTimeout(function() { alert(x); }, 50);")
-                                    .get();
+                            browser.run("window.setTimeout(function() { alert(x); }, 50);").get();
                             ExecUtils.nonUIAsyncExec(
                                     new Callable<Void>() {
                                         @Override
                                         public Void call() throws Exception {
-                                            BrowserDemo.this.browser
-                                                    .removeJavaScriptExceptionListener(javaScriptExceptionListener);
+                                            browser.removeJavaScriptExceptionListener(
+                                                    javaScriptExceptionListener);
                                             return null;
                                         }
                                     }, 100);
@@ -202,40 +185,40 @@ public class BrowserDemo extends AbstractDemo {
                     }
                 });
 
-	}
+    }
 
-	public void createDemo(Composite parent) {
-		this.browser = new Browser(parent, SWT.BORDER);
-		this.browser.addAnkerListener(new IAnkerListener() {
-			@Override
-			public void ankerHovered(IAnker anker, boolean entered) {
-				log("hovered " + (entered ? "over" : "out") + " " + anker);
-			}
-
-			@Override
-			public void ankerClicked(IAnker anker) {
-				log("clicked on " + anker);
-			}
-		});
-		this.browser.addFocusListener(new IFocusListener() {
-			@Override
-			public void focusLost(IElement element) {
-				log("focus lost " + element);
-			}
-
-			@Override
-			public void focusGained(IElement element) {
-				log("focus gained " + element);
-			}
-		});
-		this.browser.addMouseMoveListener(new MouseMoveListener() {
+    @Override
+    public void createDemo(Composite parent) {
+        browser = new Browser(parent, SWT.BORDER);
+        browser.addAnkerListener(new IAnkerListener() {
             @Override
-            public void mouseMove(MouseEvent e) {
-                log("relative mouse pos " + e.x
-                				+ "," + e.y);
+            public void ankerHovered(IAnker anker, boolean entered) {
+                log("hovered " + (entered ? "over" : "out") + " " + anker);
+            }
+
+            @Override
+            public void ankerClicked(IAnker anker) {
+                log("clicked on " + anker);
             }
         });
-		this.browser.addMouseListener(new IMouseListener() {
+        browser.addFocusListener(new IFocusListener() {
+            @Override
+            public void focusLost(IElement element) {
+                log("focus lost " + element);
+            }
+
+            @Override
+            public void focusGained(IElement element) {
+                log("focus gained " + element);
+            }
+        });
+//        this.browser.addMouseMoveListener(new MouseMoveListener() {
+//            @Override
+//            public void mouseMove(MouseEvent e) {
+//                log("relative mouse pos " + e.x + "," + e.y);
+//            }
+//        });
+        browser.addMouseListener(new IMouseListener() {
             @Override
             public void mouseMove(double x, double y) {
                 log("absolute mouse pos " + x + "," + y);
@@ -257,11 +240,8 @@ public class BrowserDemo extends AbstractDemo {
             }
         });
 
-		final Future<Boolean> success = this.browser.open(
-				"http://wikipedia.com",
-				Integer.parseInt(BrowserDemo.timeoutString));
-		ExecUtils.nonUIAsyncExec(new Callable<Void>() {
-
+        final Future<Boolean> success = browser.open("http://inf.fu-berlin.de", Integer.parseInt(timeoutString));
+        ExecUtils.nonUIAsyncExec(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 try {
@@ -276,12 +256,16 @@ public class BrowserDemo extends AbstractDemo {
                 log(ExecUtils.syncExec(new Callable<String>() {
                     @Override
                     public String call() throws Exception {
-                        return BrowserDemo.this.browser.getBrowser()
-                                            .getUrl();
+                        return browser.getUrl();
                     }
                 }));
                 return null;
             }
         });
-	}
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        startDemo(new BrowserDemo());
+    }
+
 }
