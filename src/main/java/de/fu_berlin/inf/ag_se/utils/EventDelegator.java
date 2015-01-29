@@ -19,7 +19,7 @@ public class EventDelegator {
 	 * {@link org.eclipse.swt.widgets.Control}.
 	 * 
 	 * @param eventType
-	 * @param clazz
+	 * @param control
 	 * @return
 	 */
 	public static boolean mustDelegate(int eventType, Control control) {

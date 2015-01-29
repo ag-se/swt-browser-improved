@@ -1,16 +1,8 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.runner;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicReference;
-
 import de.fu_berlin.inf.ag_se.utils.*;
+import de.fu_berlin.inf.ag_se.widgets.browser.BrowserUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.exception.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
@@ -19,12 +11,14 @@ import org.eclipse.swt.SWTException;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.BrowserFunction;
 
-import de.fu_berlin.inf.ag_se.widgets.browser.BrowserUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserTimeoutException;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserUninitializedException;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateException;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * This is the default implementation of {@link IBrowserScriptRunner}.
@@ -189,32 +183,31 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
 
         // apply new status
         this.browserStatus = browserStatus;
+
         switch (this.browserStatus) {
             case LOADING:
-                this.activateExceptionHandling();
+                activateExceptionHandling();
                 break;
             case LOADED:
-                this.delayedScriptsWorker.start();
-                this.delayedScriptsWorker.finish();
+                delayedScriptsWorker.start();
+                delayedScriptsWorker.finish();
                 break;
             case TIMEDOUT:
             case DISPOSED:
-                if (this.delayedScriptsWorker != null) {
+                if (delayedScriptsWorker != null) {
                     this.delayedScriptsWorker.submit(new Callable<Void>() {
                         @Override
                         public Void call() throws Exception {
-                            if (!BrowserScriptRunner.this.delayedScriptsWorker
-                                    .isShutdown()) {
-                                BrowserScriptRunner.this.delayedScriptsWorker
-                                        .shutdown();
+                            if (!delayedScriptsWorker.isShutdown()) {
+                                delayedScriptsWorker.shutdown();
                             }
                             return null;
                         }
                     });
                 }
 
-                this.delayedScriptsWorker.start();
-                this.delayedScriptsWorker.finish();
+                delayedScriptsWorker.start();
+                delayedScriptsWorker.finish();
                 break;
             default:
         }
@@ -230,12 +223,11 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
     }
 
     /**
-     * Notifies all registered {@link IJavaScriptExceptionListener}s in case a JavaScript error occurred.
+     * Notifies all registered Javascript exception listeners in case a JavaScript error occurred.
      */
     private void activateExceptionHandling() {
         try {
-            this.runImmediately(BrowserUtils
-                            .getExceptionForwardingScript("__error_callback"),
+            this.runImmediately(BrowserUtils.getExceptionForwardingScript("__error_callback"),
                     IConverter.CONVERTER_VOID);
         } catch (Exception e) {
             LOGGER.error(
@@ -245,8 +237,8 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
     }
 
     @Override
-    public Future<Boolean> inject(URI script) {
-        return this.run(script, false);
+    public Future<Boolean> inject(URI scriptURI) {
+        return this.run(scriptURI, false);
     }
 
     @Override
@@ -257,8 +249,8 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
     }
 
     @Override
-    public Future<Boolean> run(final URI script) {
-        return this.run(script, true);
+    public Future<Boolean> run(final URI scriptURI) {
+        return this.run(scriptURI, true);
     }
 
     private Future<Boolean> run(final URI script,
@@ -269,17 +261,11 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
             File file = new File(script);
             try {
                 String scriptContent = FileUtils.readFileToString(file);
-                Future<Boolean> rs = this.run(scriptContent,
-                        new IConverter<Object, Boolean>() {
-                            @Override
-                            public Boolean convert(Object returnValue) {
-                                return true;
-                            }
-                        });
+                Future<Boolean> rs = this.run(scriptContent, IConverter.ALWAYS_TRUE);
                 if (removeAfterExecution) {
                     LOGGER.warn("The script "
                             + script
-                            + " is on the local file system. To circument security restrictions its content becomes directly executed and thus cannot be removed.");
+                            + " is on the local file system. To circumvent security restrictions its content becomes directly executed and thus cannot be removed.");
                 }
                 return rs;
             } catch (IOException e) {
@@ -298,12 +284,9 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
                                 @Override
                                 public void run() {
                                     final AtomicReference<BrowserFunction> callback = new AtomicReference<BrowserFunction>();
-                                    callback.set(new BrowserFunction(
-                                            BrowserScriptRunner.this.browser,
-                                            callbackFunctionName) {
+                                    callback.set(new BrowserFunction(browser, callbackFunctionName) {
                                         @Override
-                                        public Object function(
-                                                Object[] arguments) {
+                                        public Object function(Object[] arguments) {
                                             callback.get().dispose();
                                             mutex.release();
                                             return null;
@@ -324,7 +307,7 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
                             // runs the scripts that ends by calling the
                             // callback
                             // ...
-                            BrowserScriptRunner.this.run(js);
+                            run(js);
                             try {
                                 // ... which destroys itself and releases this
                                 // lock
@@ -361,10 +344,10 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
                         new ScriptExecutionException(script,
                                 new BrowserUninitializedException(this.browser)));
             case LOADING:
-                return this.delayedScriptsWorker.submit(new Callable<DEST>() {
+                return delayedScriptsWorker.submit(new Callable<DEST>() {
                     @Override
                     public DEST call() throws Exception {
-                        switch (BrowserScriptRunner.this.browserStatus) {
+                        switch (browserStatus) {
                             case LOADED:
                                 return ExecUtils.syncExec(scriptRunner);
                             case TIMEDOUT:
@@ -405,8 +388,7 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
     }
 
     @Override
-    public <DEST> DEST runImmediately(String script,
-                                      IConverter<Object, DEST> converter) throws Exception {
+    public <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter) throws Exception {
         return ExecUtils.syncExec(createScriptRunner(this, script, converter));
     }
 

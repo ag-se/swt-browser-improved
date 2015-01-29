@@ -9,32 +9,28 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * {@link IConverter} can convert an object of arbitrary type to type
- * <code>T</code>.
+ * {@link IConverter} can convert an object of arbitrary type to type <code>T</code>.
  *
+ * @param <T> type give objects can be converted to
  * @author bjornson
- *
- * @param <T>
- *            type give objects can be converted to
  */
 public interface IConverter<SRC, DEST> {
 
-	/**
-	 * {@link IConverter} that converts objects to null of type {@link Void}.
-	 */
-	public static final IConverter<Object, Void> CONVERTER_VOID = new IConverter<Object, Void>() {
+    /**
+     * {@link IConverter} that converts objects to null of type {@link Void}.
+     */
+    public static final IConverter<Object, Void> CONVERTER_VOID = new IConverter<Object, Void>() {
         @Override
         public Void convert(Object returnValue) {
             return null;
         }
     };
 
-	/**
-	 * {@link IConverter} that converts objects to {@link Boolean}s. Converts to
-	 * <code>true</code> if the given object is of type {@link Boolean} and of
-	 * value <code>true</code>. Otherwise converts to <code>false</code>.
-	 */
-	public static final IConverter<Object, Boolean> CONVERTER_BOOLEAN = new IConverter<Object, Boolean>() {
+    /**
+     * {@link IConverter} that converts objects to {@link Boolean}s. Converts to <code>true</code> if the given object is of type {@link
+     * Boolean} and of value <code>true</code>. Otherwise converts to <code>false</code>.
+     */
+    public static final IConverter<Object, Boolean> CONVERTER_BOOLEAN = new IConverter<Object, Boolean>() {
         @Override
         public Boolean convert(Object returnValue) {
             if (returnValue == null || !Boolean.class.isInstance(returnValue)) {
@@ -44,12 +40,18 @@ public interface IConverter<SRC, DEST> {
         }
     };
 
-	/**
-	 * {@link IConverter} that converts objects to {@link Strings}s. Returns a
-	 * {@link String} if the object is of type {@link String}. Otherwise
-	 * converts to <code>null</code>.
-	 */
-	public static final IConverter<Object, String> CONVERTER_STRING = new IConverter<Object, String>() {
+    public static final IConverter<Object, Boolean> ALWAYS_TRUE = new IConverter<Object, Boolean>() {
+        @Override
+        public Boolean convert(Object returnValue) {
+            return true;
+        }
+    };
+
+    /**
+     * {@link IConverter} that converts objects to {@link Strings}s. Returns a {@link String} if the object is of type {@link String}.
+     * Otherwise converts to <code>null</code>.
+     */
+    public static final IConverter<Object, String> CONVERTER_STRING = new IConverter<Object, String>() {
         @Override
         public String convert(Object returnValue) {
             if (returnValue == null || !String.class.isInstance(returnValue)) {
@@ -59,12 +61,11 @@ public interface IConverter<SRC, DEST> {
         }
     };
 
-	/**
-	 * {@link IConverter} that converts objects a {@link java.util.List} of
-	 * {@link Strings}s. If a primitive type is returned, a list containing this
-	 * single element is returned. <code>null</code> is directly passed through.
-	 */
-	public static final IConverter<Object, List<String>> CONVERTER_STRINGLIST = new IConverter<Object, List<String>>() {
+    /**
+     * {@link IConverter} that converts objects a {@link java.util.List} of {@link Strings}s. If a primitive type is returned, a list
+     * containing this single element is returned. <code>null</code> is directly passed through.
+     */
+    public static final IConverter<Object, List<String>> CONVERTER_STRINGLIST = new IConverter<Object, List<String>>() {
         @Override
         public List<String> convert(Object returnValue) {
             if (returnValue == null) {
@@ -82,12 +83,11 @@ public interface IConverter<SRC, DEST> {
         }
     };
 
-	/**
-	 * {@link IConverter} that converts objects to {@link org.eclipse.swt.graphics.Point}s. Returns a
-	 * {@link org.eclipse.swt.graphics.Point} if the object is an array of two {@link Double}s. Otherwise
-	 * converts to <code>null</code>.
-	 */
-	public static final IConverter<Object, Point> CONVERTER_POINT = new IConverter<Object, Point>() {
+    /**
+     * {@link IConverter} that converts objects to {@link org.eclipse.swt.graphics.Point}s. Returns a {@link org.eclipse.swt.graphics.Point}
+     * if the object is an array of two {@link Double}s. Otherwise converts to <code>null</code>.
+     */
+    public static final IConverter<Object, Point> CONVERTER_POINT = new IConverter<Object, Point>() {
         @Override
         public Point convert(Object returnValue) {
             if (returnValue == null || !Object[].class.isInstance(returnValue)
@@ -102,12 +102,11 @@ public interface IConverter<SRC, DEST> {
         }
     };
 
-	/**
-	 * {@link IConverter} that converts objects to {@link org.eclipse.swt.graphics.Rectangle}s. Returns a
-	 * {@link org.eclipse.swt.graphics.Point} if the object is an array of two {@link Double}s. Otherwise
-	 * converts to <code>null</code>.
-	 */
-	public static final IConverter<Object, Rectangle> CONVERTER_RECTANGLE = new IConverter<Object, Rectangle>() {
+    /**
+     * {@link IConverter} that converts objects to {@link org.eclipse.swt.graphics.Rectangle}s. Returns a {@link
+     * org.eclipse.swt.graphics.Point} if the object is an array of two {@link Double}s. Otherwise converts to <code>null</code>.
+     */
+    public static final IConverter<Object, Rectangle> CONVERTER_RECTANGLE = new IConverter<Object, Rectangle>() {
         @Override
         public Rectangle convert(Object returnValue) {
             if (returnValue == null || !Object[].class.isInstance(returnValue)
@@ -126,12 +125,11 @@ public interface IConverter<SRC, DEST> {
         }
     };
 
-	/**
-	 * {@link IConverter} that converts objects to {@link Double}s. Returns a
-	 * {@link Double} if the object is of type {@link Double}. Otherwise
-	 * converts to <code>null</code>.
-	 */
-	public static final IConverter<Object, Double> CONVERTER_DOUBLE = new IConverter<Object, Double>() {
+    /**
+     * {@link IConverter} that converts objects to {@link Double}s. Returns a {@link Double} if the object is of type {@link Double}.
+     * Otherwise converts to <code>null</code>.
+     */
+    public static final IConverter<Object, Double> CONVERTER_DOUBLE = new IConverter<Object, Double>() {
         @Override
         public Double convert(Object returnValue) {
             if (returnValue == null || !Double.class.isInstance(returnValue)) {
@@ -141,7 +139,7 @@ public interface IConverter<SRC, DEST> {
         }
     };
 
-	public static final IConverter<Object, List<Double>> CONVERTER_DOUBLELIST = new IConverter<Object, List<Double>>() {
+    public static final IConverter<Object, List<Double>> CONVERTER_DOUBLELIST = new IConverter<Object, List<Double>>() {
         @Override
         public List<Double> convert(Object returnValue) {
             if (returnValue == null) {
@@ -162,7 +160,7 @@ public interface IConverter<SRC, DEST> {
         }
     };
 
-	public static final IConverter<Object, List<Integer>> CONVERTER_INTEGERLIST = new IConverter<Object, List<Integer>>() {
+    public static final IConverter<Object, List<Integer>> CONVERTER_INTEGERLIST = new IConverter<Object, List<Integer>>() {
         @Override
         public List<Integer> convert(Object returnValue) {
             if (returnValue == null) {
@@ -178,5 +176,5 @@ public interface IConverter<SRC, DEST> {
         }
     };
 
-	public DEST convert(SRC returnValue);
+    public DEST convert(SRC returnValue);
 }
