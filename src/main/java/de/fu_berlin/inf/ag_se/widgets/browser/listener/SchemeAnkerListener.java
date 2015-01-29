@@ -32,11 +32,6 @@ public class SchemeAnkerListener implements IAnkerListener {
 		this.listeners = listeners;
 		this.defaultListener = new IAnkerListener() {
 			@Override
-			public void ankerClicked(IAnker anker) {
-				return;
-			}
-
-			@Override
 			public void ankerHovered(IAnker anker, boolean entered) {
 				return;
 			}
@@ -47,48 +42,6 @@ public class SchemeAnkerListener implements IAnkerListener {
 			IAnkerListener defaultListener) {
 		this.listeners = listeners;
 		this.defaultListener = defaultListener;
-	}
-
-	@Override
-	public void ankerClicked(final IAnker anker) {
-		ExecUtils.nonUIAsyncExec(SchemeAnkerListener.class,
-				"Anker Clicked Notification", new Runnable() {
-					@Override
-					public void run() {
-						try {
-							final URI uri = new URI(anker.getHref());
-							if (uri.getScheme() == null) {
-								if (SchemeAnkerListener.this.listeners
-										.containsKey(null)) {
-									SchemeAnkerListener.this.listeners
-											.get(null).ankerClicked(anker);
-								} else {
-									return;
-								}
-							} else {
-								boolean handled = false;
-								for (String schema : SchemeAnkerListener.this.listeners
-										.keySet()) {
-									if (uri.getScheme()
-											.equalsIgnoreCase(schema)) {
-										SchemeAnkerListener.this.listeners.get(
-												schema).ankerClicked(anker);
-										handled = true;
-										break;
-									}
-								}
-								if (!handled) {
-									SchemeAnkerListener.this.defaultListener
-											.ankerClicked(anker);
-								}
-							}
-						} catch (URISyntaxException e) {
-							LOGGER.info("Invalid URI in "
-									+ SchemeAnkerListener.class.getSimpleName()
-									+ ": " + anker);
-						}
-					}
-				});
 	}
 
 	@Override

@@ -29,16 +29,6 @@ public class AnkerAdaptingListener implements IAnkerListener {
 	}
 
 	@Override
-	public void ankerClicked(IAnker anker) {
-		try {
-			this.uriListener.uriClicked(new URI(anker.getHref()));
-		} catch (URISyntaxException e) {
-			// LOGGER.info("Error converting " + anker.getHref() + " to a "
-			// + URI.class.getSimpleName(), e);
-		}
-	}
-
-	@Override
 	public void ankerHovered(IAnker anker, boolean entered) {
 		try {
 			this.uriListener.uriHovered(new URI(anker.getHref()), entered);

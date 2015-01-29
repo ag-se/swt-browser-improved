@@ -103,11 +103,6 @@ public class MultipleBrowsersDemo extends AbstractDemo {
                 public void ankerHovered(IAnker anker, boolean entered) {
                     log("(" + num + ") hovered " + (entered ? "over" : "out") + " " + anker);
                 }
-
-				@Override
-				public void ankerClicked(IAnker anker) {
-					log("(" + num + ") clicked on " + anker);
-				}
             });
             try {
                 final Future<Boolean> success = this.browsers[i]

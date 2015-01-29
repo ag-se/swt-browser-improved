@@ -101,11 +101,6 @@ public class BootstrapBrowserDemo extends AbstractDemo {
                     log("Anker hovered out: " + anker);
                 }
             }
-
-			@Override
-			public void ankerClicked(IAnker anker) {
-				log("Anker clicked: " + anker);
-			}
         });
         this.bootstrapBrowser.addFocusListener(new IFocusListener() {
             @Override

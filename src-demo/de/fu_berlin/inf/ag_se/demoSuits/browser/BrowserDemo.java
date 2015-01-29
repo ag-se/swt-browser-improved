@@ -193,11 +193,6 @@ public class BrowserDemo extends AbstractDemo {
             public void ankerHovered(IAnker anker, boolean entered) {
                 log("hovered " + (entered ? "over" : "out") + " " + anker);
             }
-
-            @Override
-            public void ankerClicked(IAnker anker) {
-                log("clicked on " + anker);
-            }
         });
         browser.addFocusListener(new IFocusListener() {
             @Override

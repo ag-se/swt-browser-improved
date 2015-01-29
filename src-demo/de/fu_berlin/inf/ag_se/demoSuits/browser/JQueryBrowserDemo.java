@@ -100,11 +100,6 @@ public class JQueryBrowserDemo extends AbstractDemo {
                         log("Anker hovered out: " + anker);
                     }
                 }
-
-				@Override
-				public void ankerClicked(IAnker anker) {
-					log("Anker clicked: " + anker);
-				}
             });
             this.jQueryBrowserComposite.addFocusListener(new IFocusListener() {
                 @Override

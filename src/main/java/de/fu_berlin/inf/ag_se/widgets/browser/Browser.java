@@ -839,13 +839,6 @@ public class Browser extends Composite implements IBrowser {
         for (IMouseListener mouseListener : Browser.this.mouseListeners) {
             mouseListener.clicked(x, y, element);
         }
-        if (element.getName().equals("a")) {
-            IAnker anker = new Anker(element.getAttributes(),
-                    element.getContent());
-            for (IAnkerListener ankerListener : Browser.this.ankerListeners) {
-                ankerListener.ankerClicked(anker);
-            }
-        }
     }
 
     @Override
