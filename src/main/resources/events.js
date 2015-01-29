@@ -23,7 +23,7 @@ if(k&&j[k]&&(e||j[k].data)||void 0!==d||"string"!=typeof b)return k||(k=i?a[h]=c
 /*
  * jQuery resize event - v1.1 - 3/14/2010
  * http://benalman.com/projects/jquery-resize-plugin/
- * 
+ *
  * Copyright (c) 2010 "Cowboy" Ben Alman
  * Dual licensed under the MIT and GPL licenses.
  * http://benalman.com/about/license/
@@ -35,7 +35,7 @@ var $ = window.$.noConflict(true);
 /*
  * jQuery throttle / debounce - v1.1 - 3/7/2010
  * http://benalman.com/projects/jquery-throttle-debounce-plugin/
- * 
+ *
  * Copyright (c) 2010 "Cowboy" Ben Alman
  * Dual licensed under the MIT and GPL licenses.
  * http://benalman.com/about/license/
@@ -49,7 +49,7 @@ var $ = window.$.noConflict(true);
  * Since the SWT Browser only supports a limited set of types to be forwarded to Java,
  * we convert unsupported types to a JSON string.
  */
- 
+
 // http://stackoverflow.com/questions/384286/javascript-isdom-how-do-you-check-if-a-javascript-object-is-a-dom-object
 function isElement(obj) {
 	try {
@@ -98,16 +98,31 @@ console.error = function() {
 	window.__consoleError.apply(this, serialize(arguments));
 }
 
+    navigator.sayswho= (function(){
+        var ua= navigator.userAgent, tem,
+        M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+        if(/trident/i.test(M[1])){
+            tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+            return 'IE '+(tem[1] || '');
+        }
+        if(M[1]=== 'Chrome'){
+            tem= ua.match(/\bOPR\/(\d+)/)
+            if(tem!= null) return 'Opera '+tem[1];
+        }
+        M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+        if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+        return M.join(' ');
+    })();
 
 
 window.__addFocusBorder = function() {
 	if($('.nebulaBrowserFocusBorder').length > 0) return;
     $('<div class="nebulaBrowserFocusBorder" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; box-sizing: border-box; border-color: #66afe9; outline: 0; -webkit-box-shadow: inset 0 0 8px rgba(102,175,233,.6); box-shadow: inset 0 0 8px rgba(102,175,233,.6);"></div>').prependTo('body');
-}
+};
 
 window.__removeFocusBorder = function() {
 	$('.nebulaBrowserFocusBorder').remove();
-}
+};
 
 
 
@@ -182,7 +197,7 @@ function clone(e) {
 
 window["__hoveredAnker"] = null;
 var lastHoveredElement = null;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
 $(document).on("mouseenter", "a", function () {
     var r = clone(this);
     window["__hoveredAnker"] = r;
@@ -213,11 +228,11 @@ window['__notifySize'] = function() {
 		wHint = arguments[0];
 		hHint = arguments[1];
 	}
-	
+
 	var bodyCss = { display: wHint != -1 ? 'inline-block' : 'inline' };
 	if(wHint != -1) bodyCss.width = wHint;
 	if(hHint != -1) bodyCss.height = hHint;
-	
+
 	$('body').css(bodyCss);
 	var bounds = {};
 	bounds.x = 0;
@@ -225,7 +240,7 @@ window['__notifySize'] = function() {
 	bounds.w = $('body').outerWidth(true);
 	$('body').css({ display: '', width: '', height: '' });
 	bounds.h = $('body').outerHeight(true);
-	
+
 	if(oldBounds.x == bounds.x && oldBounds.y == bounds.y && oldBounds.w == bounds.w && oldBounds.h == bounds.h) return;
 	oldBounds = bounds;
 
@@ -245,8 +260,8 @@ $('body').resize(debouncingNotifySize);
 $('body').bind('DOMSubtreeModified', debouncingNotifySize);
 
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+
 
 window["__focusElement"] = null;
 var focusElement = null;
@@ -275,10 +290,17 @@ var n = function (e) {
     }
 };
 
-window.addEventListener("DOMSubtreeModified", n, true);
-window.addEventListener("beforeunload", n, true);
-window.addEventListener("unload", n, true);
+function bindEvent(el, eventName, eventHandler) {
+  if (el.addEventListener){
+    el.addEventListener(eventName, eventHandler, true);
+  } else if (el.attachEvent){
+    el.attachEvent('on'+eventName, eventHandler);
+  }
+}
 
+bindEvent(window, "DOMSubtreeModified", n);
+bindEvent(window, "beforeunload", n);
+bindEvent(window, "unload", n);
 
 function getValidElement(element, className) {
 	if(!element) return null;

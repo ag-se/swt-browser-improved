@@ -41,6 +41,12 @@ function findDroppable(evt) {
 
 var lastEnteredDroppable = null;
 
+if (!document.addEventListener) {
+    document.addEventListener = function (eventName, eventHandler, bool) {
+        document.attachEvent('on' + eventName, eventHandler);
+    };
+}
+
 document.addEventListener("dragstart", function(e) {
 	if(e.target.getAttribute("draggable")) {
 		e.target.classList.add('dragging');
