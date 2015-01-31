@@ -1009,4 +1009,18 @@ public class Browser extends Composite implements IBrowser {
                 + ", " + hHint + ", " + changed + ") -> " + size);
         return size;
     }
+
+    public IBrowserFunction createBrowserFunction(String functionName, final IBrowserFunction function) {
+        new BrowserFunction(browser, functionName) {
+            @Override
+            public Object function(Object[] arguments) {
+                return function.function(arguments);
+            }
+        };
+        return function;
+    }
+
+    public void execute(String javaScript) {
+        run(javaScript);
+    }
 }
