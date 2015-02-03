@@ -5,11 +5,14 @@
 		<layout class="org.apache.log4j.PatternLayout" />
 	</appender>
 	<logger name="de.fu_berlin.inf.ag_se.utils">
-		<level value="warn" />
+		<level value="debug" />
 	</logger>
 	<logger name="de.fu_berlin.inf.ag_se.widgets.browser">
-		<level value="warn" />
+		<level value="debug" />
 	</logger>
+    <logger name="de.fu_berlin.inf.ag_se.demoSuits">
+    		<level value="debug" />
+    	</logger>
 	<root>
 		<level value="warn" />
 		<appender-ref ref="de.fu_berlin.inf.ag_se.ConsoleAppender" />
