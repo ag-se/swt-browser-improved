@@ -2,6 +2,7 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
+import de.fu_berlin.inf.ag_se.utils.SwtUiThreadExecutor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
@@ -139,12 +140,12 @@ public class BrowserTest {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				ExecUtils.asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						shell.close();
-					}
-				});
+				SwtUiThreadExecutor.asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        shell.close();
+                    }
+                });
 			}
 		});
 

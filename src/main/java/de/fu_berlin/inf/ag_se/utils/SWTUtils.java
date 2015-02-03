@@ -27,7 +27,7 @@ public class SWTUtils {
 
 	public static Point getDisplaySize() {
 		try {
-			return ExecUtils.syncExec(new Callable<Point>() {
+			return SwtUiThreadExecutor.syncExec(new Callable<Point>() {
                 @Override
                 public Point call() throws Exception {
                     Rectangle bounds = Display.getCurrent().getBounds();

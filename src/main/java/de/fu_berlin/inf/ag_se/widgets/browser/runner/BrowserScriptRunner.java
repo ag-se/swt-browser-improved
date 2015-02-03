@@ -305,23 +305,23 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
 									.createRandomFunctionName();
 
 							final Semaphore mutex = new Semaphore(0);
-							ExecUtils.syncExec(new Runnable() {
-								@Override
-								public void run() {
-									final AtomicReference<BrowserFunction> callback = new AtomicReference<BrowserFunction>();
-									callback.set(new BrowserFunction(
-											BrowserScriptRunner.this.browser,
-											callbackFunctionName) {
-										@Override
-										public Object function(
-												Object[] arguments) {
-											callback.get().dispose();
-											mutex.release();
-											return null;
-										}
-									});
-								}
-							});
+							SwtUiThreadExecutor.syncExec(new Runnable() {
+                                @Override
+                                public void run() {
+                                    final AtomicReference<BrowserFunction> callback = new AtomicReference<BrowserFunction>();
+                                    callback.set(new BrowserFunction(
+                                            BrowserScriptRunner.this.browser,
+                                            callbackFunctionName) {
+                                        @Override
+                                        public Object function(
+                                                Object[] arguments) {
+                                            callback.get().dispose();
+                                            mutex.release();
+                                            return null;
+                                        }
+                                    });
+                                }
+                            });
 
 							String js = "var h = document.getElementsByTagName(\"head\")[0]; var s = document.createElement(\"script\");s.type = \"text/javascript\";s.src = \""
 									+ script.toString()
@@ -377,7 +377,7 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
 				public DEST call() throws Exception {
 					switch (BrowserScriptRunner.this.browserStatus) {
 					case LOADED:
-						return ExecUtils.syncExec(scriptRunner);
+						return SwtUiThreadExecutor.syncExec(scriptRunner);
 					case TIMEDOUT:
 						throw new ScriptExecutionException(script,
 								new BrowserTimeoutException());
@@ -418,7 +418,7 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
 	@Override
 	public <DEST> DEST runImmediately(String script,
 			IConverter<Object, DEST> converter) throws Exception {
-		return ExecUtils.syncExec(createScriptRunner(this, script, converter));
+		return SwtUiThreadExecutor.syncExec(createScriptRunner(this, script, converter));
 	}
 
 	@Override

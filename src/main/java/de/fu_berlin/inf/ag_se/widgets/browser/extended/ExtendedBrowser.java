@@ -5,10 +5,10 @@ import java.net.URI;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
+import de.fu_berlin.inf.ag_se.utils.SwtUiThreadExecutor;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.widgets.Composite;
 
-import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
@@ -50,21 +50,21 @@ public class ExtendedBrowser extends Browser implements IBrowser {
 		 * TODO FIX BUG: afterCompletion is called after the DOMReady scripts.
 		 * PageLoad might need to access something loaded through extensions.
 		 */
-		return ExecUtils.asyncExec(new Callable<Void>() {
-			@Override
-			public Void call() throws Exception {
-				for (IBrowserExtension extension : ExtendedBrowser.this.extensions) {
-					try {
-						if (!ExtendedBrowser.this.addExtensionOnce(extension)) {
-							LOGGER.error("Error loading " + extension);
-						}
-					} catch (Exception e) {
-						LOGGER.error(e);
-					}
-				}
-				return null;
-			}
-		});
+		return SwtUiThreadExecutor.asyncExec(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                for (IBrowserExtension extension : ExtendedBrowser.this.extensions) {
+                    try {
+                        if (!ExtendedBrowser.this.addExtensionOnce(extension)) {
+                            LOGGER.error("Error loading " + extension);
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error(e);
+                    }
+                }
+                return null;
+            }
+        });
 	}
 
 	private Boolean hasExtension(IBrowserExtension extension) throws Exception {

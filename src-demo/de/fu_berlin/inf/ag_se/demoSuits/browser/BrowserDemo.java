@@ -2,6 +2,7 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.ExecUtils;
+import de.fu_berlin.inf.ag_se.utils.SwtUiThreadExecutor;
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
@@ -246,7 +247,7 @@ public class BrowserDemo extends AbstractDemo {
                 } catch (Exception e) {
                     log(e.getMessage());
                 }
-                log(ExecUtils.syncExec(new Callable<String>() {
+                log(SwtUiThreadExecutor.syncExec(new Callable<String>() {
                     @Override
                     public String call() throws Exception {
                         return browser.getUrl();

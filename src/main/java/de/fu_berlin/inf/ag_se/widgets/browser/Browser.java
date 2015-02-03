@@ -462,7 +462,7 @@ public class Browser extends Composite implements IBrowser {
                     }
 
                     Browser.this.injectEventCatchScript();
-                    ExecUtils.asyncExec(new Runnable() {
+                    SwtUiThreadExecutor.asyncExec(new Runnable() {
                         @Override
                         public void run() {
                             if (!Browser.this.browser.isDisposed()) {
@@ -531,7 +531,7 @@ public class Browser extends Composite implements IBrowser {
 
                     Browser.this.beforeLoad(uri);
 
-                    ExecUtils.syncExec(new Runnable() {
+                    SwtUiThreadExecutor.syncExec(new Runnable() {
                         @Override
                         public void run() {
                             Browser.this.settingUri = true;
@@ -1040,7 +1040,7 @@ public class Browser extends Composite implements IBrowser {
     public IBrowserFunction createBrowserFunction(final String functionName,
         final IBrowserFunction function) {
         try {
-            return ExecUtils.syncExec(new Callable<IBrowserFunction>() {
+            return SwtUiThreadExecutor.syncExec(new Callable<IBrowserFunction>() {
                 @Override
                 public IBrowserFunction call() throws Exception {
                     new BrowserFunction(browser, functionName) {
