@@ -276,33 +276,9 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
                     "Script Runner for: " + script, new Callable<Boolean>() {
                         @Override
                         public Boolean call() throws Exception {
-                            final String callbackFunctionName = BrowserUtils
-                                    .createRandomFunctionName();
 
                             final Semaphore mutex = new Semaphore(0);
-                            ExecUtils.syncExec(new Runnable() {
-                                @Override
-                                public void run() {
-                                    final AtomicReference<BrowserFunction> callback = new AtomicReference<BrowserFunction>();
-                                    callback.set(new BrowserFunction(browser, callbackFunctionName) {
-                                        @Override
-                                        public Object function(Object[] arguments) {
-                                            callback.get().dispose();
-                                            mutex.release();
-                                            return null;
-                                        }
-                                    });
-                                }
-                            });
-
-                            String js = "var h = document.getElementsByTagName(\"head\")[0]; var s = document.createElement(\"script\");s.type = \"text/javascript\";s.src = \""
-                                    + script.toString()
-                                    + "\"; s.onload=function(e){";
-                            if (removeAfterExecution) {
-                                js += "h.removeChild(s);";
-                            }
-                            js += callbackFunctionName + "();";
-                            js += "};h.appendChild(s);";
+                            String js = createJavaScriptWithCallback(mutex, script, removeAfterExecution);
 
                             // runs the scripts that ends by calling the
                             // callback
@@ -319,6 +295,35 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
                         }
                     });
         }
+    }
+
+    private String createJavaScriptWithCallback(final Semaphore mutex, URI script, boolean removeAfterExecution) throws Exception {
+        final String callbackFunctionName = BrowserUtils
+                .createRandomFunctionName();
+        ExecUtils.syncExec(new Runnable() {
+            @Override
+            public void run() {
+                final AtomicReference<BrowserFunction> callback = new AtomicReference<BrowserFunction>();
+                callback.set(new BrowserFunction(browser, callbackFunctionName) {
+                    @Override
+                    public Object function(Object[] arguments) {
+                        callback.get().dispose();
+                        mutex.release();
+                        return null;
+                    }
+                });
+            }
+        });
+
+        String js = "var h = document.getElementsByTagName(\"head\")[0]; var s = document.createElement(\"script\");s.type = \"text/javascript\";s.src = \""
+                + script.toString()
+                + "\"; s.onload=function(e){";
+        if (removeAfterExecution) {
+            js += "h.removeChild(s);";
+        }
+        js += callbackFunctionName + "();";
+        js += "};h.appendChild(s);";
+        return js;
     }
 
     @Override
