@@ -105,42 +105,6 @@ public class ExecUtils {
 		}
 	}
 
-	/**
-	 * Prints an eventually thrown {@link Exception} to the console.
-	 *
-	 * @param future
-	 */
-	public static void logException(Future<?> future) {
-		if (future != null) {
-			logException(future, null);
-		}
-	}
-
-	/**
-	 * Logs an eventually thrown {@link Exception} using the given
-	 * {@link org.apache.log4j.Logger}.
-	 *
-	 * @param future
-	 * @param logger
-	 */
-	public static void logException(final Future<?> future, final Logger logger) {
-		Assert.isNotNull(future);
-		ExecUtils.nonUIAsyncExec(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    future.get();
-                } catch (Exception e) {
-                    if (logger != null) {
-                        logger.error(e);
-                    } else {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-	}
-
     /**
 	 * Runs the given {@link java.util.concurrent.Callable} immediately in a non-UI thread. If the
 	 * caller already runs in such one the {@link java.util.concurrent.Callable} is simply executed.
