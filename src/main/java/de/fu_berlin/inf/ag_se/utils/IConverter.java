@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * {@link IConverter} can convert an object of arbitrary type to type <code>T</code>.
  *
- * @param <T> type give objects can be converted to
+ * @param <DEST> type give objects can be converted to
  * @author bjornson
  */
 public interface IConverter<SRC, DEST> {
@@ -48,7 +48,7 @@ public interface IConverter<SRC, DEST> {
     };
 
     /**
-     * {@link IConverter} that converts objects to {@link Strings}s. Returns a {@link String} if the object is of type {@link String}.
+     * {@link IConverter} that converts objects to {@link String}s. Returns a {@link String} if the object is of type {@link String}.
      * Otherwise converts to <code>null</code>.
      */
     public static final IConverter<Object, String> CONVERTER_STRING = new IConverter<Object, String>() {
@@ -62,7 +62,7 @@ public interface IConverter<SRC, DEST> {
     };
 
     /**
-     * {@link IConverter} that converts objects a {@link java.util.List} of {@link Strings}s. If a primitive type is returned, a list
+     * {@link IConverter} that converts objects a {@link java.util.List} of {@link String}s. If a primitive type is returned, a list
      * containing this single element is returned. <code>null</code> is directly passed through.
      */
     public static final IConverter<Object, List<String>> CONVERTER_STRINGLIST = new IConverter<Object, List<String>>() {
@@ -84,7 +84,8 @@ public interface IConverter<SRC, DEST> {
     };
 
     /**
-     * {@link IConverter} that converts objects to {@link org.eclipse.swt.graphics.Point}s. Returns a {@link org.eclipse.swt.graphics.Point}
+     * {@link IConverter} that converts objects to {@link org.eclipse.swt.graphics.Point}s. Returns a {@link
+     * org.eclipse.swt.graphics.Point}
      * if the object is an array of two {@link Double}s. Otherwise converts to <code>null</code>.
      */
     public static final IConverter<Object, Point> CONVERTER_POINT = new IConverter<Object, Point>() {
@@ -136,6 +137,21 @@ public interface IConverter<SRC, DEST> {
                 return null;
             }
             return (Double) returnValue;
+        }
+    };
+
+    public static final IConverter<Object, Integer> CONVERTER_INTEGER = new IConverter<Object, Integer>() {
+        @Override
+        public Integer convert(Object returnValue) {
+            if (returnValue == null)
+                return null;
+            if (Double.class.isInstance(returnValue)) {
+                return ((Double) returnValue).intValue();
+            }
+            if (!Integer.class.isInstance(returnValue)) {
+                return null;
+            }
+            return (Integer) returnValue;
         }
     };
 

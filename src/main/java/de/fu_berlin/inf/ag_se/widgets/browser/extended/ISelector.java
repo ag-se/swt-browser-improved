@@ -1,19 +1,20 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 
+import de.fu_berlin.inf.ag_se.widgets.browser.JavascriptString;
 import org.apache.commons.lang.StringUtils;
 
 public interface ISelector {
 
 	/**
 	 * Instances of this class simply use the given string as their selector.
-	 * 
+	 *
 	 * @author bkahlert
-	 * 
+	 *
 	 */
-	public class CssSelector implements ISelector {
+	public class Selector implements ISelector {
 		private String expr;
 
-		public CssSelector(String expr) {
+		public Selector(String expr) {
 			this.expr = expr;
 		}
 
@@ -21,15 +22,20 @@ public interface ISelector {
 		public String toString() {
 			return this.expr;
 		}
-	}
+
+        @Override
+        public String getStatement() {
+            return "$('" + JavascriptString.escape(expr) + "')";
+        }
+    }
 
 	/**
 	 * Instances of this class select the element with a certain ID.
-	 * 
+	 *
 	 * @author bkahlert
-	 * 
+	 *
 	 */
-	public static class IdSelector extends CssSelector {
+	public static class IdSelector extends Selector {
 		private String id;
 
 		public IdSelector(String id) {
@@ -44,11 +50,11 @@ public interface ISelector {
 
 	/**
 	 * Instances of this class select all elements with a certain name.
-	 * 
+	 *
 	 * @author bkahlert
-	 * 
+	 *
 	 */
-	public static class NameSelector extends CssSelector {
+	public static class NameSelector extends Selector {
 		private String name;
 
 		public NameSelector(String name) {
@@ -63,11 +69,11 @@ public interface ISelector {
 
 	/**
 	 * Instances of this class match all the provided {@link de.fu_berlin.inf.ag_se.widgets.browser.extended.ISelector}s.
-	 * 
+	 *
 	 * @author bkahlert
-	 * 
+	 *
 	 */
-	public static class OrSelector extends CssSelector {
+	public static class OrSelector extends Selector {
 		public OrSelector(ISelector... selectors) {
 			super(StringUtils.join(selectors, ","));
 		}
@@ -75,7 +81,7 @@ public interface ISelector {
 
 	/**
 	 * Instances of this class select all elements with a certain ID or name.
-	 * 
+	 *
 	 * @return
 	 */
 	public static class FieldSelector extends OrSelector {
@@ -86,7 +92,22 @@ public interface ISelector {
 
 	}
 
+    public static class ContainsTextSelector extends Selector {
+
+        public ContainsTextSelector(String text) {
+            super(":contains('" + text + "')");
+        }
+
+    }
+
+    public static class CssClassSelector extends Selector {
+        public CssClassSelector(String cssClass) {
+            super("." + cssClass);
+        }
+    }
+
 	@Override
 	public String toString();
 
+    public String getStatement();
 }
