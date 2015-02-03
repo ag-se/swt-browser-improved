@@ -148,7 +148,7 @@ public class ExecUtils {
 	 * Checks if the caller is already in the UI thread and if so runs the
 	 * runnable directly in order to avoid deadlocks.
 	 *
-	 * @param runnable
+	 * @param callable
 	 */
 	public static <V> V syncExec(final Callable<V> callable) throws Exception {
 		if (ExecUtils.isUIThread()) {
@@ -223,7 +223,7 @@ public class ExecUtils {
 	 *
 	 * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI
 	 *           thread</b>
-	 * @NonUIThread
+	 * @NonUIThread must not be called from the UI thread
 	 */
 	public static <V> Future<V> asyncExec(final Callable<V> callable) {
 		return new UIThreadSafeFuture<V>(
@@ -243,7 +243,7 @@ public class ExecUtils {
 	 *
 	 * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI
 	 *           thread</b>
-	 * @NonUIThread
+	 * @NonUIThread must not be called from the UI thread
 	 */
 	public static Future<Void> asyncExec(final Runnable runnable) {
 		return new UIThreadSafeFuture<Void>(
@@ -280,7 +280,7 @@ public class ExecUtils {
 	 *
 	 * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI
 	 *           thread</b>
-	 * @NonUIThread
+	 * @NonUIThread must not be called from the UI thread
 	 *
 	 *              TODO implement using Display.timerExec
 	 */
@@ -431,8 +431,6 @@ public class ExecUtils {
 	 * <p>
 	 * The return value is returned in the calling thread.
 	 *
-	 * @param executorService
-	 *            to be used to get the {@link Thread} in which to run the code
 	 * @param callable
 	 * @param delay
 	 * @return
@@ -451,7 +449,7 @@ public class ExecUtils {
 	 * <p>
 	 * The return value is returned in the calling thread.
 	 *
-	 * @param callable
+	 * @param runnable
 	 * @param delay
 	 * @return
 	 *
@@ -570,7 +568,7 @@ public class ExecUtils {
 	 * <p>
 	 * The return value is returned in the calling thread.
 	 *
-	 * @param callable
+	 * @param runnable
 	 * @return
 	 *
 	 * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI
@@ -638,9 +636,7 @@ public class ExecUtils {
 	 * <p>
 	 * The return value is returned in the calling thread.
 	 *
-	 * @param executorService
-	 *            to be used to get the {@link Thread} in which to run the code
-	 * @param callable
+	 * @param runnable
 	 * @param delay
 	 * @return
 	 *
@@ -701,7 +697,8 @@ public class ExecUtils {
 	 * Executes the given {@link ExecUtils.ParametrizedCallable} once per
 	 * element in the given input {@link java.util.Collection} and each in a new thread.
 	 *
-	 * @param executorService
+     * @param clazz
+	 * @param purpose
 	 * @param input
 	 *            whose elements are used as the parameter for the
 	 *            {@link ExecUtils.ParametrizedCallable}
