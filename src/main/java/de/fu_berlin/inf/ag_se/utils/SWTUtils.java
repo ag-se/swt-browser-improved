@@ -3,7 +3,6 @@ package de.fu_berlin.inf.ag_se.utils;
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -42,7 +41,7 @@ public class SWTUtils {
 	/**
 	 * Disposes all child {@link org.eclipse.swt.widgets.Control}s of the given {@link org.eclipse.swt.widgets.Composite}.
 	 *
-	 * @param control
+	 * @param composite
 	 */
 	public static void clearControl(Composite composite) {
 		for (Control control : composite.getChildren()) {
@@ -80,7 +79,7 @@ public class SWTUtils {
 	 * Returns the root {@link org.eclipse.swt.widgets.Composite} of the given {@link org.eclipse.swt.widgets.Control}, that is
 	 * running up the parent hierarchy to the top.
 	 *
-	 * @param clazz
+	 * @param control
 	 * @return
 	 */
 	public static Composite getRoot(Control control) {
@@ -152,21 +151,4 @@ public class SWTUtils {
 			return control.getBackground();
 		}
 	}
-
-	/**
-	 * Returns an array that evenly distributes the elements on a
-	 * {@link org.eclipse.swt.custom.SashForm}.
-	 *
-	 * @param n
-	 * @return
-	 */
-	public static int[] getEvenWeights(int n) {
-		int[] weights = new int[n];
-		int weight = 100 / n;
-		for (int i = 0; i < n; i++) {
-			weights[i] = weight;
-		}
-		return weights;
-	}
-
 }
