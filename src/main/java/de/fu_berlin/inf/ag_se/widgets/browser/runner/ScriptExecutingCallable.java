@@ -16,6 +16,7 @@ import java.util.concurrent.Callable;
 public class ScriptExecutingCallable<DEST> extends ThreadLabelingCallable<DEST> {
 
     private static final Logger LOGGER = Logger.getLogger(ScriptExecutingCallable.class);
+    private final String script;
 
     public ScriptExecutingCallable(final Browser browser, final IConverter<Object, DEST> converter,
                                    final String script) {
@@ -48,5 +49,10 @@ public class ScriptExecutingCallable<DEST> extends ThreadLabelingCallable<DEST> 
                 }
             }
         });
+        this.script = script;
+    }
+
+    public String getScript() {
+        return script;
     }
 }

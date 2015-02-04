@@ -1,30 +1,26 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.runner;
 
+import de.fu_berlin.inf.ag_se.utils.*;
+import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
+import de.fu_berlin.inf.ag_se.widgets.browser.BrowserStatusManager;
+import de.fu_berlin.inf.ag_se.widgets.browser.BrowserUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
+import de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 
-import de.fu_berlin.inf.ag_se.utils.*;
-import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
-import de.fu_berlin.inf.ag_se.widgets.browser.IBrowserFunction;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.log4j.Logger;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
-
-import de.fu_berlin.inf.ag_se.widgets.browser.BrowserUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserTimeoutException;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserUninitializedException;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateException;
+import static de.fu_berlin.inf.ag_se.widgets.browser.BrowserStatusManager.BrowserStatus;
 
 /**
  * This is the default implementation of {@link IBrowserScriptRunner}.
@@ -32,38 +28,6 @@ import de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateEx
  * @author bkahlert
  */
 public class BrowserScriptRunner implements IBrowserScriptRunner {
-
-    /**
-     * Relevant statuses a browser can have in terms of script execution.
-     *
-     * @author bkahlert
-     */
-    public static enum BrowserStatus {
-        /**
-         * The browser is initializing, meaning no resource had been loaded, yet.
-         */
-        INITIALIZING,
-
-        /**
-         * The browser is currently loading a resource.
-         */
-        LOADING,
-
-        /**
-         * The browser has successfully loaded a resource.
-         */
-        LOADED,
-
-        /**
-         * The browser timed out.
-         */
-        TIMEDOUT,
-
-        /**
-         * The browser is currently disposing or already disposed.
-         */
-        DISPOSED
-    }
 
     /**
      * Instances of this class can handle asynchronous {@link JavaScriptException}s, that are exceptions raised by the {@link
@@ -78,16 +42,12 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
     private static final Logger LOGGER = Logger.getLogger(BrowserScriptRunner.class);
 
     private final Browser browser;
-    private BrowserStatus browserStatus;
+    private BrowserStatusManager browserStatusManager;
 
-    private final OffWorker delayedScriptsWorker = new OffWorker(
-            this.getClass(), "Script Runner");
-
-    public BrowserScriptRunner(Browser browser,
-                               final JavaScriptExceptionListener javaScriptExceptionListener) {
+    public BrowserScriptRunner(Browser browser, final JavaScriptExceptionListener javaScriptExceptionListener) {
         Assert.isNotNull(browser);
         this.browser = browser;
-        this.browserStatus = BrowserStatus.INITIALIZING;
+        this.browserStatusManager = new BrowserStatusManager();
 
         // throws exception that arise from calls within the browser,
         // meaning code that has not been invoked by Java but by JavaScript
@@ -105,91 +65,24 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
         });
     }
 
-    /**
-     * Sets the {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.BrowserScriptRunner.BrowserStatus}. This information is necessary for
-     * the correct script execution.
-     *
-     * @param browserStatus
-     * @throws UnexpectedBrowserStateException
-     */
     public void setBrowserStatus(BrowserStatus browserStatus)
-            throws UnexpectedBrowserStateException {
-        Assert.isNotNull(browserStatus);
-        if (this.browserStatus == browserStatus) {
-            return;
-        }
-
-        // throw exception on invalid new status
-        switch (this.browserStatus) {
-            case INITIALIZING:
-                if (Arrays.asList(BrowserStatus.TIMEDOUT, BrowserStatus.DISPOSED)
-                          .contains(browserStatus)) {
-                    throw new UnexpectedBrowserStateException("Cannot switch from "
-                            + this.browserStatus + " to " + browserStatus);
-                }
-                break;
-            case LOADING:
-                if (browserStatus == BrowserStatus.INITIALIZING) {
-                    throw new UnexpectedBrowserStateException("Cannot switch from "
-                            + this.browserStatus + " to " + browserStatus);
-                }
-                break;
-            case LOADED:
-                throw new UnexpectedBrowserStateException("Cannot switch from "
-                        + this.browserStatus + " to " + browserStatus);
-            case TIMEDOUT:
-                throw new UnexpectedBrowserStateException("Cannot switch from "
-                        + this.browserStatus + " to " + browserStatus);
-            case DISPOSED:
-                throw new UnexpectedBrowserStateException("Cannot switch from "
-                        + this.browserStatus + " to " + browserStatus);
-            default:
-                throw new UnexpectedBrowserStateException("Cannot switch from "
-                        + this.browserStatus + " to " + browserStatus);
-        }
-
-        // apply new status
-        this.browserStatus = browserStatus;
-        switch (this.browserStatus) {
-            case LOADING:
-                activateExceptionHandling();
-                break;
-            case LOADED:
-                delayedScriptsWorker.start();
-                delayedScriptsWorker.finish();
-                break;
-            case TIMEDOUT:
-            case DISPOSED:
-                delayedScriptsWorker.submit(new Callable<Void>() {
-                    @Override
-                    public Void call() throws Exception {
-                        if (!delayedScriptsWorker.isShutdown()) {
-                            delayedScriptsWorker.shutdown();
-                        }
-                        return null;
-                    }
-                });
-
-                delayedScriptsWorker.start();
-                delayedScriptsWorker.finish();
-                break;
-            default:
-        }
+                throws UnexpectedBrowserStateException {
+        browserStatusManager.setBrowserStatus(browserStatus);
     }
 
     /**
-     * Returns the previously set {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.BrowserScriptRunner.BrowserStatus}.
+     * Returns the state of the browser.
      *
      * @return
      */
     public BrowserStatus getBrowserStatus() {
-        return this.browserStatus;
+        return browserStatusManager.getBrowserStatus();
     }
 
     /**
      * Notifies all registered Javascript exception listeners in case a JavaScript error occurred.
      */
-    private void activateExceptionHandling() {
+    public void activateExceptionHandling() {
         try {
             this.runImmediately(BrowserUtils
                             .getExceptionForwardingScript("__error_callback"),
@@ -310,52 +203,9 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
     public <DEST> Future<DEST> run(final String script,
                                    final IConverter<Object, DEST> converter) {
         Assert.isLegal(converter != null);
-        final Callable<DEST> scriptRunner = new ScriptExecutingCallable<DEST>(browser, converter, script);
+        final ScriptExecutingCallable<DEST> scriptRunner = new ScriptExecutingCallable<DEST>(browser, converter, script);
 
-        switch (this.browserStatus) {
-            case INITIALIZING:
-                return new CompletedFuture<DEST>(null,
-                        new ScriptExecutionException(script,
-                                new BrowserUninitializedException(this.browser)));
-            case LOADING:
-                return delayedScriptsWorker.submit(new Callable<DEST>() {
-                    @Override
-                    public DEST call() throws Exception {
-                        switch (browserStatus) {
-                            case LOADED:
-                                return SwtUiThreadExecutor.syncExec(scriptRunner);
-                            case TIMEDOUT:
-                                throw new ScriptExecutionException(script, new BrowserTimeoutException());
-                            case DISPOSED:
-                                throw new ScriptExecutionException(script, new SWTException(SWT.ERROR_WIDGET_DISPOSED));
-                            default:
-                                throw new ScriptExecutionException(script, new UnexpectedBrowserStateException(
-                                        BrowserScriptRunner.this.browserStatus
-                                                .toString()));
-                        }
-                    }
-                });
-            case LOADED:
-                try {
-                    return new CompletedFuture<DEST>(this.runImmediately(script,
-                            converter), null);
-                } catch (Exception e) {
-                    return new CompletedFuture<DEST>(null, e);
-                }
-            case TIMEDOUT:
-                return new CompletedFuture<DEST>(null,
-                        new ScriptExecutionException(script,
-                                new BrowserTimeoutException()));
-            case DISPOSED:
-                return new CompletedFuture<DEST>(null,
-                        new ScriptExecutionException(script, new SWTException(
-                                SWT.ERROR_WIDGET_DISPOSED)));
-            default:
-                return new CompletedFuture<DEST>(null,
-                        new ScriptExecutionException(script,
-                                new UnexpectedBrowserStateException(
-                                        this.browserStatus.toString())));
-        }
+        return browserStatusManager.createFuture(scriptRunner);
     }
 
     @Override

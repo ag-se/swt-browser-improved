@@ -42,7 +42,7 @@ import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.runner.BrowserScriptRunner;
-import de.fu_berlin.inf.ag_se.widgets.browser.runner.BrowserScriptRunner.BrowserStatus;
+import de.fu_berlin.inf.ag_se.widgets.browser.BrowserStatusManager.BrowserStatus;
 import de.fu_berlin.inf.ag_se.widgets.browser.runner.BrowserScriptRunner.JavaScriptExceptionListener;
 
 public class Browser extends Composite implements IBrowser {
@@ -491,9 +491,8 @@ public class Browser extends Composite implements IBrowser {
             throw new SWTException(SWT.ERROR_WIDGET_DISPOSED);
         }
 
-        Browser.this.browserScriptRunner
-            .setBrowserStatus(BrowserStatus.LOADING);
-
+        browserScriptRunner.setBrowserStatus(BrowserStatus.LOADING);
+        browserScriptRunner.activateExceptionHandling();
         this.browser.addProgressListener(new ProgressAdapter() {
             @Override
             public void completed(ProgressEvent event) {
@@ -778,7 +777,7 @@ public class Browser extends Composite implements IBrowser {
     @Override
     public void injectCssImmediately(String css) throws Exception {
         runImmediately(createCssInjectionScript(css),
-            IConverter.CONVERTER_VOID);
+                IConverter.CONVERTER_VOID);
     }
 
     private static String createCssInjectionScript(String css) {
@@ -946,7 +945,7 @@ public class Browser extends Composite implements IBrowser {
     public Future<Boolean> containsElementsWithName(String name) {
         return this
             .run("return document.getElementsByName('" + name + "').length > 0",
-                IConverter.CONVERTER_BOOLEAN);
+                    IConverter.CONVERTER_BOOLEAN);
     }
 
     public static String escape(String html) {
@@ -970,7 +969,7 @@ public class Browser extends Composite implements IBrowser {
     @Override
     public Future<String> getHtml() {
         return this.run("return document.documentElement.outerHTML",
-            IConverter.CONVERTER_STRING);
+                IConverter.CONVERTER_STRING);
     }
 
     @Override
