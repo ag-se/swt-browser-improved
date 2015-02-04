@@ -83,7 +83,7 @@ public class Browser extends Composite implements IBrowser {
 
         this.browser = new org.eclipse.swt.browser.Browser(this, SWT.NONE);
         this.browser.setVisible(false);
-        this.browserScriptRunner = new BrowserScriptRunner(this.browser,
+        this.browserScriptRunner = new BrowserScriptRunner(this,
             new JavaScriptExceptionListener() {
                 @Override
                 public void thrown(JavaScriptException javaScriptException) {
@@ -1068,15 +1068,6 @@ public class Browser extends Composite implements IBrowser {
     }
 
     public Object evaluate(String javaScript) {
-        try {
-            return run(javaScript).get(1000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return browser.evaluate(javaScript);
     }
 }

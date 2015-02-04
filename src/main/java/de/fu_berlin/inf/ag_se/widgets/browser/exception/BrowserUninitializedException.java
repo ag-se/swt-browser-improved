@@ -1,6 +1,7 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.exception;
 
-import org.eclipse.swt.browser.Browser;
+
+import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 
 public class BrowserUninitializedException extends Exception {
 

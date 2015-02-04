@@ -11,14 +11,13 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 
 import de.fu_berlin.inf.ag_se.utils.*;
-import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
+import de.fu_berlin.inf.ag_se.widgets.browser.IBrowserFunction;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.BrowserFunction;
 
 import de.fu_berlin.inf.ag_se.widgets.browser.BrowserUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserTimeoutException;
@@ -78,17 +77,6 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
 
     private static final Logger LOGGER = Logger.getLogger(BrowserScriptRunner.class);
 
-    private static <DEST> Callable<DEST> createScriptRunner(
-            final BrowserScriptRunner browserScriptRunner, final String script,
-            final IConverter<Object, DEST> converter) {
-        return new ThreadLabelingCallable<DEST>(Browser.class, "Running " + StringUtils.shorten(script), new Callable<DEST>() {
-            @Override
-            public DEST call() throws Exception {
-                return browserScriptRunner.sendScriptToBrowser(script, converter);
-            }
-        });
-    }
-
     private final Browser browser;
     private BrowserStatus browserStatus;
 
@@ -103,7 +91,7 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
 
         // throws exception that arise from calls within the browser,
         // meaning code that has not been invoked by Java but by JavaScript
-        new BrowserFunction(browser, "__error_callback") {
+        browser.createBrowserFunction("__error_callback", new IBrowserFunction() {
             @Override
             public Object function(Object[] arguments) {
                 JavaScriptException javaScriptException = BrowserUtils
@@ -114,7 +102,7 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
                 }
                 return false;
             }
-        };
+        });
     }
 
     /**
@@ -199,7 +187,7 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
     }
 
     /**
-     * Notifies all registered {@link IJavaScriptExceptionListener}s in case a JavaScript error occurred.
+     * Notifies all registered Javascript exception listeners in case a JavaScript error occurred.
      */
     private void activateExceptionHandling() {
         try {
@@ -270,18 +258,15 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
                             SwtUiThreadExecutor.syncExec(new Runnable() {
                                 @Override
                                 public void run() {
-                                    final AtomicReference<BrowserFunction> callback = new AtomicReference<BrowserFunction>();
-                                    callback.set(new BrowserFunction(
-                                            BrowserScriptRunner.this.browser,
-                                            callbackFunctionName) {
-                                        @Override
-                                        public Object function(
-                                                Object[] arguments) {
+                                    final AtomicReference<IBrowserFunction> callback = new AtomicReference<IBrowserFunction>();
+                                    callback.set(browser.createBrowserFunction(
+                                            callbackFunctionName, new IBrowserFunction() {
+                                        public Object function(Object[] arguments) {
                                             callback.get().dispose();
                                             mutex.release();
                                             return null;
                                         }
-                                    });
+                                    }));
                                 }
                             });
 
@@ -325,8 +310,7 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
     public <DEST> Future<DEST> run(final String script,
                                    final IConverter<Object, DEST> converter) {
         Assert.isLegal(converter != null);
-        final Callable<DEST> scriptRunner = createScriptRunner(this, script,
-                converter);
+        final Callable<DEST> scriptRunner = new ScriptExecutingCallable<DEST>(browser, converter, script);
 
         switch (this.browserStatus) {
             case INITIALIZING:
@@ -375,9 +359,8 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
     }
 
     @Override
-    public <DEST> DEST runImmediately(String script,
-                                      IConverter<Object, DEST> converter) throws Exception {
-        return SwtUiThreadExecutor.syncExec(createScriptRunner(this, script, converter));
+    public <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter) throws Exception {
+        return SwtUiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(browser, converter, script));
     }
 
     @Override
@@ -394,35 +377,6 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
                 + StringEscapeUtils.escapeJavaScript(scriptContent)
                 + "\"; document.getElementsByTagName(\"head\")[0].appendChild(script);";
         this.runImmediately(script, IConverter.CONVERTER_VOID);
-    }
-
-    private <DEST> DEST sendScriptToBrowser(String script, IConverter<Object, DEST> converter) throws Exception {
-        if (browser == null || browser.isDisposed()) {
-            throw new ScriptExecutionException(script,
-                    new SWTException(SWT.ERROR_WIDGET_DISPOSED));
-        }
-
-        LOGGER.info("Running " + StringUtils.shorten(script));
-
-        try {
-            scriptAboutToBeSentToBrowser(script);
-            Object returnValue = browser.evaluate(BrowserUtils.getExecutionReturningScript(script));
-
-            BrowserUtils.assertException(script, returnValue);
-
-            scriptReturnValueReceived(returnValue);
-            DEST rs = converter.convert(returnValue);
-            LOGGER.info("Returned " + rs);
-            return rs;
-        } catch (SWTException e) {
-            throw e;
-        } catch (JavaScriptException e) {
-            LOGGER.error(e);
-            throw e;
-        } catch (Exception e) {
-            LOGGER.error(e);
-            throw e;
-        }
     }
 
     @Override
