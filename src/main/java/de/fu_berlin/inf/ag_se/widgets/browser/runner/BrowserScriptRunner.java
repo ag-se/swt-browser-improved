@@ -11,6 +11,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 
 import de.fu_berlin.inf.ag_se.utils.*;
+import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingCallable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
@@ -75,45 +76,17 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
         public void thrown(JavaScriptException javaScriptException);
     }
 
-    private static final Logger LOGGER = Logger
-            .getLogger(BrowserScriptRunner.class);
+    private static final Logger LOGGER = Logger.getLogger(BrowserScriptRunner.class);
 
     private static <DEST> Callable<DEST> createScriptRunner(
             final BrowserScriptRunner browserScriptRunner, final String script,
             final IConverter<Object, DEST> converter) {
-        final String label = StringUtils.shorten(script);
-        return ThreadLabelingUtils.createThreadLabelingCode(new Callable<DEST>() {
+        return new ThreadLabelingCallable<DEST>(Browser.class, "Running " + StringUtils.shorten(script), new Callable<DEST>() {
             @Override
             public DEST call() throws Exception {
-                if (browserScriptRunner.browser == null
-                        || browserScriptRunner.browser.isDisposed()) {
-                    throw new ScriptExecutionException(script,
-                            new SWTException(SWT.ERROR_WIDGET_DISPOSED));
-                }
-                LOGGER.info("Running " + label);
-                try {
-                    browserScriptRunner.scriptAboutToBeSentToBrowser(script);
-                    Object returnValue = browserScriptRunner.browser
-                            .evaluate(BrowserUtils
-                                    .getExecutionReturningScript(script));
-
-                    BrowserUtils.assertException(script, returnValue);
-
-                    browserScriptRunner.scriptReturnValueReceived(returnValue);
-                    DEST rs = converter.convert(returnValue);
-                    LOGGER.info("Returned " + rs);
-                    return rs;
-                } catch (SWTException e) {
-                    throw e;
-                } catch (JavaScriptException e) {
-                    LOGGER.error(e);
-                    throw e;
-                } catch (Exception e) {
-                    LOGGER.error(e);
-                    throw e;
-                }
+                return browserScriptRunner.sendScriptToBrowser(script, converter);
             }
-        }, Browser.class, "Running " + label);
+        });
     }
 
     private final Browser browser;
@@ -421,6 +394,35 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
                 + StringEscapeUtils.escapeJavaScript(scriptContent)
                 + "\"; document.getElementsByTagName(\"head\")[0].appendChild(script);";
         this.runImmediately(script, IConverter.CONVERTER_VOID);
+    }
+
+    private <DEST> DEST sendScriptToBrowser(String script, IConverter<Object, DEST> converter) throws Exception {
+        if (browser == null || browser.isDisposed()) {
+            throw new ScriptExecutionException(script,
+                    new SWTException(SWT.ERROR_WIDGET_DISPOSED));
+        }
+
+        LOGGER.info("Running " + StringUtils.shorten(script));
+
+        try {
+            scriptAboutToBeSentToBrowser(script);
+            Object returnValue = browser.evaluate(BrowserUtils.getExecutionReturningScript(script));
+
+            BrowserUtils.assertException(script, returnValue);
+
+            scriptReturnValueReceived(returnValue);
+            DEST rs = converter.convert(returnValue);
+            LOGGER.info("Returned " + rs);
+            return rs;
+        } catch (SWTException e) {
+            throw e;
+        } catch (JavaScriptException e) {
+            LOGGER.error(e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error(e);
+            throw e;
+        }
     }
 
     @Override
