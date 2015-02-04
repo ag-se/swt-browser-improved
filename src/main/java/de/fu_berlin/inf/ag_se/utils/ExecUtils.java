@@ -265,8 +265,7 @@ public class ExecUtils {
         }));
     }
 
-    public static <V> Future<V> nonUIAsyncExec(final Class<?> clazz,
-                                               final String purpose, final Callable<V> callable) {
+    public static <V> Future<V> nonUIAsyncExec(final Class<?> clazz, final String purpose, final Callable<V> callable) {
         return new UIThreadSafeFuture<V>(EXECUTOR_SERVICE.submit(new ThreadLabelingCallable<V>(clazz, purpose, callable)));
     }
 

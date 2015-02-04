@@ -1,32 +1,19 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.runner;
 
 import de.fu_berlin.inf.ag_se.utils.*;
-import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
-import de.fu_berlin.inf.ag_se.widgets.browser.BrowserStatusManager;
-import de.fu_berlin.inf.ag_se.widgets.browser.BrowserUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.widgets.browser.*;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static de.fu_berlin.inf.ag_se.widgets.browser.BrowserStatusManager.BrowserStatus;
 
-/**
- * This is the default implementation of {@link IBrowserScriptRunner}.
- *
- * @author bkahlert
- */
 public class BrowserScriptRunner implements IBrowserScriptRunner {
 
     /**
@@ -65,8 +52,7 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
         });
     }
 
-    public void setBrowserStatus(BrowserStatus browserStatus)
-                throws UnexpectedBrowserStateException {
+    public void setBrowserStatus(BrowserStatus browserStatus) throws UnexpectedBrowserStateException {
         browserStatusManager.setBrowserStatus(browserStatus);
     }
 
@@ -84,114 +70,53 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
      */
     public void activateExceptionHandling() {
         try {
-            this.runImmediately(BrowserUtils
-                            .getExceptionForwardingScript("__error_callback"),
-                    IConverter.CONVERTER_VOID);
+            this.runImmediately(BrowserUtils.getExceptionForwardingScript("__error_callback"), IConverter.CONVERTER_VOID);
         } catch (Exception e) {
-            LOGGER.error(
-                    "Error activating browser's exception handling. JavaScript exceptions are not detected!",
-                    e);
+            LOGGER.error("Error activating browser's exception handling. JavaScript exceptions are not detected!", e);
         }
     }
 
     @Override
     public Future<Boolean> inject(URI script) {
-        return this.run(script, false);
+        return run(script, false);
     }
 
     @Override
-    public Future<Boolean> run(final File script) {
-        Assert.isLegal(script.canRead());
-        try {
-            return this.run(new URI("file://" + script.getAbsolutePath()));
-        } catch (URISyntaxException e) {
-            return new CompletedFuture<Boolean>(false, e);
-        }
+    public Future<Boolean> run(final File scriptFile) {
+        Assert.isLegal(scriptFile.canRead());
+        return run(scriptFile.toURI(), false);
     }
 
     @Override
     public Future<Boolean> run(final URI script) {
-        return this.run(script, true);
+        return run(script, true);
     }
 
-    private Future<Boolean> run(final URI script,
-                                final boolean removeAfterExecution) {
-        Assert.isLegal(script != null);
+    private Future<Boolean> run(final URI scriptURI, final boolean removeAfterExecution) {
+        Assert.isLegal(scriptURI != null);
+        if ("file".equalsIgnoreCase(scriptURI.getScheme())) {
+            File file = new File(scriptURI);
+            if (removeAfterExecution) {
+                LOGGER.warn("The script "
+                        + scriptURI
+                        + " is on the local file system. To circument security restrictions its content becomes directly executed and thus cannot be removed.");
+            }
 
-        if ("file".equalsIgnoreCase(script.getScheme())) {
-            File file = new File(script.toString()
-                                       .substring("file://".length()));
             try {
-                String scriptContent = FileUtils.readFileToString(file);
-                Future<Boolean> rs = this.run(scriptContent,
-                        new IConverter<Object, Boolean>() {
-                            @Override
-                            public Boolean convert(Object returnValue) {
-                                return true;
-                            }
-                        });
-                if (removeAfterExecution) {
-                    LOGGER.warn("The script "
-                            + script
-                            + " is on the local file system. To circument security restrictions its content becomes directly executed and thus cannot be removed.");
-                }
-                return rs;
+                return run(FileUtils.readFileToString(file), IConverter.CONVERTER_BOOLEAN);
             } catch (IOException e) {
                 return new CompletedFuture<Boolean>(null, e);
             }
         } else {
-            return ExecUtils.nonUIAsyncExec(Browser.class,
-                    "Script Runner for: " + script, new Callable<Boolean>() {
-                        @Override
-                        public Boolean call() throws Exception {
-                            final String callbackFunctionName = BrowserUtils
-                                    .createRandomFunctionName();
-
-                            final Semaphore mutex = new Semaphore(0);
-                            SwtUiThreadExecutor.syncExec(new Runnable() {
-                                @Override
-                                public void run() {
-                                    final AtomicReference<IBrowserFunction> callback = new AtomicReference<IBrowserFunction>();
-                                    callback.set(browser.createBrowserFunction(
-                                            callbackFunctionName, new IBrowserFunction() {
-                                        public Object function(Object[] arguments) {
-                                            callback.get().dispose();
-                                            mutex.release();
-                                            return null;
-                                        }
-                                    }));
-                                }
-                            });
-
-                            String js = "var h = document.getElementsByTagName(\"head\")[0]; var s = document.createElement(\"script\");s.type = \"text/javascript\";s.src = \""
-                                    + script.toString()
-                                    + "\"; s.onload=function(e){";
-                            if (removeAfterExecution) {
-                                js += "h.removeChild(s);";
-                            }
-                            js += callbackFunctionName + "();";
-                            js += "};h.appendChild(s);";
-
-                            // runs the scripts that ends by calling the
-                            // callback
-                            // ...
-                            BrowserScriptRunner.this.run(js);
-                            try {
-                                // ... which destroys itself and releases this
-                                // lock
-                                mutex.acquire();
-                            } catch (InterruptedException e) {
-                                LOGGER.error(e);
-                            }
-                            return null;
-                        }
-                    });
+            return ExecUtils.nonUIAsyncExec(Browser.class, "Script Runner for: " + scriptURI,
+                    new CallbackFunctionCallable(removeAfterExecution, browser, scriptURI));
         }
     }
 
+
     @Override
     public Future<Object> run(final String script) {
-        return this.run(script, new IConverter<Object, Object>() {
+        return run(script, new IConverter<Object, Object>() {
             @Override
             public Object convert(Object object) {
                 return object;
@@ -200,33 +125,24 @@ public class BrowserScriptRunner implements IBrowserScriptRunner {
     }
 
     @Override
-    public <DEST> Future<DEST> run(final String script,
-                                   final IConverter<Object, DEST> converter) {
+    public <DEST> Future<DEST> run(final String script, final IConverter<Object, DEST> converter) {
         Assert.isLegal(converter != null);
-        final ScriptExecutingCallable<DEST> scriptRunner = new ScriptExecutingCallable<DEST>(browser, converter, script);
+        return browserStatusManager.createFuture(new ScriptExecutingCallable<DEST>(browser, converter, script));
+    }
 
-        return browserStatusManager.createFuture(scriptRunner);
+    @Override
+    public void runContentsImmediately(File scriptFile) throws Exception {
+        this.runImmediately(FileUtils.readFileToString(scriptFile), IConverter.CONVERTER_VOID);
+    }
+
+    @Override
+    public void runContentsAsScriptTagImmediately(File scriptFile) throws Exception {
+        runImmediately(JavascriptString.embedContentsIntoScriptTag(scriptFile), IConverter.CONVERTER_VOID);
     }
 
     @Override
     public <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter) throws Exception {
         return SwtUiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(browser, converter, script));
-    }
-
-    @Override
-    public void runContentsImmediately(File script) throws Exception {
-        String scriptContent = FileUtils.readFileToString(script);
-        this.runImmediately(scriptContent, IConverter.CONVERTER_VOID);
-    }
-
-    @Override
-    public void runContentsAsScriptTagImmediately(File scriptFile)
-            throws Exception {
-        String scriptContent = FileUtils.readFileToString(scriptFile);
-        String script = "var script=document.createElement(\"script\"); script.type=\"text/javascript\"; script.text=\""
-                + StringEscapeUtils.escapeJavaScript(scriptContent)
-                + "\"; document.getElementsByTagName(\"head\")[0].appendChild(script);";
-        this.runImmediately(script, IConverter.CONVERTER_VOID);
     }
 
     @Override
