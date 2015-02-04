@@ -20,7 +20,7 @@ public class CallbackFunctionCallable implements Callable<Boolean> {
     private final Browser browser;
     private final URI scriptURI;
 
-    public CallbackFunctionCallable(boolean removeAfterExecution, Browser browser, URI scriptURI) {
+    public CallbackFunctionCallable(Browser browser, URI scriptURI, boolean removeAfterExecution) {
         this.removeAfterExecution = removeAfterExecution;
         this.browser = browser;
         this.scriptURI = scriptURI;

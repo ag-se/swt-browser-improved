@@ -2,6 +2,7 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,6 +11,9 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import de.fu_berlin.inf.ag_se.utils.*;
+import de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateException;
+import de.fu_berlin.inf.ag_se.widgets.browser.runner.CallbackFunctionCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.runner.ScriptExecutingCallable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -41,9 +45,8 @@ import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnkerListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.runner.BrowserScriptRunner;
 import de.fu_berlin.inf.ag_se.widgets.browser.BrowserStatusManager.BrowserStatus;
-import de.fu_berlin.inf.ag_se.widgets.browser.runner.BrowserScriptRunner.JavaScriptExceptionListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener;
 
 public class Browser extends Composite implements IBrowser {
 
@@ -54,7 +57,7 @@ public class Browser extends Composite implements IBrowser {
     public static final String FOCUS_CONTROL_ID = "com.bkahlert.nebula.browser";
 
     private org.eclipse.swt.browser.Browser browser;
-    private BrowserScriptRunner browserScriptRunner;
+    private BrowserStatusManager browserStatusManager;
 
     private boolean initWithSystemBackgroundColor;
     private boolean textSelectionsDisabled = false;
@@ -67,7 +70,7 @@ public class Browser extends Composite implements IBrowser {
     private final List<IFocusListener> focusListeners = new ArrayList<IFocusListener>();
     private final List<IDNDListener> dndListeners = new ArrayList<IDNDListener>();
     private final List<JavaScriptExceptionListener> javaScriptExceptionListeners = Collections
-        .synchronizedList(new ArrayList<JavaScriptExceptionListener>());
+            .synchronizedList(new ArrayList<JavaScriptExceptionListener>());
 
     /**
      * Constructs a new {@link de.fu_berlin.inf.ag_se.widgets.browser.Browser} with the given styles.
@@ -83,22 +86,13 @@ public class Browser extends Composite implements IBrowser {
 
         this.browser = new org.eclipse.swt.browser.Browser(this, SWT.NONE);
         this.browser.setVisible(false);
-        this.browserScriptRunner = new BrowserScriptRunner(this,
-            new JavaScriptExceptionListener() {
-                @Override
-                public void thrown(JavaScriptException javaScriptException) {
-                    Browser.this
-                        .fireJavaScriptExceptionThrown(javaScriptException);
-                }
-            }) {
-            @Override
-            public void scriptAboutToBeSentToBrowser(String script) {
-                Browser.this.scriptAboutToBeSentToBrowser(script);
-            }
+        browserStatusManager = new BrowserStatusManager();
 
+        final JavaScriptExceptionListener javaScriptExceptionListener = new JavaScriptExceptionListener() {
             @Override
-            public void scriptReturnValueReceived(Object returnValue) {
-                Browser.this.scriptReturnValueReceived(returnValue);
+            public void thrown(JavaScriptException javaScriptException) {
+                Browser.this
+                        .fireJavaScriptExceptionThrown(javaScriptException);
             }
         };
 
@@ -124,10 +118,10 @@ public class Browser extends Composite implements IBrowser {
             @Override
             public Object function(Object[] arguments) {
                 if (arguments.length == 2 && (arguments[0] == null
-                    || arguments[0] instanceof Double) && (arguments[1] == null
-                    || arguments[1] instanceof Double)) {
+                        || arguments[0] instanceof Double) && (arguments[1] == null
+                        || arguments[1] instanceof Double)) {
                     Browser.this.fireMouseMove((Double) arguments[0],
-                        (Double) arguments[1]);
+                            (Double) arguments[1]);
                 }
                 return null;
             }
@@ -136,11 +130,11 @@ public class Browser extends Composite implements IBrowser {
             @Override
             public Object function(Object[] arguments) {
                 if (arguments.length == 3 && (arguments[0] == null
-                    || arguments[0] instanceof Double) && (arguments[1] == null
-                    || arguments[1] instanceof Double) && (arguments[2] == null
-                    || arguments[2] instanceof String)) {
+                        || arguments[0] instanceof Double) && (arguments[1] == null
+                        || arguments[1] instanceof Double) && (arguments[2] == null
+                        || arguments[2] instanceof String)) {
                     Browser.this.fireMouseDown((Double) arguments[0],
-                        (Double) arguments[1], (String) arguments[2]);
+                            (Double) arguments[1], (String) arguments[2]);
                 }
                 return null;
             }
@@ -149,11 +143,11 @@ public class Browser extends Composite implements IBrowser {
             @Override
             public Object function(Object[] arguments) {
                 if (arguments.length == 3 && (arguments[0] == null
-                    || arguments[0] instanceof Double) && (arguments[1] == null
-                    || arguments[1] instanceof Double) && (arguments[2] == null
-                    || arguments[2] instanceof String)) {
+                        || arguments[0] instanceof Double) && (arguments[1] == null
+                        || arguments[1] instanceof Double) && (arguments[2] == null
+                        || arguments[2] instanceof String)) {
                     Browser.this.fireMouseUp((Double) arguments[0],
-                        (Double) arguments[1], (String) arguments[2]);
+                            (Double) arguments[1], (String) arguments[2]);
                 }
                 return null;
             }
@@ -162,11 +156,11 @@ public class Browser extends Composite implements IBrowser {
             @Override
             public Object function(Object[] arguments) {
                 if (arguments.length == 3 && (arguments[0] == null
-                    || arguments[0] instanceof Double) && (arguments[1] == null
-                    || arguments[1] instanceof Double) && (arguments[2] == null
-                    || arguments[2] instanceof String)) {
+                        || arguments[0] instanceof Double) && (arguments[1] == null
+                        || arguments[1] instanceof Double) && (arguments[2] == null
+                        || arguments[2] instanceof String)) {
                     Browser.this.fireClicked((Double) arguments[0],
-                        (Double) arguments[1], (String) arguments[2]);
+                            (Double) arguments[1], (String) arguments[2]);
                 }
                 return null;
             }
@@ -195,23 +189,23 @@ public class Browser extends Composite implements IBrowser {
             @Override
             public Object function(Object[] arguments) {
                 if (arguments.length == 4 && (arguments[0] == null
-                    || arguments[0] instanceof Double) && (arguments[1] == null
-                    || arguments[1] instanceof Double) && (arguments[2] == null
-                    || arguments[2] instanceof Double) && (arguments[3] == null
-                    || arguments[3] instanceof Double)) {
+                        || arguments[0] instanceof Double) && (arguments[1] == null
+                        || arguments[1] instanceof Double) && (arguments[2] == null
+                        || arguments[2] instanceof Double) && (arguments[3] == null
+                        || arguments[3] instanceof Double)) {
 
                     Browser.this.cachedContentBounds = new Rectangle(
-                        arguments[0] != null ?
+                            arguments[0] != null ?
                             (int) Math.round((Double) arguments[0]) :
                             0, arguments[1] != null ?
-                        (int) Math.round((Double) arguments[1]) :
-                        0, arguments[2] != null ?
-                        (int) Math.round((Double) arguments[2]) :
-                        Integer.MAX_VALUE, arguments[3] != null ?
-                        (int) Math.round((Double) arguments[3]) :
-                        Integer.MAX_VALUE);
+                               (int) Math.round((Double) arguments[1]) :
+                               0, arguments[2] != null ?
+                                  (int) Math.round((Double) arguments[2]) :
+                                  Integer.MAX_VALUE, arguments[3] != null ?
+                                                     (int) Math.round((Double) arguments[3]) :
+                                                     Integer.MAX_VALUE);
                     LOGGER.debug("browser content resized to "
-                        + Browser.this.cachedContentBounds);
+                            + Browser.this.cachedContentBounds);
                     Composite root = SWTUtils.getRoot(Browser.this);
                     LOGGER.debug("layout all");
                     root.layout(true, true);
@@ -223,19 +217,19 @@ public class Browser extends Composite implements IBrowser {
             @Override
             public Object function(Object[] arguments) {
                 if (arguments.length == 5 && arguments[0] instanceof Double
-                    && arguments[1] instanceof Double
-                    && arguments[2] instanceof String
-                    && arguments[3] instanceof String
-                    && arguments[4] instanceof String) {
+                        && arguments[1] instanceof Double
+                        && arguments[2] instanceof String
+                        && arguments[3] instanceof String
+                        && arguments[4] instanceof String) {
                     long offsetX = Math.round((Double) arguments[0]);
                     long offsetY = Math.round((Double) arguments[1]);
                     IElement element = BrowserUtils
-                        .extractElement((String) arguments[2]);
+                            .extractElement((String) arguments[2]);
                     String mimeType = (String) arguments[3];
                     String data = (String) arguments[4];
                     Browser.this
-                        .fireDragStart(offsetX, offsetY, element, mimeType,
-                            data);
+                            .fireDragStart(offsetX, offsetY, element, mimeType,
+                                    data);
                 }
                 return null;
             }
@@ -244,18 +238,18 @@ public class Browser extends Composite implements IBrowser {
             @Override
             public Object function(Object[] arguments) {
                 if (arguments.length == 5 && arguments[0] instanceof Double
-                    && arguments[1] instanceof Double
-                    && arguments[2] instanceof String
-                    && arguments[3] instanceof String
-                    && arguments[4] instanceof String) {
+                        && arguments[1] instanceof Double
+                        && arguments[2] instanceof String
+                        && arguments[3] instanceof String
+                        && arguments[4] instanceof String) {
                     long offsetX = Math.round((Double) arguments[0]);
                     long offsetY = Math.round((Double) arguments[1]);
                     IElement element = BrowserUtils
-                        .extractElement((String) arguments[2]);
+                            .extractElement((String) arguments[2]);
                     String mimeType = (String) arguments[3];
                     String data = (String) arguments[4];
                     Browser.this
-                        .fireDrop(offsetX, offsetY, element, mimeType, data);
+                            .fireDrop(offsetX, offsetY, element, mimeType, data);
                 }
                 return null;
             }
@@ -275,13 +269,24 @@ public class Browser extends Composite implements IBrowser {
             }
         };
 
+        // throws exception that arise from calls within the browser,
+        // meaning code that has not been invoked by Java but by JavaScript
+        createBrowserFunction("__error_callback", new IBrowserFunction() {
+            @Override
+            public Object function(Object[] arguments) {
+                JavaScriptException javaScriptException = BrowserUtils
+                        .parseJavaScriptException(arguments);
+                LOGGER.error(javaScriptException);
+                javaScriptExceptionListener.thrown(javaScriptException);
+                return false;
+            }
+        });
+
         this.browser.addLocationListener(new LocationAdapter() {
             @Override
             public void changing(LocationEvent event) {
                 if (!Browser.this.settingUri) {
-                    event.doit = Browser.this.allowLocationChange
-                        || Browser.this.browserScriptRunner.getBrowserStatus()
-                        == BrowserStatus.LOADING;
+                    event.doit = Browser.this.allowLocationChange || getBrowserStatus() == BrowserStatus.LOADING;
                 }
             }
         });
@@ -290,10 +295,8 @@ public class Browser extends Composite implements IBrowser {
             @Override
             public void widgetDisposed(DisposeEvent e) {
                 synchronized (Browser.this.monitor) {
-                    if (Browser.this.browserScriptRunner.getBrowserStatus()
-                        == BrowserStatus.LOADING) {
-                        Browser.this.browserScriptRunner
-                            .setBrowserStatus(BrowserStatus.DISPOSED);
+                    if (getBrowserStatus() == BrowserStatus.LOADING) {
+                        setBrowserStatus(BrowserStatus.DISPOSED);
                     }
                     Browser.this.monitor.notifyAll();
                 }
@@ -304,9 +307,8 @@ public class Browser extends Composite implements IBrowser {
     private boolean eventCatchScriptInjected = false;
 
     /**
-     * Injects the code needed for {@link #addAnkerListener(de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnkerListener)}, {@link
-     * #addFokusListener(de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener)} and {@link
-     * #addDNDListener(de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener)} to work. <p> The JavaScript remembers a successful
+     * Injects the code needed for {@link #addAnkerListener(de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnkerListener)}, addFokusListener and
+     * addDNDListener to work. <p> The JavaScript remembers a successful
      * injection in case to consecutive calls are made. <p> As soon as a successful injection has been registered, {@link
      * #eventCatchScriptInjected} is set so no unnecessary further injection is made.
      */
@@ -323,8 +325,8 @@ public class Browser extends Composite implements IBrowser {
                 // disposed
             } else {
                 LOGGER.error(
-                    "Could not inject events catch script in " + Browser.this
-                        .getClass().getSimpleName(), e);
+                        "Could not inject events catch script in " + Browser.this
+                                .getClass().getSimpleName(), e);
             }
         }
 
@@ -338,8 +340,8 @@ public class Browser extends Composite implements IBrowser {
                 // disposed
             } else {
                 LOGGER.error(
-                    "Could not inject drop catch script in " + Browser.this
-                        .getClass().getSimpleName(), e);
+                        "Could not inject drop catch script in " + Browser.this
+                                .getClass().getSimpleName(), e);
             }
         }
 
@@ -358,21 +360,21 @@ public class Browser extends Composite implements IBrowser {
             return;
         }
 
-        if (browserScriptRunner.getBrowserStatus() != BrowserStatus.LOADING) {
+        if (getBrowserStatus() != BrowserStatus.LOADING) {
             if (!Arrays.asList(BrowserStatus.TIMEDOUT, BrowserStatus.DISPOSED)
-                .contains(browserScriptRunner.getBrowserStatus())) {
+                       .contains(getBrowserStatus())) {
                 LOGGER.error(
-                    "State Error: " + browserScriptRunner.getBrowserStatus());
+                        "State Error: " + getBrowserStatus());
             }
             return;
         }
 
         String condition = "document.readyState == 'complete'" + (
-            pageLoadCheckExpression != null ?
+                pageLoadCheckExpression != null ?
                 " && (" + pageLoadCheckExpression + ")" :
                 "");
         BrowserFunction browserFunction = new BrowserFunction(browser,
-            BrowserUtils.createRandomFunctionName()) {
+                BrowserUtils.createRandomFunctionName()) {
             @Override
             public Object function(Object[] arguments) {
                 complete();
@@ -381,14 +383,14 @@ public class Browser extends Composite implements IBrowser {
             }
         };
         String completedCheckScript = createWaitForConditionJavascript(
-            condition, browserFunction.getName());
+                condition, browserFunction.getName());
 
         try {
             this.runImmediately(completedCheckScript,
-                IConverter.CONVERTER_VOID);
+                    IConverter.CONVERTER_VOID);
         } catch (Exception e) {
             LOGGER.error("An error occurred while checking the page load state",
-                e);
+                    e);
             synchronized (Browser.this.monitor) {
                 Browser.this.monitor.notifyAll();
             }
@@ -409,7 +411,7 @@ public class Browser extends Composite implements IBrowser {
             }
         });
         String checkScript = createWaitForConditionJavascript(condition,
-            randomFunctionName);
+                randomFunctionName);
 
         try {
             this.runImmediately(checkScript, IConverter.CONVERTER_VOID);
@@ -421,13 +423,13 @@ public class Browser extends Composite implements IBrowser {
     }
 
     private String createWaitForConditionJavascript(String condition,
-        String callbackFunctionName) {
+                                                    String callbackFunctionName) {
 
         String completedCheckScript =
-            "(function() { function test() { if(" + condition + ") { "
-                + callbackFunctionName
-                + "(); } else { window.setTimeout(test, 50); } } "
-                + "test(); })()";
+                "(function() { function test() { if(" + condition + ") { "
+                        + callbackFunctionName
+                        + "(); } else { window.setTimeout(test, 50); } } "
+                        + "test(); })()";
         return completedCheckScript;
     }
 
@@ -443,56 +445,53 @@ public class Browser extends Composite implements IBrowser {
         if (this.textSelectionsDisabled) {
             try {
                 this.injectCssImmediately(
-                    "* { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }");
+                        "* { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }");
             } catch (Exception e) {
                 LOGGER.error(e);
             }
         }
         final Future<Void> finished = Browser.this.beforeCompletion(uri);
         ExecUtils.nonUISyncExec(Browser.class, "Progress Check for " + uri,
-            new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        if (finished != null) {
-                            finished.get();
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error(e);
-                    }
-
-                    Browser.this.injectEventCatchScript();
-                    SwtUiThreadExecutor.asyncExec(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (!Browser.this.browser.isDisposed()) {
-                                Browser.this.browser.setVisible(true);
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            if (finished != null) {
+                                finished.get();
                             }
+                        } catch (Exception e) {
+                            LOGGER.error(e);
                         }
-                    });
-                    synchronized (Browser.this.monitor) {
-                        if (!Arrays.asList(BrowserStatus.TIMEDOUT,
-                            BrowserStatus.DISPOSED).contains(
-                            Browser.this.browserScriptRunner
-                                .getBrowserStatus())) {
-                            Browser.this.browserScriptRunner
-                                .setBrowserStatus(BrowserStatus.LOADED);
+
+                        Browser.this.injectEventCatchScript();
+                        SwtUiThreadExecutor.asyncExec(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!Browser.this.browser.isDisposed()) {
+                                    Browser.this.browser.setVisible(true);
+                                }
+                            }
+                        });
+                        synchronized (Browser.this.monitor) {
+                            if (!Arrays.asList(BrowserStatus.TIMEDOUT,
+                                    BrowserStatus.DISPOSED).contains(getBrowserStatus())) {
+                                setBrowserStatus(BrowserStatus.LOADED);
+                            }
+                            Browser.this.monitor.notifyAll();
                         }
-                        Browser.this.monitor.notifyAll();
                     }
-                }
-            });
+                });
     }
 
     @Override
     public Future<Boolean> open(final String uri, final Integer timeout,
-        final String pageLoadCheckExpression) {
+                                final String pageLoadCheckExpression) {
         if (this.browser.isDisposed()) {
             throw new SWTException(SWT.ERROR_WIDGET_DISPOSED);
         }
 
-        browserScriptRunner.setBrowserStatus(BrowserStatus.LOADING);
-        browserScriptRunner.activateExceptionHandling();
+        setBrowserStatus(BrowserStatus.LOADING);
+        activateExceptionHandling();
         this.browser.addProgressListener(new ProgressAdapter() {
             @Override
             public void completed(ProgressEvent event) {
@@ -501,90 +500,83 @@ public class Browser extends Composite implements IBrowser {
         });
 
         return ExecUtils.nonUIAsyncExec(Browser.class, "Opening " + uri,
-            new Callable<Boolean>() {
-                @Override
-                public Boolean call() throws Exception {
-                    // stops waiting after timeout
-                    Future<Void> timeoutMonitor = null;
-                    if (timeout != null && timeout > 0) {
-                        timeoutMonitor = ExecUtils.nonUIAsyncExec(Browser.class,
-                            "Timeout Watcher for " + uri, new Runnable() {
-                                @Override
-                                public void run() {
-                                    synchronized (Browser.this.monitor) {
-                                        if (Browser.this.browserScriptRunner
-                                            .getBrowserStatus()
-                                            != BrowserStatus.LOADED) {
-                                            Browser.this.browserScriptRunner
-                                                .setBrowserStatus(
-                                                    BrowserStatus.TIMEDOUT);
+                new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        // stops waiting after timeout
+                        Future<Void> timeoutMonitor = null;
+                        if (timeout != null && timeout > 0) {
+                            timeoutMonitor = ExecUtils.nonUIAsyncExec(Browser.class,
+                                    "Timeout Watcher for " + uri, new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            synchronized (Browser.this.monitor) {
+                                                if (getBrowserStatus()
+                                                        != BrowserStatus.LOADED) {
+                                                    setBrowserStatus(
+                                                            BrowserStatus.TIMEDOUT);
+                                                }
+                                                Browser.this.monitor.notifyAll();
+                                            }
                                         }
-                                        Browser.this.monitor.notifyAll();
-                                    }
-                                }
-                            }, timeout);
-                    } else {
-                        LOGGER.warn(
-                            "timeout must be greater or equal 0. Ignoring timeout.");
-                    }
-
-                    Browser.this.beforeLoad(uri);
-
-                    SwtUiThreadExecutor.syncExec(new Runnable() {
-                        @Override
-                        public void run() {
-                            Browser.this.settingUri = true;
-                            if (!Browser.this.browser.isDisposed()) {
-                                Browser.this.browser.setUrl(uri);
-                            }
-                            Browser.this.settingUri = false;
-                        }
-                    });
-
-                    Browser.this.afterLoad(uri);
-
-                    synchronized (Browser.this.monitor) {
-                        if (Browser.this.browserScriptRunner.getBrowserStatus()
-                            == BrowserStatus.LOADING) {
-                            LOGGER.debug(
-                                "Waiting for " + uri + " to be loaded (Thread: "
-                                    + Thread.currentThread() + "; status: "
-                                    + Browser.this.browserScriptRunner
-                                    .getBrowserStatus() + ")");
-                            Browser.this.monitor.wait();
-                            // notified by progresslistener or by
-                            // timeout
-                        }
-
-                        if (timeoutMonitor != null) {
-                            timeoutMonitor.cancel(true);
-                        }
-
-                        switch (Browser.this.browserScriptRunner
-                            .getBrowserStatus()) {
-                        case LOADED:
-                            LOGGER.debug("Successfully loaded " + uri);
-                            break;
-                        case TIMEDOUT:
+                                    }, timeout);
+                        } else {
                             LOGGER.warn(
-                                "Aborted loading " + uri + " due to timeout");
-                            break;
-                        case DISPOSED:
-                            if (!Browser.this.browser.isDisposed()) {
-                                LOGGER.info("Aborted loading " + uri
-                                    + " due to disposal");
-                            }
-                            break;
-                        default:
-                            throw new RuntimeException("Implementation error");
+                                    "timeout must be greater or equal 0. Ignoring timeout.");
                         }
 
-                        return
-                            Browser.this.browserScriptRunner.getBrowserStatus()
-                                == BrowserStatus.LOADED;
+                        Browser.this.beforeLoad(uri);
+
+                        SwtUiThreadExecutor.syncExec(new Runnable() {
+                            @Override
+                            public void run() {
+                                Browser.this.settingUri = true;
+                                if (!Browser.this.browser.isDisposed()) {
+                                    Browser.this.browser.setUrl(uri);
+                                }
+                                Browser.this.settingUri = false;
+                            }
+                        });
+
+                        Browser.this.afterLoad(uri);
+
+                        synchronized (Browser.this.monitor) {
+                            if (getBrowserStatus() == BrowserStatus.LOADING) {
+                                LOGGER.debug(
+                                        "Waiting for " + uri + " to be loaded (Thread: "
+                                                + Thread.currentThread() + "; status: "
+                                                + getBrowserStatus() + ")");
+                                Browser.this.monitor.wait();
+                                // notified by progresslistener or by
+                                // timeout
+                            }
+
+                            if (timeoutMonitor != null) {
+                                timeoutMonitor.cancel(true);
+                            }
+
+                            switch (getBrowserStatus()) {
+                                case LOADED:
+                                    LOGGER.debug("Successfully loaded " + uri);
+                                    break;
+                                case TIMEDOUT:
+                                    LOGGER.warn(
+                                            "Aborted loading " + uri + " due to timeout");
+                                    break;
+                                case DISPOSED:
+                                    if (!Browser.this.browser.isDisposed()) {
+                                        LOGGER.info("Aborted loading " + uri
+                                                + " due to disposal");
+                                    }
+                                    break;
+                                default:
+                                    throw new RuntimeException("Implementation error");
+                            }
+
+                            return getBrowserStatus() == BrowserStatus.LOADED;
+                        }
                     }
-                }
-            });
+                });
     }
 
     @Override
@@ -599,7 +591,7 @@ public class Browser extends Composite implements IBrowser {
 
     @Override
     public Future<Boolean> open(URI uri, Integer timeout,
-        String pageLoadCheckExpression) {
+                                String pageLoadCheckExpression) {
         return this.open(uri.toString(), timeout, pageLoadCheckExpression);
     }
 
@@ -608,7 +600,7 @@ public class Browser extends Composite implements IBrowser {
         try {
             File empty = File.createTempFile("blank", ".html");
             FileUtils.writeStringToFile(empty,
-                "<html><head></head><body></body></html>", "UTF-8");
+                    "<html><head></head><body></body></html>", "UTF-8");
             return open(empty.toURI(), 60000);
         } catch (Exception e) {
             return new CompletedFuture<Boolean>(false, e);
@@ -672,53 +664,80 @@ public class Browser extends Composite implements IBrowser {
     }
 
     public boolean isLoadingCompleted() {
-        return this.browserScriptRunner.getBrowserStatus()
-            == BrowserStatus.LOADED;
+        return getBrowserStatus() == BrowserStatus.LOADED;
     }
 
     private final Object monitor = new Object();
 
     @Override
     public Future<Boolean> inject(URI scriptURI) {
-        return browserScriptRunner.inject(scriptURI);
+        return run(scriptURI, false);
     }
 
     @Override
-    public Future<Boolean> run(final File script) {
-        return browserScriptRunner.run(script);
+    public Future<Boolean> run(File scriptFile) {
+        Assert.isLegal(scriptFile.canRead());
+        return run(scriptFile.toURI(), false);
     }
 
     @Override
     public Future<Boolean> run(final URI scriptURI) {
-        return browserScriptRunner.run(scriptURI);
+        return run(scriptURI, true);
+    }
+
+    private Future<Boolean> run(final URI scriptURI, final boolean removeAfterExecution) {
+        Assert.isLegal(scriptURI != null);
+        if ("file".equalsIgnoreCase(scriptURI.getScheme())) {
+            File file = new File(scriptURI);
+            if (removeAfterExecution) {
+                LOGGER.warn("The script "
+                        + scriptURI
+                        + " is on the local file system. To circument security restrictions its content becomes directly executed and thus cannot be removed.");
+            }
+
+            try {
+                return run(FileUtils.readFileToString(file), IConverter.CONVERTER_BOOLEAN);
+            } catch (IOException e) {
+                return new CompletedFuture<Boolean>(null, e);
+            }
+        } else {
+            return ExecUtils.nonUIAsyncExec(Browser.class, "Script Runner for: " + scriptURI,
+                    new CallbackFunctionCallable(this, scriptURI, removeAfterExecution));
+        }
     }
 
     @Override
     public Future<Object> run(final String script) {
-        return browserScriptRunner.run(script);
+        return run(script, new IConverter<Object, Object>() {
+            @Override
+            public Object convert(Object object) {
+                return object;
+            }
+        });
     }
 
     @Override
     public <DEST> Future<DEST> run(final String script,
-        final IConverter<Object, DEST> converter) {
-        return browserScriptRunner.run(script, converter);
+                                   final IConverter<Object, DEST> converter) {
+        Assert.isLegal(converter != null);
+        return browserStatusManager.createFuture(new ScriptExecutingCallable<DEST>(this, converter, script));
     }
 
     @Override
     public <DEST> DEST runImmediately(String script,
-        IConverter<Object, DEST> converter) throws Exception {
-        return browserScriptRunner.runImmediately(script, converter);
+                                      IConverter<Object, DEST> converter) throws Exception {
+        return SwtUiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(this, converter, script));
     }
 
     @Override
     public void runContentsImmediately(File scriptFile) throws Exception {
-        browserScriptRunner.runContentsImmediately(scriptFile);
+        runImmediately(FileUtils.readFileToString(scriptFile), IConverter.CONVERTER_VOID);
     }
 
     @Override
     public void runContentsAsScriptTagImmediately(File scriptFile)
-        throws Exception {
-        browserScriptRunner.runContentsAsScriptTagImmediately(scriptFile);
+            throws Exception {
+        runImmediately(JavascriptString.embedContentsIntoScriptTag(scriptFile), IConverter.CONVERTER_VOID);
     }
 
     @Override
@@ -734,39 +753,39 @@ public class Browser extends Composite implements IBrowser {
     @Override
     public Future<Void> injectJsFile(File file) {
         return run(createJsFileInjectionScript(file),
-            IConverter.CONVERTER_VOID);
+                IConverter.CONVERTER_VOID);
     }
 
     @Override
     public void injectJsFileImmediately(File file) throws Exception {
         runImmediately(createJsFileInjectionScript(file),
-            IConverter.CONVERTER_VOID);
+                IConverter.CONVERTER_VOID);
     }
 
     private static String createJsFileInjectionScript(File file) {
         return
-            "var script=document.createElement(\"script\"); script.type=\"text/javascript\"; script.src=\""
-                + file.toURI()
-                + "\"; document.getElementsByTagName(\"head\")[0].appendChild(script);";
+                "var script=document.createElement(\"script\"); script.type=\"text/javascript\"; script.src=\""
+                        + file.toURI()
+                        + "\"; document.getElementsByTagName(\"head\")[0].appendChild(script);";
     }
 
     @Override
     public Future<Void> injectCssFile(URI uri) {
         return run(createCssFileInjectionScript(uri),
-            IConverter.CONVERTER_VOID);
+                IConverter.CONVERTER_VOID);
     }
 
     public void injectCssFileImmediately(URI uri) throws Exception {
         runImmediately(createCssFileInjectionScript(uri),
-            IConverter.CONVERTER_VOID);
+                IConverter.CONVERTER_VOID);
     }
 
     private static String createCssFileInjectionScript(URI uri) {
         return "if(document.createStyleSheet){document.createStyleSheet(\""
-            + uri.toString()
-            + "\")}else{var link=document.createElement(\"link\"); link.rel=\"stylesheet\"; link.type=\"text/css\"; link.href=\""
-            + uri.toString()
-            + "\"; document.getElementsByTagName(\"head\")[0].appendChild(link); }";
+                + uri.toString()
+                + "\")}else{var link=document.createElement(\"link\"); link.rel=\"stylesheet\"; link.type=\"text/css\"; link.href=\""
+                + uri.toString()
+                + "\"; document.getElementsByTagName(\"head\")[0].appendChild(link); }";
     }
 
     @Override
@@ -782,9 +801,9 @@ public class Browser extends Composite implements IBrowser {
 
     private static String createCssInjectionScript(String css) {
         return
-            "(function(){var style=document.createElement(\"style\");style.appendChild(document.createTextNode(\""
-                + css
-                + "\"));(document.getElementsByTagName(\"head\")[0]||document.documentElement).appendChild(style)})()";
+                "(function(){var style=document.createElement(\"style\");style.appendChild(document.createTextNode(\""
+                        + css
+                        + "\"));(document.getElementsByTagName(\"head\")[0]||document.documentElement).appendChild(style)})()";
     }
 
     @Override
@@ -898,14 +917,14 @@ public class Browser extends Composite implements IBrowser {
     }
 
     synchronized protected void fireDragStart(long offsetX, long offsetY,
-        IElement element, String mimeType, String data) {
+                                              IElement element, String mimeType, String data) {
         for (IDNDListener dndListener : this.dndListeners) {
             dndListener.dragStart(offsetX, offsetY, element, mimeType, data);
         }
     }
 
     synchronized protected void fireDrop(long offsetX, long offsetY,
-        IElement element, String mimeType, String data) {
+                                         IElement element, String mimeType, String data) {
         for (IDNDListener dndListener : this.dndListeners) {
             dndListener.drop(offsetX, offsetY, element, mimeType, data);
         }
@@ -913,13 +932,13 @@ public class Browser extends Composite implements IBrowser {
 
     @Override
     public void addJavaScriptExceptionListener(
-        JavaScriptExceptionListener javaScriptExceptionListener) {
+            JavaScriptExceptionListener javaScriptExceptionListener) {
         this.javaScriptExceptionListeners.add(javaScriptExceptionListener);
     }
 
     @Override
     public void removeJavaScriptExceptionListener(
-        JavaScriptExceptionListener javaScriptExceptionListener) {
+            JavaScriptExceptionListener javaScriptExceptionListener) {
         this.javaScriptExceptionListeners.remove(javaScriptExceptionListener);
     }
 
@@ -929,7 +948,7 @@ public class Browser extends Composite implements IBrowser {
     }
 
     synchronized protected void fireJavaScriptExceptionThrown(
-        JavaScriptException javaScriptException) {
+            JavaScriptException javaScriptException) {
         for (JavaScriptExceptionListener JavaScriptExceptionListener : this.javaScriptExceptionListeners) {
             JavaScriptExceptionListener.thrown(javaScriptException);
         }
@@ -938,32 +957,32 @@ public class Browser extends Composite implements IBrowser {
     @Override
     public Future<Boolean> containsElementWithID(String id) {
         return this.run("return document.getElementById('" + id + "') != null",
-            IConverter.CONVERTER_BOOLEAN);
+                IConverter.CONVERTER_BOOLEAN);
     }
 
     @Override
     public Future<Boolean> containsElementsWithName(String name) {
         return this
-            .run("return document.getElementsByName('" + name + "').length > 0",
-                    IConverter.CONVERTER_BOOLEAN);
+                .run("return document.getElementsByName('" + name + "').length > 0",
+                        IConverter.CONVERTER_BOOLEAN);
     }
 
     public static String escape(String html) {
         return html.replace("\n", "<br>").replace("&#xD;", "").replace("\r", "")
-            .replace("\"", "\\\"").replace("'", "\\'");
+                   .replace("\"", "\\\"").replace("'", "\\'");
     }
 
     @Override
     public Future<Void> setBodyHtml(String html) {
         return this
-            .run("document.body.innerHTML = ('" + Browser.escape(html) + "');",
-                IConverter.CONVERTER_VOID);
+                .run("document.body.innerHTML = ('" + Browser.escape(html) + "');",
+                        IConverter.CONVERTER_VOID);
     }
 
     @Override
     public Future<String> getBodyHtml() {
         return this
-            .run("return document.body.innerHTML", IConverter.CONVERTER_STRING);
+                .run("return document.body.innerHTML", IConverter.CONVERTER_STRING);
     }
 
     @Override
@@ -976,11 +995,11 @@ public class Browser extends Composite implements IBrowser {
     public void setBackground(Color color) {
         super.setBackground(color);
         String hex = color != null ?
-            new RGB(color.getRGB()).toDecString() :
-            "transparent";
+                     new RGB(color.getRGB()).toDecString() :
+                     "transparent";
         try {
             this.injectCssImmediately(
-                "html, body { background-color: " + hex + "; }");
+                    "html, body { background-color: " + hex + "; }");
         } catch (Exception e) {
             LOGGER.error("Error setting background color to " + color, e);
         }
@@ -992,18 +1011,18 @@ public class Browser extends Composite implements IBrowser {
         try {
             File js = File.createTempFile("paste", ".js");
             FileUtils.write(js,
-                "if(['input','textarea'].indexOf(document.activeElement.tagName.toLowerCase()) != -1) { document.activeElement.value = '");
+                    "if(['input','textarea'].indexOf(document.activeElement.tagName.toLowerCase()) != -1) { document.activeElement.value = '");
             FileOutputStream outStream = new FileOutputStream(js, true);
             IOUtils.copy(IOUtils.toInputStream(escapedHtml), outStream);
             IOUtils.copy(IOUtils.toInputStream(
-                    "';} else { var t,n;if(window.getSelection){t=window.getSelection();if(t.getRangeAt&&t.rangeCount){n=t.getRangeAt(0);n.deleteContents();var r=document.createElement(\"div\");r.innerHTML='"),
-                outStream);
+                            "';} else { var t,n;if(window.getSelection){t=window.getSelection();if(t.getRangeAt&&t.rangeCount){n=t.getRangeAt(0);n.deleteContents();var r=document.createElement(\"div\");r.innerHTML='"),
+                    outStream);
             IOUtils.copy(IOUtils.toInputStream(escapedHtml), outStream);
             IOUtils.copy(IOUtils.toInputStream(
-                    "';var i=document.createDocumentFragment(),s,o;while(s=r.firstChild){o=i.appendChild(s)}n.insertNode(i);if(o){n=n.cloneRange();n.setStartAfter(o);n.collapse(true);t.removeAllRanges();t.addRange(n)}}}else if(document.selection&&document.selection.type!=\"Control\"){document.selection.createRange().pasteHTML('"),
-                outStream);
+                            "';var i=document.createDocumentFragment(),s,o;while(s=r.firstChild){o=i.appendChild(s)}n.insertNode(i);if(o){n=n.cloneRange();n.setStartAfter(o);n.collapse(true);t.removeAllRanges();t.addRange(n)}}}else if(document.selection&&document.selection.type!=\"Control\"){document.selection.createRange().pasteHTML('"),
+                    outStream);
             IOUtils
-                .copy(IOUtils.toInputStream(escapedHtml + "')}}"), outStream);
+                    .copy(IOUtils.toInputStream(escapedHtml + "')}}"), outStream);
             return this.injectJsFile(js);
         } catch (Exception e) {
             return new CompletedFuture<Void>(null, e);
@@ -1013,13 +1032,13 @@ public class Browser extends Composite implements IBrowser {
     @Override
     public Future<Void> addFocusBorder() {
         return this
-            .run("window.__addFocusBorder();", IConverter.CONVERTER_VOID);
+                .run("window.__addFocusBorder();", IConverter.CONVERTER_VOID);
     }
 
     @Override
     public Future<Void> removeFocusBorder() {
         return this
-            .run("window.__removeFocusBorder();", IConverter.CONVERTER_VOID);
+                .run("window.__removeFocusBorder();", IConverter.CONVERTER_VOID);
     }
 
     @Override
@@ -1029,15 +1048,15 @@ public class Browser extends Composite implements IBrowser {
             return super.computeSize(wHint, hHint, changed);
         }
         Point size = new Point(bounds.x + bounds.width,
-            bounds.y + bounds.height);
+                bounds.y + bounds.height);
         LOGGER.debug(
-            Browser.class.getSimpleName() + ".computeSize(" + wHint + ", "
-                + hHint + ", " + changed + ") -> " + size);
+                Browser.class.getSimpleName() + ".computeSize(" + wHint + ", "
+                        + hHint + ", " + changed + ") -> " + size);
         return size;
     }
 
     public IBrowserFunction createBrowserFunction(final String functionName,
-        final IBrowserFunction function) {
+                                                  final IBrowserFunction function) {
         try {
             return SwtUiThreadExecutor.syncExec(new Callable<IBrowserFunction>() {
                 @Override
@@ -1068,5 +1087,29 @@ public class Browser extends Composite implements IBrowser {
 
     public Object evaluate(String javaScript) {
         return browser.evaluate(javaScript);
+    }
+
+    /**
+     * Notifies all registered Javascript exception listeners in case a JavaScript error occurred.
+     */
+    public void activateExceptionHandling() {
+        try {
+            this.runImmediately(BrowserUtils.getExceptionForwardingScript("__error_callback"), IConverter.CONVERTER_VOID);
+        } catch (Exception e) {
+            LOGGER.error("Error activating browser's exception handling. JavaScript exceptions are not detected!", e);
+        }
+    }
+
+    public void setBrowserStatus(BrowserStatus browserStatus) throws UnexpectedBrowserStateException {
+        browserStatusManager.setBrowserStatus(browserStatus);
+    }
+
+    /**
+     * Returns the state of the browser.
+     *
+     * @return
+     */
+    public BrowserStatus getBrowserStatus() {
+        return browserStatusManager.getBrowserStatus();
     }
 }

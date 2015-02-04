@@ -4,14 +4,12 @@ import java.io.File;
 import java.net.URI;
 import java.util.concurrent.Future;
 
-import org.eclipse.swt.browser.Browser;
-
 import de.fu_berlin.inf.ag_se.widgets.IWidget;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnkerListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.runner.BrowserScriptRunner.JavaScriptExceptionListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.runner.IBrowserScriptRunner;
 
 /**
@@ -204,7 +202,7 @@ public interface IBrowser extends IBrowserScriptRunner, IWidget {
     public Future<Void> removeFocusBorder();
 
     /**
-     * Adds a {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.BrowserScriptRunner.JavaScriptExceptionListener} that is notified if a
+     * Adds a {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener} that is notified if a
      * exception is thrown in the {@link org.eclipse.swt.browser.Browser} by code that was not invoked from the Java but the JavaScript
      * world (e.g. a click on a button invoking erroneous code).
      *
@@ -214,8 +212,8 @@ public interface IBrowser extends IBrowserScriptRunner, IWidget {
             JavaScriptExceptionListener javaScriptExceptionListener);
 
     /**
-     * Removed the given {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.BrowserScriptRunner.JavaScriptExceptionListener} from the list
-     * of notified {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.BrowserScriptRunner.JavaScriptExceptionListener}s.
+     * Removed the given {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener} from the list
+     * of notified {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener}s.
      *
      * @param javaScriptExceptionListener
      */
