@@ -37,7 +37,6 @@ public class OffWorkerTest {
 	public void testNonUIAsyncExecMerged() throws InterruptedException,
             ExecutionException, TimeoutException {
 		int numTasks = 1500;
-		// int delay = 2000;
 
 		final OffWorker offWorker = new OffWorker(OffWorkerTest.class, "Test");
 		List<Future<Long>> futures = new ArrayList<Future<Long>>();
@@ -80,21 +79,6 @@ public class OffWorkerTest {
 		} catch (StateException e) {
 		}
 
-		try {
-			offWorker.pause();
-			assertTrue(false);
-		} catch (StateException e) {
-		}
-
-		try {
-			offWorker.unpause();
-			assertTrue(false);
-		} catch (StateException e) {
-		}
-
-		// assertTrue("Only " + passed.getTimePassed() + "ms instead of " +
-		// delay
-		// + "ms have passed.", passed.getTimePassed() > delay);
 		assertEquals(true, true);
 	}
 
