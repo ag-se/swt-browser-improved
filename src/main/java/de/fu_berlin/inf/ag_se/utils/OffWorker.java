@@ -1,5 +1,6 @@
 package de.fu_berlin.inf.ag_se.utils;
 
+import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingCallable;
 import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingUtils;
 
 import java.util.concurrent.Callable;
@@ -99,25 +100,7 @@ public class OffWorker {
     }
 
     public synchronized <V> Future<V> submit(final Callable<V> callable) {
-        return this.submit(callable, null);
-    }
-
-    public synchronized <V> Future<V> submit(final Callable<V> callable,
-                                             final String name) {
-        FutureTask<V> task = new FutureTask<V>(
-                name != null ? new Callable<V>() {
-                    @Override
-                    public V call() throws Exception {
-                        String label = ThreadLabelingUtils.backupThreadLabel();
-                        Thread.currentThread().setName(
-                                label + " :: Running " + name);
-                        try {
-                            return callable.call();
-                        } finally {
-                            ThreadLabelingUtils.restoreThreadLabel();
-                        }
-                    }
-                } : callable);
+        FutureTask<V> task = new FutureTask<V>(callable);
         if (!queue.add(task)) {
             throw new RuntimeException("Capacity (" + queue.size()
                     + ") of " + this.getClass().getSimpleName() + " exceeded!");
