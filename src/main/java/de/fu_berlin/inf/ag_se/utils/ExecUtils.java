@@ -38,7 +38,8 @@ public class ExecUtils {
         return Runtime.getRuntime().availableProcessors() * 2;
     }
 
-    public static ThreadFactory createThreadFactory(final String prefix) {
+    public static ThreadFactory createThreadFactory(Class<?> clazz, String purpose) {
+        final String prefix = ThreadLabelingUtils.createThreadLabel("", clazz, purpose);
         return new ThreadFactory() {
             private final ThreadFactory defaultThreadFactory = Executors.defaultThreadFactory();
             private int i = 0;
@@ -53,9 +54,7 @@ public class ExecUtils {
         };
     }
 
-    static final ExecutorService EXECUTOR_SERVICE = Executors
-            .newCachedThreadPool(createThreadFactory(ExecUtils.class
-                    .getSimpleName()));
+    static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool(createThreadFactory(ExecUtils.class, ""));
 
     /**
      * Checks if the current thread is an SWT UI thread.
@@ -380,7 +379,7 @@ public class ExecUtils {
             final ParametrizedCallable<INPUT, OUTPUT> parametrizedCallable) {
         ExecutorService executorService = Executors.newFixedThreadPool(
                 getOptimalThreadNumber(),
-                createThreadFactory(ThreadLabelingUtils.createThreadLabel(clazz, purpose)));
+                createThreadFactory(clazz, purpose));
         List<Future<OUTPUT>> futures1 = new ArrayList<Future<OUTPUT>>();
         for (Iterator<INPUT> iterator = input.iterator(); iterator.hasNext(); ) {
             final INPUT object = iterator.next();
@@ -414,7 +413,7 @@ public class ExecUtils {
             final ParametrizedCallable<INPUT, OUTPUT> parametrizedCallable) {
         ExecutorService executorService = Executors.newFixedThreadPool(
                 getOptimalThreadNumber(),
-                createThreadFactory(ThreadLabelingUtils.createThreadLabel(clazz, purpose)));
+                createThreadFactory(clazz, purpose));
         final List<Future<OUTPUT>> futures1 = new ArrayList<Future<OUTPUT>>();
         for (Iterator<INPUT> iterator = input.iterator(); iterator.hasNext(); ) {
             final INPUT object = iterator.next();
