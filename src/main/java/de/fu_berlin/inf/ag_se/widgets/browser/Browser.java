@@ -13,7 +13,6 @@ import de.fu_berlin.inf.ag_se.widgets.browser.runner.CallbackFunctionCallable;
 import de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.runner.ScriptExecutingCallable;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -29,7 +28,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -207,7 +205,7 @@ public class Browser extends Composite implements IBrowser {
         if (textSelectionsDisabled) {
             try {
                 injectCssImmediately(
-                        "* { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }");
+                        JavascriptString.createCssToDisableTextSelection());
             } catch (Exception e) {
                 LOGGER.error(e);
             }
@@ -413,16 +411,6 @@ public class Browser extends Composite implements IBrowser {
         this.textSelectionsDisabled = true;
     }
 
-    /**
-     * Return the {@link org.eclipse.swt.browser.Browser} used by this timeline.
-     *
-     * @return must not return null (but may return an already disposed widget)
-     * @internal use of this method potentially dangerous since internal state can transit to an inconsistent one
-     */
-    public org.eclipse.swt.browser.Browser getBrowser() {
-        return this.browser;
-    }
-
     public boolean isLoadingCompleted() {
         return getBrowserStatus() == BrowserStatus.LOADED;
     }
@@ -512,58 +500,36 @@ public class Browser extends Composite implements IBrowser {
 
     @Override
     public Future<Void> injectJsFile(File file) {
-        return run(createJsFileInjectionScript(file),
+        return run(JavascriptString.createJsFileInjectionScript(file),
                 IConverter.CONVERTER_VOID);
     }
 
     @Override
     public void injectJsFileImmediately(File file) throws Exception {
-        runImmediately(createJsFileInjectionScript(file),
+        runImmediately(JavascriptString.createJsFileInjectionScript(file),
                 IConverter.CONVERTER_VOID);
-    }
-
-    private static String createJsFileInjectionScript(File file) {
-        return
-                "var script=document.createElement(\"script\"); script.type=\"text/javascript\"; script.src=\""
-                        + file.toURI()
-                        + "\"; document.getElementsByTagName(\"head\")[0].appendChild(script);";
     }
 
     @Override
     public Future<Void> injectCssFile(URI uri) {
-        return run(createCssFileInjectionScript(uri),
+        return run(JavascriptString.createCssFileInjectionScript(uri),
                 IConverter.CONVERTER_VOID);
     }
 
     public void injectCssFileImmediately(URI uri) throws Exception {
-        runImmediately(createCssFileInjectionScript(uri),
+        runImmediately(JavascriptString.createCssFileInjectionScript(uri),
                 IConverter.CONVERTER_VOID);
-    }
-
-    private static String createCssFileInjectionScript(URI uri) {
-        return "if(document.createStyleSheet){document.createStyleSheet(\""
-                + uri.toString()
-                + "\")}else{var link=document.createElement(\"link\"); link.rel=\"stylesheet\"; link.type=\"text/css\"; link.href=\""
-                + uri.toString()
-                + "\"; document.getElementsByTagName(\"head\")[0].appendChild(link); }";
     }
 
     @Override
     public Future<Void> injectCss(String css) {
-        return run(createCssInjectionScript(css), IConverter.CONVERTER_VOID);
+        return run(JavascriptString.createCssInjectionScript(css), IConverter.CONVERTER_VOID);
     }
 
     @Override
     public void injectCssImmediately(String css) throws Exception {
-        runImmediately(createCssInjectionScript(css),
+        runImmediately(JavascriptString.createCssInjectionScript(css),
                 IConverter.CONVERTER_VOID);
-    }
-
-    private static String createCssInjectionScript(String css) {
-        return
-                "(function(){var style=document.createElement(\"style\");style.appendChild(document.createTextNode(\""
-                        + css
-                        + "\"));(document.getElementsByTagName(\"head\")[0]||document.documentElement).appendChild(style)})()";
     }
 
     @Override
@@ -644,15 +610,10 @@ public class Browser extends Composite implements IBrowser {
                         IConverter.CONVERTER_BOOLEAN);
     }
 
-    public static String escape(String html) {
-        return html.replace("\n", "<br>").replace("&#xD;", "").replace("\r", "")
-                   .replace("\"", "\\\"").replace("'", "\\'");
-    }
-
     @Override
     public Future<Void> setBodyHtml(String html) {
         return this
-                .run("document.body.innerHTML = ('" + Browser.escape(html) + "');",
+                .run("document.body.innerHTML = ('" + JavascriptString.escape(html) + "');",
                         IConverter.CONVERTER_VOID);
     }
 
@@ -684,23 +645,10 @@ public class Browser extends Composite implements IBrowser {
 
     @Override
     public Future<Void> pasteHtmlAtCaret(String html) {
-        String escapedHtml = Browser.escape(html);
         try {
             File js = File.createTempFile("paste", ".js");
-            FileUtils.write(js,
-                    "if(['input','textarea'].indexOf(document.activeElement.tagName.toLowerCase()) != -1) { document.activeElement.value = '");
-            FileOutputStream outStream = new FileOutputStream(js, true);
-            IOUtils.copy(IOUtils.toInputStream(escapedHtml), outStream);
-            IOUtils.copy(IOUtils.toInputStream(
-                            "';} else { var t,n;if(window.getSelection){t=window.getSelection();if(t.getRangeAt&&t.rangeCount){n=t.getRangeAt(0);n.deleteContents();var r=document.createElement(\"div\");r.innerHTML='"),
-                    outStream);
-            IOUtils.copy(IOUtils.toInputStream(escapedHtml), outStream);
-            IOUtils.copy(IOUtils.toInputStream(
-                            "';var i=document.createDocumentFragment(),s,o;while(s=r.firstChild){o=i.appendChild(s)}n.insertNode(i);if(o){n=n.cloneRange();n.setStartAfter(o);n.collapse(true);t.removeAllRanges();t.addRange(n)}}}else if(document.selection&&document.selection.type!=\"Control\"){document.selection.createRange().pasteHTML('"),
-                    outStream);
-            IOUtils
-                    .copy(IOUtils.toInputStream(escapedHtml + "')}}"), outStream);
-            return this.injectJsFile(js);
+            FileUtils.write(js, JavascriptString.createJavascriptForInsertingHTML(html));
+            return injectJsFile(js);
         } catch (Exception e) {
             return new CompletedFuture<Void>(null, e);
         }
@@ -767,7 +715,7 @@ public class Browser extends Composite implements IBrowser {
     /**
      * Notifies all registered Javascript exception listeners in case a JavaScript error occurred.
      */
-    public void activateExceptionHandling() {
+    private void activateExceptionHandling() {
         try {
             runImmediately(BrowserUtils.getExceptionForwardingScript("__error_callback"), IConverter.CONVERTER_VOID);
         } catch (Exception e) {

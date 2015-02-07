@@ -37,4 +37,46 @@ public class JavascriptString {
                 + "(); } else { window.setTimeout(test, 50); } } "
                 + "test(); })()";
     }
+
+    static String createJsFileInjectionScript(File file) {
+        return
+                "var script=document.createElement(\"script\"); script.type=\"text/javascript\"; script.src=\""
+                        + file.toURI()
+                        + "\"; document.getElementsByTagName(\"head\")[0].appendChild(script);";
+    }
+
+    static String createCssFileInjectionScript(URI uri) {
+        return "if(document.createStyleSheet){document.createStyleSheet(\""
+                + uri.toString()
+                + "\")}else{var link=document.createElement(\"link\"); link.rel=\"stylesheet\"; link.type=\"text/css\"; link.href=\""
+                + uri.toString()
+                + "\"; document.getElementsByTagName(\"head\")[0].appendChild(link); }";
+    }
+
+    static String createCssInjectionScript(String css) {
+        return
+                "(function(){var style=document.createElement(\"style\");style.appendChild(document.createTextNode(\""
+                        + css
+                        + "\"));(document.getElementsByTagName(\"head\")[0]||document.documentElement).appendChild(style)})()";
+    }
+
+    static String createCssToDisableTextSelection() {
+        return "* { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }";
+    }
+
+    protected static String createJavascriptForInsertingHTML(String html) {
+        String escapedHtml = escape(html);
+        return "if(['input','textarea'].indexOf(document.activeElement.tagName.toLowerCase()) != -1) { document.activeElement.value = '"
+        + escapedHtml
+        + "';} else { var t,n;if(window.getSelection){t=window.getSelection();if(t.getRangeAt&&t.rangeCount){n=t.getRangeAt(0);n.deleteContents();var r=document.createElement(\"div\");r.innerHTML='"
+        + escapedHtml
+        + "';var i=document.createDocumentFragment(),s,o;while(s=r.firstChild){o=i.appendChild(s)}n.insertNode(i);if(o){n=n.cloneRange();n.setStartAfter(o);n.collapse(true);t.removeAllRanges();t.addRange(n)}}}else if(document.selection&&document.selection.type!=\"Control\"){document.selection.createRange().pasteHTML('"
+        + escapedHtml
+                + "')}}";
+    }
+
+    public static String escape(String html) {
+        return html.replace("\n", "<br>").replace("&#xD;", "").replace("\r", "")
+                   .replace("\"", "\\\"").replace("'", "\\'");
+    }
 }
