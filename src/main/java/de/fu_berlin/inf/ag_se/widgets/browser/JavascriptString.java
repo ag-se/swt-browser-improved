@@ -29,4 +29,12 @@ public class JavascriptString {
         js += "};h.appendChild(s);";
         return js;
     }
+
+    static String createWaitForConditionJavascript(String condition,
+                                                   String callbackFunctionName) {
+        return "(function() { function test() { if(" + condition + ") { "
+                + callbackFunctionName
+                + "(); } else { window.setTimeout(test, 50); } } "
+                + "test(); })()";
+    }
 }

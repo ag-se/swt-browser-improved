@@ -54,14 +54,9 @@ public class BrowserUtils {
     public static boolean fuzzyEquals(String uri1, String uri2) {
         if (uri1 == null && uri2 == null) {
             return true;
-        }
-        if (uri1 == null && uri2 != null) {
+        } else if (uri1 == null || uri2 == null) {
             return false;
-        }
-        if (uri1 != null && uri2 == null) {
-            return false;
-        }
-        if (uri1.endsWith(uri2) || uri2.endsWith(uri1)) {
+        } else if (uri1.endsWith(uri2) || uri2.endsWith(uri1)) {
             return true;
         }
         return false;

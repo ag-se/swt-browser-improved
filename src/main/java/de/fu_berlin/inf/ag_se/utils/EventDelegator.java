@@ -25,9 +25,11 @@ public class EventDelegator {
 	public static boolean mustDelegate(int eventType, Control control) {
 		Assert.isLegal(control != null);
 		if (control instanceof Composite) {
-			return eventType == SWT.MouseMove || eventType == SWT.MouseEnter
+			return eventType == SWT.MouseMove
+                    || eventType == SWT.MouseEnter
 					|| eventType == SWT.MouseHover
-					|| eventType == SWT.MouseExit || eventType == SWT.FocusIn
+					|| eventType == SWT.MouseExit
+                    || eventType == SWT.FocusIn
 					|| eventType == SWT.FocusOut;
 		}
 		return false;
