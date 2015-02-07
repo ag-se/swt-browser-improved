@@ -2,15 +2,12 @@ package de.fu_berlin.inf.ag_se.utils;
 
 import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingUtils;
 import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingCallable;
-import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingParametrizedCallable;
 import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingRunnable;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -33,10 +30,6 @@ import java.util.concurrent.*;
 public class ExecUtils {
 
     private static final Logger LOGGER = Logger.getLogger(ExecUtils.class);
-
-    public static int getOptimalThreadNumber() {
-        return Runtime.getRuntime().availableProcessors() * 2;
-    }
 
     public static ThreadFactory createThreadFactory(Class<?> clazz, String purpose) {
         final String prefix = ThreadLabelingUtils.createThreadLabel("", clazz, purpose);
@@ -358,129 +351,4 @@ public class ExecUtils {
             }
         });
     }
-
-    /**
-     * Executes the given {@link ParametrizedCallable} once per element in the given input {@link java.util.Collection} and each
-     * in a new thread.
-     *
-     * @param clazz
-     * @param purpose
-     * @param input                whose elements are used as the parameter for the {@link ParametrizedCallable}
-     * @param parametrizedCallable to be called n times
-     * @return a list of {@link java.util.concurrent.Future}s
-     * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
-     * @NonUIThread
-     */
-    public static <INPUT, OUTPUT> List<Future<OUTPUT>> nonUIAsyncExec(
-            final Class<?> clazz,
-            final String purpose,
-            Collection<INPUT> input,
-            final ParametrizedCallable<INPUT, OUTPUT> parametrizedCallable) {
-        ExecutorService executorService = Executors.newFixedThreadPool(
-                getOptimalThreadNumber(),
-                createThreadFactory(clazz, purpose));
-        List<Future<OUTPUT>> futures1 = new ArrayList<Future<OUTPUT>>();
-        for (Iterator<INPUT> iterator = input.iterator(); iterator.hasNext(); ) {
-            final INPUT object = iterator.next();
-            futures1.add(executorService.submit(new Callable<OUTPUT>() {
-                @Override
-                public OUTPUT call() throws Exception {
-                    return new ThreadLabelingParametrizedCallable<INPUT, OUTPUT>(clazz, purpose, parametrizedCallable).call(object);
-                }
-            }));
-        }
-        List<Future<OUTPUT>> futures = futures1;
-        executorService.shutdown();
-        return futures;
-    }
-
-    /**
-     * Executes the given {@link ParametrizedCallable} once per element in the given input {@link java.util.Collection}. <p> In
-     * contrast to {@link #nonUIAsyncExec(java.util.concurrent.ExecutorService, java.util.Collection, ParametrizedCallable)} this method
-     * returns a single {@link java.util.concurrent.Future} containing all results.
-     *
-     * @param input                whose elements are used as the parameter for the {@link ParametrizedCallable}
-     * @param parametrizedCallable to be called n times
-     * @return a {@link java.util.concurrent.Future} that contains the results
-     * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
-     * @NonUIThread
-     */
-    public static <INPUT, OUTPUT> Iterable<OUTPUT> nonUIAsyncExecMerged(
-            final Class<?> clazz,
-            final String purpose,
-            Collection<INPUT> input,
-            final ParametrizedCallable<INPUT, OUTPUT> parametrizedCallable) {
-        ExecutorService executorService = Executors.newFixedThreadPool(
-                getOptimalThreadNumber(),
-                createThreadFactory(clazz, purpose));
-        final List<Future<OUTPUT>> futures1 = new ArrayList<Future<OUTPUT>>();
-        for (Iterator<INPUT> iterator = input.iterator(); iterator.hasNext(); ) {
-            final INPUT object = iterator.next();
-            futures1.add(executorService.submit(new Callable<OUTPUT>() {
-                @Override
-                public OUTPUT call() throws Exception {
-                    return new ThreadLabelingParametrizedCallable<INPUT, OUTPUT>(clazz, purpose, parametrizedCallable).call(object);
-                }
-            }));
-        }
-        Iterable<OUTPUT> futures = new Iterable<OUTPUT>() {
-            @Override
-            public Iterator<OUTPUT> iterator() {
-                return new Iterator<OUTPUT>() {
-                    @Override
-                    public boolean hasNext() {
-                        return futures1.size() > 0;
-                    }
-
-                    @Override
-                    public OUTPUT next() {
-                        if (!this.hasNext()) {
-                            return null;
-                        }
-
-                        return this.next(0);
-                    }
-
-                    public OUTPUT next(int numCalls) {
-                        if (numCalls == 200) {
-                            LOGGER.warn(ExecUtils.class
-                                    + " is busy waiting for the next available result since 10s. There might be a problem.");
-                        }
-
-                        Future<OUTPUT> next = null;
-                        for (Future<OUTPUT> future : futures1) {
-                            if (future.isDone()) {
-                                next = future;
-                                break;
-                            }
-                        }
-                        if (next != null) {
-                            futures1.remove(next);
-                            try {
-                                return next.get();
-                            } catch (InterruptedException e) {
-                                throw new RuntimeException(e);
-                            } catch (ExecutionException e) {
-                                throw new RuntimeException(e);
-                            }
-                        } else {
-                            try {
-                                Thread.sleep(50);
-                            } catch (InterruptedException e) {
-                                throw new RuntimeException(e);
-                            }
-                            return this.next(numCalls + 1);
-                        }
-                    }
-
-                    @Override
-                    public void remove() {
-                    }
-                };
-            }
-        };
-        executorService.shutdown();
-        return futures;
-    }
-
 }
