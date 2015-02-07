@@ -89,6 +89,7 @@ public class OffWorker {
             case RUNNING:
                 state = State.SHUTDOWN;
                 runner.interrupt();
+                break;
             case SHUTDOWN:
                 state = State.SHUTDOWN;
                 runner.interrupt();

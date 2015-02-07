@@ -59,6 +59,7 @@ public class CallbackFunctionCallable implements Callable<Boolean> {
         } catch (InterruptedException e) {
             LOGGER.error(e);
         }
+        //TODO don't return null
         return null;
     }
 }

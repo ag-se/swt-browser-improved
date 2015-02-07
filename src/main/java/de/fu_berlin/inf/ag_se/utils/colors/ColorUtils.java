@@ -7,7 +7,7 @@ import java.util.*;
 
 public class ColorUtils {
 
-	public static double GOLDEN_RATIO_CONJUGATE = 0.618033988749895;
+	public static final double GOLDEN_RATIO_CONJUGATE = 0.618033988749895;
 
 	private ColorUtils() {
 		// no instantiation allowed

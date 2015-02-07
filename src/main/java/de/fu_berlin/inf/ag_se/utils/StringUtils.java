@@ -171,11 +171,11 @@ public class StringUtils {
 	 * @return
 	 */
 	public static String createRandomString(int length) {
-		String random = "";
-		while (random.length() < length) {
-			random += new BigInteger(130, new SecureRandom()).toString(32);
-		}
-		return random.substring(0, length);
+        StringBuilder builder = new StringBuilder();
+		while (builder.length() < length) {
+            builder.append(new BigInteger(130, new SecureRandom()).toString(32));
+        }
+        return builder.substring(0, length);
 	}
 
 	public static String rtfToBody(String rtf) throws IOException {
