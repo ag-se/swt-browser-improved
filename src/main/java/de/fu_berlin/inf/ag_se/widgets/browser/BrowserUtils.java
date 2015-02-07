@@ -3,7 +3,9 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 import de.fu_berlin.inf.ag_se.utils.ImageUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.log4j.Logger;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.jsoup.Jsoup;
@@ -16,11 +18,14 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("restriction")
 public class BrowserUtils {
+
+    private static Logger LOGGER = Logger.getLogger(BrowserUtils.class);
 
     public static final String ERROR_RETURN_MARKER = BrowserUtils.class
             .getCanonicalName() + ".error_return";
@@ -234,4 +239,16 @@ public class BrowserUtils {
             }
         }
     }
+
+    public static URI createBlankHTMLFile() {
+            File empty = null;
+            try {
+                empty = File.createTempFile("blank", ".html");
+                FileUtils.writeStringToFile(empty,
+                        "<html><head></head><body></body></html>", "UTF-8");
+            } catch (IOException e) {
+                LOGGER.error("Error creating blank.html in temp folder.", e);
+            }
+            return empty.toURI();
+        }
 }

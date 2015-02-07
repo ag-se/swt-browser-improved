@@ -18,7 +18,7 @@ import de.fu_berlin.inf.ag_se.widgets.browser.runner.IBrowserScriptRunner;
  *
  * @author bkahlert
  */
-public interface IBrowser extends IBrowserScriptRunner, IWidget {
+public interface IBrowser extends IWidget, IBrowserScriptRunner {
 
     /**
      * Opens the given address.
@@ -80,25 +80,25 @@ public interface IBrowser extends IBrowserScriptRunner, IWidget {
     /**
      * This method is called from a non-UI thread before the {@link org.eclipse.swt.browser.Browser#setUrl(String)} method is called.
      *
-     * @param uri
+     * @param runnable
      */
-    public void beforeLoad(String uri);
+    public void executeBeforeLoading(Runnable runnable);
 
     /**
      * This method is called from a non-UI thread after the {@link org.eclipse.swt.browser.Browser#setUrl(String)} method has been called.
      *
-     * @param uri
+     * @param runnable
      */
-    public void afterLoad(String uri);
+    public void executeAfterLoading(Runnable runnable);
 
     /**
      * This method is called from the-UI thread after the browser completed loading the
      * page.
      *
-     * @param uri
+     * @param runnable
      * @return
      */
-    public Future<Void> beforeCompletion(String uri);
+    public void executeBeforeCompletion(Runnable runnable);
 
     Future<Void> injectJsFile(File file);
 

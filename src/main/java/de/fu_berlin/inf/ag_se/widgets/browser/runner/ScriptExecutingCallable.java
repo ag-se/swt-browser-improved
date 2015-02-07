@@ -5,6 +5,7 @@ import de.fu_berlin.inf.ag_se.utils.StringUtils;
 import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingCallable;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 import de.fu_berlin.inf.ag_se.widgets.browser.BrowserUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.InternalBrowserWrapper;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
 import org.apache.log4j.Logger;
@@ -18,7 +19,7 @@ public class ScriptExecutingCallable<DEST> extends ThreadLabelingCallable<DEST> 
     private static final Logger LOGGER = Logger.getLogger(ScriptExecutingCallable.class);
     private final String script;
 
-    public ScriptExecutingCallable(final Browser browser, final IConverter<Object, DEST> converter,
+    public ScriptExecutingCallable(final InternalBrowserWrapper browser, final IConverter<Object, DEST> converter,
                                    final String script) {
         super(Browser.class, "Running " + StringUtils.shorten(script), new Callable<DEST>() {
             @Override

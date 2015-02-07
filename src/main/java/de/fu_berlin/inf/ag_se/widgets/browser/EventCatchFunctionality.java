@@ -1,7 +1,6 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.ClasspathFileUtils;
-import de.fu_berlin.inf.ag_se.utils.SWTUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Anker;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Element;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnker;
@@ -13,9 +12,7 @@ import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWTException;
-import org.eclipse.swt.browser.BrowserFunction;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Composite;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,14 +22,14 @@ public class EventCatchFunctionality {
 
     private static Logger LOGGER = Logger.getLogger(EventCatchFunctionality.class);
 
-    private Browser browser;
+    private InternalBrowserWrapper browser;
 
     private final List<IAnkerListener> ankerListeners = new ArrayList<IAnkerListener>();
     private final List<IMouseListener> mouseListeners = new ArrayList<IMouseListener>();
     private final List<IFocusListener> focusListeners = new ArrayList<IFocusListener>();
     private final List<IDNDListener> dndListeners = new ArrayList<IDNDListener>();
 
-    public EventCatchFunctionality(Browser browser) {
+    public EventCatchFunctionality(InternalBrowserWrapper browser) {
         this.browser = browser;
     }
 
@@ -142,7 +139,7 @@ public class EventCatchFunctionality {
                         || arguments[2] instanceof Double) && (arguments[3] == null
                         || arguments[3] instanceof Double)) {
 
-                    browser.cachedContentBounds = new Rectangle(
+                    browser.setCachedContentBounds(new Rectangle(
                             arguments[0] != null ?
                             (int) Math.round((Double) arguments[0]) :
                             0, arguments[1] != null ?
@@ -151,11 +148,9 @@ public class EventCatchFunctionality {
                                   (int) Math.round((Double) arguments[2]) :
                                   Integer.MAX_VALUE, arguments[3] != null ?
                                                      (int) Math.round((Double) arguments[3]) :
-                                                     Integer.MAX_VALUE);
-                    LOGGER.debug("browser content resized to " + browser.cachedContentBounds);
-                    Composite root = SWTUtils.getRoot(browser);
-                    LOGGER.debug("layout all");
-                    root.layout(true, true);
+                                                     Integer.MAX_VALUE));
+                    LOGGER.debug("browser content resized to " + browser.getCachedContentBounds());
+                    browser.layoutRoot();
                 }
                 return null;
             }
@@ -218,6 +213,8 @@ public class EventCatchFunctionality {
             }
         });
     }
+
+
 
     /**
      * Injects the code needed for ddAnkerListener, addFokusListener and addDNDListener to work. <p> The JavaScript remembers a successful

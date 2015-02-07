@@ -9,6 +9,7 @@ import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserUninitializedExce
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateException;
 import de.fu_berlin.inf.ag_se.widgets.browser.runner.ScriptExecutingCallable;
+import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 
@@ -18,6 +19,7 @@ import java.util.concurrent.Future;
 
 public class BrowserStatusManager {
 
+    private static Logger LOGGER = Logger.getLogger(BrowserStatusManager.class);
 
     /**
      * Relevant statuses a browser can have in terms of script execution.
@@ -58,8 +60,7 @@ public class BrowserStatusManager {
     }
 
     /**
-     * Sets the browser status. This information is necessary for
-     * the correct script execution.
+     * Sets the browser status. This information is necessary for the correct script execution.
      *
      * @param browserStatus
      * @throws de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateException
@@ -172,5 +173,27 @@ public class BrowserStatusManager {
                         new ScriptExecutionException(script,
                                 new UnexpectedBrowserStateException(browserStatus.toString())));
         }
+    }
+
+    protected Boolean queryLoadingStatus(String uri) {
+        switch (getBrowserStatus()) {
+            case LOADED:
+                LOGGER.debug("Successfully loaded " + uri);
+                break;
+            case TIMEDOUT:
+                LOGGER.warn("Aborted loading " + uri + " due to timeout");
+                break;
+            case DISPOSED:
+                LOGGER.info("Aborted loading " + uri + " due to disposal");
+                break;
+            default:
+                throw new RuntimeException("Implementation error");
+        }
+
+        return getBrowserStatus() == BrowserStatusManager.BrowserStatus.LOADED;
+    }
+
+    protected boolean isLoading() {
+        return getBrowserStatus() == BrowserStatusManager.BrowserStatus.LOADING;
     }
 }

@@ -1,10 +1,7 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.runner;
 
 import de.fu_berlin.inf.ag_se.utils.SwtUiThreadExecutor;
-import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
-import de.fu_berlin.inf.ag_se.widgets.browser.BrowserUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.IBrowserFunction;
-import de.fu_berlin.inf.ag_se.widgets.browser.JavascriptString;
+import de.fu_berlin.inf.ag_se.widgets.browser.*;
 import org.apache.log4j.Logger;
 
 import java.net.URI;
@@ -17,10 +14,10 @@ public class CallbackFunctionCallable implements Callable<Boolean> {
     private static final Logger LOGGER = Logger.getLogger(CallbackFunctionCallable.class);
 
     private final boolean removeAfterExecution;
-    private final Browser browser;
+    private final InternalBrowserWrapper browser;
     private final URI scriptURI;
 
-    public CallbackFunctionCallable(Browser browser, URI scriptURI, boolean removeAfterExecution) {
+    public CallbackFunctionCallable(InternalBrowserWrapper browser, URI scriptURI, boolean removeAfterExecution) {
         this.removeAfterExecution = removeAfterExecution;
         this.browser = browser;
         this.scriptURI = scriptURI;

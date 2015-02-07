@@ -25,7 +25,7 @@ import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
 public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
 	private static final Logger LOGGER = Logger.getLogger(JQueryBrowser.class);
 
-	private Point disposedScrollPositon = null;
+	private Point disposedScrollPosition = null;
 
 	public JQueryBrowser(Composite parent, int style) {
 		this(parent, style, new IBrowserExtension[] {});
@@ -46,7 +46,7 @@ public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
 			@Override
 			public void widgetDisposed(DisposeEvent e) {
 				try {
-					JQueryBrowser.this.disposedScrollPositon = JQueryBrowser.this
+					JQueryBrowser.this.disposedScrollPosition = JQueryBrowser.this
 							.getScrollPosition().get();
 				} catch (Exception e1) {
 					Throwable ex = e1;
@@ -126,8 +126,8 @@ public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
 
 	@Override
 	public Future<Point> getScrollPosition() {
-		if (this.disposedScrollPositon != null) {
-			return new CompletedFuture<Point>(this.disposedScrollPositon, null);
+		if (this.disposedScrollPosition != null) {
+			return new CompletedFuture<Point>(this.disposedScrollPosition, null);
 		}
 		return JQueryBrowser.this
 				.run("return [jQuery(document).scrollLeft(),jQuery(document).scrollTop()];",
