@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Listener;
 
 import java.io.File;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class Browser extends Composite implements IBrowser {
@@ -129,6 +130,30 @@ public class Browser extends Composite implements IBrowser {
     @Override
     public Future<Object> run(String script) {
         return internalBrowser.run(script);
+    }
+
+    /**
+     * Must not be called from the SWT UI thread.
+     * May return null.
+     *
+     * @param script Javascript to be evaluated as string
+     * @return the result of the evaluation as Java object
+     */
+    public Object evaluate(String script) {
+        if (ExecUtils.isUIThread())
+            throw new IllegalStateException("This method must not be called from the SWT UI thread.");
+
+        Future<Object> res = run(script);
+        try {
+            return res.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOGGER.debug("Interrupted while waiting for the result. Returning null.");
+            return null;
+        } catch (ExecutionException e) {
+            LOGGER.error("Could not evaluate script " + script, e);
+            return null;
+        }
     }
 
     @Override
@@ -333,6 +358,15 @@ public class Browser extends Composite implements IBrowser {
 
     public boolean isLoadingCompleted() {
         return internalBrowser.isLoadingCompleted();
+    }
+
+    public IBrowserFunction createBrowserFunction(final String functionName,
+                                                  final IBrowserFunction function) {
+        return internalBrowser.createBrowserFunction(functionName, function);
+    }
+
+    public void waitForCondition(String condition) {
+        internalBrowser.waitForCondition(condition);
     }
 
     @Override

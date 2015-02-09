@@ -1,6 +1,7 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.*;
+import de.fu_berlin.inf.ag_se.widgets.browser.BrowserStatusManager.BrowserStatus;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateException;
 import de.fu_berlin.inf.ag_se.widgets.browser.runner.CallbackFunctionCallable;
@@ -84,7 +85,7 @@ public class InternalBrowserWrapper {
             @Override
             public void changing(LocationEvent event) {
                 if (!settingUri) {
-                    event.doit = allowLocationChange || getBrowserStatus() == BrowserStatusManager.BrowserStatus.LOADING;
+                    event.doit = allowLocationChange || getBrowserStatus() == BrowserStatus.LOADING;
                 }
             }
         });
@@ -93,8 +94,8 @@ public class InternalBrowserWrapper {
             @Override
             public void widgetDisposed(DisposeEvent e) {
                 synchronized (monitor) {
-                    if (getBrowserStatus() == BrowserStatusManager.BrowserStatus.LOADING) {
-                        setBrowserStatus(BrowserStatusManager.BrowserStatus.DISPOSED);
+                    if (getBrowserStatus() == BrowserStatus.LOADING) {
+                        setBrowserStatus(BrowserStatus.DISPOSED);
                     }
                     monitor.notifyAll();
                 }
@@ -108,7 +109,7 @@ public class InternalBrowserWrapper {
             throw new SWTException(SWT.ERROR_WIDGET_DISPOSED);
         }
 
-        setBrowserStatus(BrowserStatusManager.BrowserStatus.LOADING);
+        setBrowserStatus(BrowserStatus.LOADING);
         activateExceptionHandling();
 
         browser.addProgressListener(new ProgressAdapter() {
@@ -130,8 +131,8 @@ public class InternalBrowserWrapper {
                                         @Override
                                         public void run() {
                                             synchronized (monitor) {
-                                                if (getBrowserStatus() != BrowserStatusManager.BrowserStatus.LOADED) {
-                                                    setBrowserStatus(BrowserStatusManager.BrowserStatus.TIMEDOUT);
+                                                if (getBrowserStatus() != BrowserStatus.LOADED) {
+                                                    setBrowserStatus(BrowserStatus.TIMEDOUT);
                                                 }
                                                 monitor.notifyAll();
                                             }
@@ -191,8 +192,8 @@ public class InternalBrowserWrapper {
             return;
         }
 
-        if (getBrowserStatus() != BrowserStatusManager.BrowserStatus.LOADING) {
-            if (!Arrays.asList(BrowserStatusManager.BrowserStatus.TIMEDOUT, BrowserStatusManager.BrowserStatus.DISPOSED)
+        if (getBrowserStatus() != BrowserStatus.LOADING) {
+            if (!Arrays.asList(BrowserStatus.TIMEDOUT, BrowserStatus.DISPOSED)
                        .contains(getBrowserStatus())) {
                 LOGGER.error("State Error: " + getBrowserStatus());
             }
@@ -274,9 +275,9 @@ public class InternalBrowserWrapper {
                         });
 
                         synchronized (monitor) {
-                            if (!Arrays.asList(BrowserStatusManager.BrowserStatus.TIMEDOUT,
-                                    BrowserStatusManager.BrowserStatus.DISPOSED).contains(getBrowserStatus())) {
-                                setBrowserStatus(BrowserStatusManager.BrowserStatus.LOADED);
+                            if (!Arrays.asList(BrowserStatus.TIMEDOUT,
+                                    BrowserStatus.DISPOSED).contains(getBrowserStatus())) {
+                                setBrowserStatus(BrowserStatus.LOADED);
                             }
                             monitor.notifyAll();
                         }
@@ -400,11 +401,11 @@ public class InternalBrowserWrapper {
      *
      * @return
      */
-    public BrowserStatusManager.BrowserStatus getBrowserStatus() {
+    public BrowserStatus getBrowserStatus() {
         return browserStatusManager.getBrowserStatus();
     }
 
-    public void setBrowserStatus(BrowserStatusManager.BrowserStatus browserStatus) throws UnexpectedBrowserStateException {
+    public void setBrowserStatus(BrowserStatus browserStatus) throws UnexpectedBrowserStateException {
         browserStatusManager.setBrowserStatus(browserStatus);
     }
 
@@ -413,7 +414,7 @@ public class InternalBrowserWrapper {
     }
 
     public boolean isLoadingCompleted() {
-        return getBrowserStatus() == BrowserStatusManager.BrowserStatus.LOADED;
+        return getBrowserStatus() == BrowserStatus.LOADED;
     }
 
     public boolean isDisposed() {
