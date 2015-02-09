@@ -138,24 +138,9 @@ public class BrowserStatusManager {
         final String script = scriptRunner.getScript();
         switch (browserStatus) {
             case INITIALIZING:
-                return new CompletedFuture<DEST>(null,
-                        new ScriptExecutionException(script, new BrowserUninitializedException()));
+                return delayedScriptsWorker.submit(new ExecuteWhenLoaded<DEST>(scriptRunner, script));
             case LOADING:
-                return delayedScriptsWorker.submit(new Callable<DEST>() {
-                    @Override
-                    public DEST call() throws Exception {
-                        switch (browserStatus) {
-                            case LOADED:
-                                return SwtUiThreadExecutor.syncExec(scriptRunner);
-                            case TIMEDOUT:
-                                throw new ScriptExecutionException(script, new BrowserTimeoutException());
-                            case DISPOSED:
-                                throw new ScriptExecutionException(script, new SWTException(SWT.ERROR_WIDGET_DISPOSED));
-                            default:
-                                throw new ScriptExecutionException(script, new UnexpectedBrowserStateException(browserStatus.toString()));
-                        }
-                    }
-                });
+                return delayedScriptsWorker.submit(new ExecuteWhenLoaded<DEST>(scriptRunner, script));
             case LOADED:
                 try {
                     return new CompletedFuture<DEST>(SwtUiThreadExecutor.syncExec(scriptRunner), null);
@@ -195,5 +180,29 @@ public class BrowserStatusManager {
 
     protected boolean isLoading() {
         return getBrowserStatus() == BrowserStatusManager.BrowserStatus.LOADING;
+    }
+
+    private class ExecuteWhenLoaded<DEST> implements Callable<DEST> {
+        private final ScriptExecutingCallable<DEST> scriptRunner;
+        private final String script;
+
+        public ExecuteWhenLoaded(ScriptExecutingCallable<DEST> scriptRunner, String script) {
+            this.scriptRunner = scriptRunner;
+            this.script = script;
+        }
+
+        @Override
+        public DEST call() throws Exception {
+            switch (browserStatus) {
+                case LOADED:
+                    return SwtUiThreadExecutor.syncExec(scriptRunner);
+                case TIMEDOUT:
+                    throw new ScriptExecutionException(script, new BrowserTimeoutException());
+                case DISPOSED:
+                    throw new ScriptExecutionException(script, new SWTException(SWT.ERROR_WIDGET_DISPOSED));
+                default:
+                    throw new ScriptExecutionException(script, new UnexpectedBrowserStateException(browserStatus.toString()));
+            }
+        }
     }
 }
