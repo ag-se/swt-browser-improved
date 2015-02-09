@@ -1,5 +1,8 @@
 package de.fu_berlin.inf.ag_se.utils;
 
+import net.jcip.annotations.Immutable;
+
+@Immutable
 public class Point {
 
     private final int x;
