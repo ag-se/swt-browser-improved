@@ -1,4 +1,4 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.runner;
+package de.fu_berlin.inf.ag_se.widgets.browser.listener;
 
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 

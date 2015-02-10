@@ -28,7 +28,25 @@ public class JavaScriptException extends Exception {
 		this.detail = detail;
 	}
 
-	public String getScript() {
+    /**
+     * This method creates an {@link JavaScriptException} out of the arguments passed by
+     * the {@link org.eclipse.swt.browser.Browser} to the callback specified using {@link de.fu_berlin.inf.ag_se.widgets.browser.JavascriptString#getExceptionForwardingScript(String)}.
+     *
+     * @param arguments
+     * @return
+     */
+    public static JavaScriptException parseJavaScriptException(
+            Object[] arguments) {
+        String filename = (String) arguments[0];
+        Long lineNumber = Math.round((Double) arguments[1]);
+        Long columnNumber = Math.round((Double) arguments[2]);
+        String detail = (String) arguments[3];
+
+        return new JavaScriptException(null, filename, lineNumber,
+                columnNumber, detail);
+    }
+
+    public String getScript() {
 		return this.script;
 	}
 

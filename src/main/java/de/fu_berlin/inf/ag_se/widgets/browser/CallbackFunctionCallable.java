@@ -1,7 +1,6 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.runner;
+package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.SwtUiThreadExecutor;
-import de.fu_berlin.inf.ag_se.widgets.browser.*;
 import org.apache.log4j.Logger;
 
 import java.net.URI;

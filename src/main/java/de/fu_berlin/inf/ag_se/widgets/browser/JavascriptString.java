@@ -79,4 +79,35 @@ public class JavascriptString {
         return html.replace("\n", "<br>").replace("&#xD;", "").replace("\r", "")
                    .replace("\"", "\\\"").replace("'", "\\'");
     }
+
+    /**
+     * Returns a script that - if executes - forward all thrown browser script exceptions to the given callback. <p> The arguments passed by
+     * the browser to the given callback function can be processed using {@link #parseJavaScriptException(Object[])}.
+     *
+     * @return
+     */
+    public static String getExceptionForwardingScript(String callbackName) {
+        return "window.onerror = function(detail, filename, lineNumber, columnNumber) { if ( typeof window['"
+                + callbackName
+                + "'] !== 'function') return; return window['"
+                + callbackName
+                + "'](filename ? filename : 'unknown file', lineNumber ? lineNumber : null, columnNumber ? columnNumber : null, detail ? detail : 'unknown detail'); }";
+    }
+
+    /**
+     * Modifies the given script in the way that an eventually thrown error will be catched and returned. <p> Passing the return value of
+     * {@link org.eclipse.swt.browser.Browser#evaluate(String)} to {@link #assertException(String, Object)} will raise an appropriate {@link
+     * de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException} if such one was thrown within the {@link
+     * org.eclipse.swt.browser.Browser}.
+     *
+     * @param script
+     * @return
+     */
+    public static String getExecutionReturningScript(String script) {
+        return "try { return new Function('"
+                + StringEscapeUtils.escapeJavaScript(script)
+                + "')(); } catch(e) { return [ '"
+                + BrowserUtils.ERROR_RETURN_MARKER
+                + "', e.sourceURL, e.line, e.column-6/* reduce column by the exception catching code */, e.name + \": \" + e.message ]; }";
+    }
 }

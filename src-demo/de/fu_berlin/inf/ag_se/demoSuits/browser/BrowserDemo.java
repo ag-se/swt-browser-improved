@@ -11,7 +11,7 @@ import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;

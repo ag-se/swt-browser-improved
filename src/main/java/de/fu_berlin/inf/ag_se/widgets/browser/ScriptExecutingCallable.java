@@ -1,11 +1,8 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.runner;
+package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.utils.StringUtils;
 import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingCallable;
-import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
-import de.fu_berlin.inf.ag_se.widgets.browser.BrowserUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.InternalBrowserWrapper;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
 import org.apache.log4j.Logger;
@@ -31,7 +28,7 @@ public class ScriptExecutingCallable<DEST> extends ThreadLabelingCallable<DEST> 
 
                 try {
                     browser.executeBeforeScriptExecutionScripts(script);
-                    Object returnValue = browser.evaluate(BrowserUtils.getExecutionReturningScript(script));
+                    Object returnValue = browser.evaluate(JavascriptString.getExecutionReturningScript(script));
 
                     BrowserUtils.assertException(script, returnValue);
 

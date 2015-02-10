@@ -9,7 +9,7 @@ import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
 
 /**
  * This interface encapsulates a broad range of functionality of a web browser.
@@ -486,7 +486,7 @@ public interface IBrowser {
     void removeDNDListener(IDNDListener dNDListener);
 
     /**
-     * Adds a {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener} that is notified if a
+     * Adds a {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener} that is notified if a
      * exception is thrown in the browser by code that was not invoked from the Java but the JavaScript
      * world (e.g. a click on a button invoking erroneous code).
      *
@@ -495,7 +495,7 @@ public interface IBrowser {
     void addJavaScriptExceptionListener(JavaScriptExceptionListener exceptionListener);
 
     /**
-     * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener}
+     * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener}
      * from the browser.
      *
      * @param exceptionListener the listener to be removed

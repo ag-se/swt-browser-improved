@@ -4,9 +4,7 @@ import de.fu_berlin.inf.ag_se.utils.*;
 import de.fu_berlin.inf.ag_se.widgets.browser.BrowserStatusManager.BrowserStatus;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateException;
-import de.fu_berlin.inf.ag_se.widgets.browser.runner.CallbackFunctionCallable;
-import de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.runner.ScriptExecutingCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
@@ -80,7 +78,7 @@ public class InternalBrowserWrapper {
         createBrowserFunction("__error_callback", new IBrowserFunction() {
             @Override
             public Object function(Object[] arguments) {
-                JavaScriptException javaScriptException = BrowserUtils
+                JavaScriptException javaScriptException = JavaScriptException
                         .parseJavaScriptException(arguments);
                 LOGGER.error(javaScriptException);
                 javaScriptExceptionListener.thrown(javaScriptException);
@@ -297,7 +295,7 @@ public class InternalBrowserWrapper {
      */
     private void activateExceptionHandling() {
         try {
-            runImmediately(BrowserUtils.getExceptionForwardingScript("__error_callback"), IConverter.CONVERTER_VOID);
+            runImmediately(JavascriptString.getExceptionForwardingScript("__error_callback"), IConverter.CONVERTER_VOID);
         } catch (Exception e) {
             LOGGER.error("Error activating browser's exception handling. JavaScript exceptions are not detected!", e);
         }

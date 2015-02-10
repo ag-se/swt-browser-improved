@@ -11,9 +11,8 @@ import java.util.concurrent.TimeoutException;
  * It throws an exception to inform about the programming error.
  * <p>
  *
- * @author bkahlert
- *
  * @param <V>
+ * @author bkahlert
  */
 public class UIThreadSafeFuture<V> implements Future<V> {
     private final Future<V> future;
@@ -40,7 +39,7 @@ public class UIThreadSafeFuture<V> implements Future<V> {
 
     @Override
     public V get(long timeout, TimeUnit unit) throws InterruptedException,
-ExecutionException, TimeoutException {
+            ExecutionException, TimeoutException {
         if (ExecUtils.isUIThread() && !this.isDone()) {
             throw new ExecutionException(
                     "Waiting is not allowed from the UI thread. Should the calculation include UI thread code, this could lead to a deadlock.\nWait in another thread or check isDone() before calling get(...).",
