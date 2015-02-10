@@ -22,12 +22,10 @@ import org.eclipse.swt.widgets.Listener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class InternalBrowserWrapper {
@@ -51,6 +49,10 @@ public class InternalBrowserWrapper {
     List<Runnable> afterLoading = new ArrayList<Runnable>();
 
     List<Runnable> beforeCompletion = new ArrayList<Runnable>();
+
+    List<ParametrizedRunnable<String>> beforeScripts = new ArrayList<ParametrizedRunnable<String>>();
+
+    List<ParametrizedRunnable<Object>> afterScripts = new ArrayList<ParametrizedRunnable<Object>>();
 
     private final List<JavaScriptExceptionListener> javaScriptExceptionListeners = Collections
             .synchronizedList(new ArrayList<JavaScriptExceptionListener>());
@@ -359,12 +361,12 @@ public class InternalBrowserWrapper {
         runImmediately(JavascriptString.embedContentsIntoScriptTag(scriptFile), IConverter.CONVERTER_VOID);
     }
 
-    public void scriptAboutToBeSentToBrowser(String script) {
-        return;
+    public void executeBeforeScript(ParametrizedRunnable<String> runnable) {
+        beforeScripts.add(runnable);
     }
 
-    public void scriptReturnValueReceived(Object returnValue) {
-        return;
+    public void executeAfterScript(ParametrizedRunnable<Object> runnable) {
+        afterScripts.add(runnable);
     }
 
     public Future<Void> injectJsFile(File file) {
@@ -498,5 +500,45 @@ public class InternalBrowserWrapper {
             LOGGER.error(e.getMessage());
         }
         return null;
+    }
+
+    public void executeBeforeScriptExecutionScripts(final String script) throws Exception {
+        for (final ParametrizedRunnable<String> beforeScript : beforeScripts) {
+            SwtUiThreadExecutor.syncExec(new Runnable() {
+                @Override
+                public void run() {
+                    beforeScript.run(script);
+                }
+            });
+        }
+
+    }
+
+    public void executeAfterScriptExecutionScripts(final Object returnValue) throws Exception {
+        for (final ParametrizedRunnable<Object> afterScript : afterScripts) {
+            SwtUiThreadExecutor.syncExec(new Runnable() {
+                @Override
+                public void run() {
+                    afterScript.run(returnValue);
+                }
+            });
+        }
+    }
+
+    public Object syncRun(String script) {
+        if (ExecUtils.isUIThread())
+            throw new IllegalStateException("This method must not be called from the SWT UI thread.");
+
+        Future<Object> res = run(script);
+        try {
+            return res.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOGGER.debug("Interrupted while waiting for the result. Returning null.");
+            return null;
+        } catch (ExecutionException e) {
+            LOGGER.error("Could not evaluate script " + script, e);
+            return null;
+        }
     }
 }

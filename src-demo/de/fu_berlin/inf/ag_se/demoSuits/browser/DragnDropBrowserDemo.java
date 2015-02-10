@@ -4,6 +4,7 @@ import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.utils.StringUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
+import de.fu_berlin.inf.ag_se.widgets.browser.ParametrizedRunnable;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
 import org.eclipse.swt.SWT;
@@ -30,17 +31,19 @@ public class DragnDropBrowserDemo extends AbstractDemo {
 
     public void createDemo(Composite parent) {
         parent.setLayout(new FillLayout());
-        this.browser = new Browser(parent, SWT.BORDER) {
+        this.browser = new Browser(parent, SWT.BORDER);
+        browser.executeBeforeScript(new ParametrizedRunnable<String>() {
             @Override
-            public void scriptAboutToBeSentToBrowser(String script) {
-                log("SENT: " + StringUtils.shorten(script));
+            public void run(String input) {
+                log("SENT: " + StringUtils.shorten(input));
             }
-
+        });
+        browser.executeAfterScript(new ParametrizedRunnable<Object>() {
             @Override
-            public void scriptReturnValueReceived(Object returnValue) {
-                log("RETN: " + returnValue);
+            public void run(Object input) {
+                log("RETN: " + input);
             }
-        };
+        });
 
         final Future<Boolean> loaded = this.browser.openBlank();
         this.browser.injectCss("[draggable] { border: 1px solid #ff0000 }");

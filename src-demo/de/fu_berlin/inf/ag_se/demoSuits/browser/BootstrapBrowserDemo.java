@@ -3,6 +3,7 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.utils.StringUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.ParametrizedRunnable;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.BootstrapBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
@@ -19,7 +20,7 @@ import java.util.concurrent.Future;
 
 public class BootstrapBrowserDemo extends AbstractDemo {
 
-    private BootstrapBrowser bootstrapBrowser;
+    private BootstrapBrowser browser;
     private String html = "<p>Hello <a href=\"#\">World</a>!</p>";
 
     @Override
@@ -35,7 +36,7 @@ public class BootstrapBrowserDemo extends AbstractDemo {
                         log("setting body html to "
                                 + BootstrapBrowserDemo.this.html);
                         try {
-                            BootstrapBrowserDemo.this.bootstrapBrowser
+                            BootstrapBrowserDemo.this.browser
                                     .setBodyHtml(BootstrapBrowserDemo.this.html)
                                     .get();
                             log("body html set");
@@ -67,7 +68,7 @@ public class BootstrapBrowserDemo extends AbstractDemo {
                     public void run() {
                         log("scrolling down " + BootstrapBrowserDemo.this.html);
                         try {
-                            BootstrapBrowserDemo.this.bootstrapBrowser
+                            BootstrapBrowserDemo.this.browser
                                     .scrollTo(0, 9999).get();
                             log("scrolled down");
                         } catch (Exception e) {
@@ -80,19 +81,21 @@ public class BootstrapBrowserDemo extends AbstractDemo {
     }
 
     public void createDemo(Composite parent) {
-        this.bootstrapBrowser = new BootstrapBrowser(parent, SWT.BORDER) {
+        this.browser = new BootstrapBrowser(parent, SWT.BORDER);
+        browser.executeBeforeScript(new ParametrizedRunnable<String>() {
             @Override
-            public void scriptAboutToBeSentToBrowser(String script) {
-                log("SENT: " + StringUtils.shorten(script));
+            public void run(String input) {
+                log("SENT: " + StringUtils.shorten(input));
             }
-
+        });
+        browser.executeAfterScript(new ParametrizedRunnable<Object>() {
             @Override
-            public void scriptReturnValueReceived(Object returnValue) {
-                log("RETN: " + returnValue);
+            public void run(Object input) {
+                log("RETN: " + input);
             }
-        };
-        final Future<Boolean> loaded = this.bootstrapBrowser.openBlank();
-        this.bootstrapBrowser.addAnchorListener(new IAnchorListener() {
+        });
+        final Future<Boolean> loaded = this.browser.openBlank();
+        this.browser.addAnchorListener(new IAnchorListener() {
             @Override
             public void anchorHovered(IAnchor anchor, boolean entered) {
                 if (entered) {
@@ -102,7 +105,7 @@ public class BootstrapBrowserDemo extends AbstractDemo {
                 }
             }
         });
-        this.bootstrapBrowser.addFocusListener(new IFocusListener() {
+        this.browser.addFocusListener(new IFocusListener() {
             @Override
             public void focusGained(IElement element) {
                 log("Focus gainedr: " + element);
@@ -127,7 +130,7 @@ public class BootstrapBrowserDemo extends AbstractDemo {
                 }
             }
         });
-        this.bootstrapBrowser
+        this.browser
                 .setBodyHtml("<div class=\"container\">"
                         + "<form class=\"form-horizontal\" role=\"form\">"
                         + "<div class=\"form-group\">"

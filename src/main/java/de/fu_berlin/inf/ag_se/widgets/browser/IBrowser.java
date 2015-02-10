@@ -12,11 +12,9 @@ import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener;
 
 /**
- * Instances of this interface denote a {@link org.eclipse.swt.widgets.Composite} that is based on a native {@link
- * org.eclipse.swt.browser.Browser}.
- *
- * @author bkahlert
+ * This interface encapsulates a broad range of functionality of a web browser.
  */
+@SuppressWarnings("UnusedDeclaration")
 public interface IBrowser {
 
     /**
@@ -26,7 +24,7 @@ public interface IBrowser {
      * @param timeout the time after which the browser stops loading
      * @return true if page could be successfully loaded, false if the timeout was reached
      */
-    public Future<Boolean> open(String uri, Integer timeout);
+    Future<Boolean> open(String uri, Integer timeout);
 
     /**
      * Opens the given URI.
@@ -37,8 +35,8 @@ public interface IBrowser {
      *                            This is especially useful if some inner page setup takes place.
      * @return true if page could be successfully loaded, false if the timeout was reached
      */
-    public Future<Boolean> open(String uri, Integer timeout,
-                                String pageLoadCheckScript);
+    Future<Boolean> open(String uri, Integer timeout,
+                         String pageLoadCheckScript);
 
     /**
      * Opens the given URI.
@@ -47,7 +45,7 @@ public interface IBrowser {
      * @param timeout the time after which the browser stops loading
      * @return true if page could be successfully loaded, false if the timeout was reached
      */
-    public Future<Boolean> open(URI uri, Integer timeout);
+    Future<Boolean> open(URI uri, Integer timeout);
 
     /**
      * Opens the given URI.
@@ -58,24 +56,15 @@ public interface IBrowser {
      *                            This is especially useful if some inner page setup takes place.
      * @return true if page could be successfully loaded, false if the timeout was reached
      */
-    public Future<Boolean> open(URI uri, Integer timeout,
-                                String pageLoadCheckScript);
+    Future<Boolean> open(URI uri, Integer timeout,
+                         String pageLoadCheckScript);
 
     /**
      * Opens a blank page.
      *
      * @return true if page could be successfully loaded, false if an error occurred
      */
-    public Future<Boolean> openBlank();
-
-    /**
-     * Sets whether the browser may change its location.
-     * If set to false the initially loaded URI may not be
-     * changed.
-     *
-     * @param allowed true or false
-     */
-    public void setAllowLocationChange(boolean allowed);
+    Future<Boolean> openBlank();
 
     /**
      * Set a runnable to the executed just before the
@@ -83,7 +72,7 @@ public interface IBrowser {
      *
      * @param runnable the runnable to be executed
      */
-    public void executeBeforeSettingURI(Runnable runnable);
+    void executeBeforeSettingURI(Runnable runnable);
 
     /**
      * Set a runnable to the executed just after the
@@ -91,7 +80,29 @@ public interface IBrowser {
      *
      * @param runnable the runnable to be executed
      */
-    public void executeAfterSettingURI(Runnable runnable);
+    void executeAfterSettingURI(Runnable runnable);
+
+    /**
+     * Checks if the current URI has been successfully loaded.
+     *
+     * @return true is it is fully loaded, false otherwise
+     */
+    boolean isLoadingCompleted();
+
+    /**
+     * Returns the currently set URL.
+     *
+     * @return the current URL or an empty <code>String</code> if there is no current URL
+     */
+    String getUrl();
+
+    /**
+     * Blocks until the condition given by a Javascript string
+     * evaluates to true.
+     *
+     * @param javaScriptExpression the Javascript to be evaluation
+     */
+    void waitForCondition(String javaScriptExpression);
 
     /**
      * Set a runnable to be executed after the browser completed
@@ -102,7 +113,7 @@ public interface IBrowser {
      *
      * @param runnable the runnable to be executed
      */
-    public void executeBeforeCompletion(Runnable runnable);
+    void executeBeforeCompletion(Runnable runnable);
 
     /**
      * Adds the content of the Javascript contained in the given file
@@ -144,7 +155,15 @@ public interface IBrowser {
      * @param uri the URI to the CSS file to be injected
      * @return a future to check whether the delayed execution has happened
      */
-    public Future<Void> injectCssFile(URI uri);
+    Future<Void> injectCssFile(URI uri);
+
+    /**
+     * Includes the given URI as a cascading style sheet immediately.
+     *
+     * @param uri the URI to the CSS file to be injected
+     * @throws Exception
+     */
+    void injectCssFileImmediately(URI uri) throws Exception;
 
     /**
      * Adds the given CSS code to current website.
@@ -157,7 +176,7 @@ public interface IBrowser {
      * @param css the CSS to be injected as string
      * @return a future to check whether the delayed execution has happened
      */
-    public Future<Void> injectCss(String css);
+    Future<Void> injectCss(String css);
 
     /**
      * Adds the given CSS code to the current website immediately.
@@ -169,7 +188,7 @@ public interface IBrowser {
      * @param css the CSS to be injected as string     *
      * @throws Exception
      */
-    public void injectCssImmediately(String css) throws Exception;
+    void injectCssImmediately(String css) throws Exception;
 
     /**
      * Injects the Javascript addressed by the given URI and returns
@@ -182,7 +201,7 @@ public interface IBrowser {
      *
      * @ArbitraryThread may be called from whatever thread.
      */
-    public Future<Boolean> inject(URI scriptURI);
+    Future<Boolean> inject(URI scriptURI);
 
     /**
      * Runs the Javascript contained in the given file in the browser as soon as
@@ -193,7 +212,7 @@ public interface IBrowser {
      *
      * @ArbitraryThread may be called from whatever thread.
      */
-    public Future<Boolean> run(File scriptFile);
+    Future<Boolean> run(File scriptFile);
 
     /**
      * Runs the Javascript addressed by the given URI in the browser as soon as
@@ -210,7 +229,7 @@ public interface IBrowser {
      *
      * @ArbitraryThread may be called from whatever thread.
      */
-    public Future<Boolean> run(URI scriptURI);
+    Future<Boolean> run(URI scriptURI);
 
     /**
      * Runs the given Javascript in the browser as soon as loading is completed
@@ -221,7 +240,17 @@ public interface IBrowser {
      *
      * @ArbitraryThread may be called from whatever thread.
      */
-    public Future<Object> run(String script);
+    Future<Object> run(String script);
+
+    /**
+     * This method is blocking as it waits for the result of the evaluation.
+     * It must not be called from the SWT UI thread.
+     * May return null.
+     *
+     * @param script Javascript to be evaluated as string
+     * @return the result of the evaluation as Java object or null if an error occurred
+     */
+    Object syncRun(String script);
 
     /**
      * Runs the given script in the browser as soon as loading is completed
@@ -233,7 +262,7 @@ public interface IBrowser {
      *
      * @ArbitraryThread may be called from whatever thread.
      */
-    public <DEST> Future<DEST> run(String script, IConverter<Object, DEST> converter);
+    <DEST> Future<DEST> run(String script, IConverter<Object, DEST> converter);
 
     /**
      * Runs the script contained in the given {@link java.io.File} in the browser immediately.
@@ -244,7 +273,7 @@ public interface IBrowser {
      * @param scriptFile a file object pointing to the Javascript code
      * @ArbitraryThread may be called from whatever thread.
      */
-    public void runContentImmediately(File scriptFile) throws Exception;
+    void runContentImmediately(File scriptFile) throws Exception;
 
     /**
      * Runs the script contained in the given {@link java.io.File} in the browser immediately.
@@ -261,28 +290,31 @@ public interface IBrowser {
      * Runs the given script in the browser immediately and
      * returns the evaluation's converted return value.
      *
-     *  In contrast to non-immediately run methods, it does not wait for the current URL to be loaded.
+     * In contrast to non-immediately run methods, it does not wait for the current URL to be loaded.
+     *
      * @param script    the Javascript code as string
      * @param converter a converter for the return value
      * @return a future of the converted return value
      *
      * @ArbitraryThread may be called from whatever thread.
      */
-    public <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter) throws Exception;
+    <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter) throws Exception;
 
     /**
-     * Gets called if when the given script is about to be executed by the browser.
+     * Sets a {@link de.fu_berlin.inf.ag_se.widgets.browser.ParametrizedRunnable}
+     * that is executed if when a script is about to be executed by the browser.
      *
-     * @param script the Javascript code as string
+     * @param runnable the runnable to be executed with the script as parameter
      */
-    public void scriptAboutToBeSentToBrowser(String script);
+    void executeBeforeScript(ParametrizedRunnable<String> runnable);
 
     /**
-     * Gets called when the previously executed script finished execution.
+     * Sets a {@link de.fu_berlin.inf.ag_se.widgets.browser.ParametrizedRunnable}
+     * to get executed when a script finishes execution.
      *
-     * @param returnValue the object returned from the script
+     * @param runnable the runnable to be executed with the return value of the last script execution
      */
-    public void scriptReturnValueReceived(Object returnValue);
+    void executeAfterScript(ParametrizedRunnable<Object> runnable);
 
     /**
      * Returns a {@link java.util.concurrent.Future} indicating
@@ -291,7 +323,7 @@ public interface IBrowser {
      * @param id the element ID to look for
      * @return a boolean future containing the result of the search
      */
-    public Future<Boolean> containsElementWithID(String id);
+    Future<Boolean> containsElementWithID(String id);
 
     /**
      * Returns a {@link java.util.concurrent.Future} indicating
@@ -301,119 +333,172 @@ public interface IBrowser {
      * @param name the element name to look for
      * @return a boolean future containing the result of the search
      */
-    public Future<Boolean> containsElementsWithName(String name);
+    Future<Boolean> containsElementsWithName(String name);
 
     /**
-     * Adds an {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener}
-     * to the browser. This can be used to react to the hovering of anchor tags
-     * @param anchorListener
-     */
-    public void addAnchorListener(IAnchorListener anchorListener);
-
-    /**
+     * Sets the body's inner HTML to the given string after
+     * the page has been loaded.
+     * The execution of this method may be delayed.
+     * The returned {@link java.util.concurrent.Future} can be used to check
+     * if it has happened.
      *
-     * @param anchorListener
+     * @param html a string representing the HTML body's new content
+     * @return a future to check whether the delayed execution has happened
      */
-    public void removeAnchorListener(IAnchorListener anchorListener);
+    Future<Void> setBodyHtml(String html);
 
     /**
+     * Returns the body's inner HTML after
+     * the page has been loaded.
+     * The execution of this method may be delayed.
      *
-     * @param mouseListener
+     * @return a string future containing the body's inner HTML
      */
-    public void addMouseListener(IMouseListener mouseListener);
+    Future<String> getBodyHtml();
 
     /**
+     * Returns the document's inner HTML after
+     * the page has been loaded.
+     * The execution of this method may be delayed.
      *
-     * @param mouseListener
+     * @return a string future containing the document's inner HTML
      */
-    public void removeMouseListener(IMouseListener mouseListener);
+    Future<String> getHtml();
 
     /**
+     * Inserts the given html at the current caret / cursor position
+     * after the page has been loaded.
+     * The execution of this method may be delayed.
+     * The returned {@link java.util.concurrent.Future} can be used to check
+     * if it has happened.
      *
-     * @param focusListener
+     * @return a future to check whether the delayed execution has happened
      */
-    public void addFocusListener(IFocusListener focusListener);
-
-    /**
-     *
-     * @param focusListener
-     */
-    public void removeFocusListener(IFocusListener focusListener);
-
-    /**
-     *
-     * @param dNDListener
-     */
-    public void addDNDListener(IDNDListener dNDListener);
-
-    /**
-     *
-     * @param dNDListener
-     */
-    public void removeDNDListener(IDNDListener dNDListener);
-
-    /**
-     * Sets the body's inner HTML.
-     *
-     * @param html
-     * @return
-     */
-    public Future<Void> setBodyHtml(String html);
-
-    /**
-     * Returns the body's inner HTML.
-     *
-     * @return
-     */
-    public Future<String> getBodyHtml();
-
-    /**
-     * Returns the document's HTML
-     */
-    public Future<String> getHtml();
-
-    /**
-     * Inserts the given html at the current caret / cursor position.
-     *
-     * @return
-     */
-    public Future<Void> pasteHtmlAtCaret(String html);
+    Future<Void> pasteHtmlAtCaret(String html);
 
     /**
      * Adds a border that signifies the {@link org.eclipse.swt.widgets.Control}'s focus.
+     * The execution of this method may be delayed.
+     * The returned {@link java.util.concurrent.Future} can be used to check
+     * if it has happened.
      *
-     * @return
+     * @return a future to check whether the delayed execution has happened
      */
-    public Future<Void> addFocusBorder();
+    Future<Void> addFocusBorder();
 
     /**
      * Removes the border that signifies the {@link org.eclipse.swt.widgets.Control}'s focus.
+     * The execution of this method may be delayed.
+     * The returned {@link java.util.concurrent.Future} can be used to check
+     * if it has happened.
      *
-     * @return
+     * @return a future to check whether the delayed execution has happened
      */
-    public Future<Void> removeFocusBorder();
+    Future<Void> removeFocusBorder();
+
+    /**
+     * Sets whether the browser may change its location.
+     * If set to false the initially loaded URI may not be
+     * changed.
+     *
+     * @param allowed true or false
+     */
+    void setAllowLocationChange(boolean allowed);
+
+    /**
+     * Deactivates the selection of text inside the browser.
+     */
+    void deactivateTextSelections();
+
+    /**
+     * Creates a Javascript function that can call Java code.
+     * At each call the given body gets executed.
+     *
+     * @param functionName the of the function in Javascript
+     * @param function     the Java code to be executed
+     * @return the created function
+     */
+    IBrowserFunction createBrowserFunction(String functionName,
+                                           IBrowserFunction function);
+
+    /**
+     * Adds an {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener}
+     * to the browser.
+     * This can be used to react to the hovering of anchor tags
+     *
+     * @param anchorListener the listener to be added
+     */
+    void addAnchorListener(IAnchorListener anchorListener);
+
+    /**
+     * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener}.
+     *
+     * @param anchorListener the listener to be removed
+     */
+    void removeAnchorListener(IAnchorListener anchorListener);
+
+    /**
+     * Adds an {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener}
+     * to the browser.
+     * This can be used to react to mouse events inside the browser
+     *
+     * @param mouseListener the listener to be added
+     */
+    void addMouseListener(IMouseListener mouseListener);
+
+    /**
+     * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener}.
+     *
+     * @param mouseListener the listener to be removed
+     */
+    void removeMouseListener(IMouseListener mouseListener);
+
+    /**
+     * Adds an {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener}
+     * to the browser.
+     * This can be used to react to focus gaining and focus losing of HTML elements.
+     *
+     * @param focusListener the listener to be added
+     */
+    void addFocusListener(IFocusListener focusListener);
+
+    /**
+     * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener}.
+     *
+     * @param focusListener the listener to be removed
+     */
+    void removeFocusListener(IFocusListener focusListener);
+
+    /**
+     * Adds an {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener}
+     * to the browser.
+     * This can be used to react to drag and drop events.
+     *
+     * @param dNDListener the listener to be added
+     */
+    void addDNDListener(IDNDListener dNDListener);
+
+    /**
+     * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener}.
+     *
+     * @param dNDListener the listener to be removed
+     */
+    void removeDNDListener(IDNDListener dNDListener);
 
     /**
      * Adds a {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener} that is notified if a
-     * exception is thrown in the {@link org.eclipse.swt.browser.Browser} by code that was not invoked from the Java but the JavaScript
+     * exception is thrown in the browser by code that was not invoked from the Java but the JavaScript
      * world (e.g. a click on a button invoking erroneous code).
      *
-     * @param javaScriptExceptionListener
+     * @param exceptionListener the listener to be added
      */
-    public void addJavaScriptExceptionListener(
-            JavaScriptExceptionListener javaScriptExceptionListener);
+    void addJavaScriptExceptionListener(JavaScriptExceptionListener exceptionListener);
 
     /**
-     * Removed the given {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener} from the list
-     * of notified {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener}s.
+     * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener}
+     * from the browser.
      *
-     * @param javaScriptExceptionListener
+     * @param exceptionListener the listener to be removed
      */
-    public void removeJavaScriptExceptionListener(
-            JavaScriptExceptionListener javaScriptExceptionListener);
-
-    /**
-     * @return the current url
-     */
-    String getUrl();
+    void removeJavaScriptExceptionListener(JavaScriptExceptionListener exceptionListener);
 }

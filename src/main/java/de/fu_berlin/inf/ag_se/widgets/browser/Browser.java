@@ -20,7 +20,6 @@ import org.eclipse.swt.widgets.Listener;
 
 import java.io.File;
 import java.net.URI;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
@@ -34,10 +33,8 @@ import java.util.concurrent.Future;
  */
 public class Browser extends Composite implements IBrowser {
 
-    private static Logger LOGGER = Logger.getLogger(Browser.class);
-
     private static final int STYLES = SWT.INHERIT_FORCE;
-
+    private static Logger LOGGER = Logger.getLogger(Browser.class);
     protected InternalBrowserWrapper internalBrowser;
 
     private boolean initWithSystemBackgroundColor;
@@ -86,6 +83,11 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
+    public Future<Boolean> open(String uri, Integer timeout, String pageLoadCheckScript) {
+        return internalBrowser.open(uri, timeout, pageLoadCheckScript);
+    }
+
+    @Override
     public Future<Boolean> open(URI uri, Integer timeout) {
         return open(uri.toString(), timeout, null);
     }
@@ -94,11 +96,6 @@ public class Browser extends Composite implements IBrowser {
     public Future<Boolean> open(URI uri, Integer timeout,
                                 String pageLoadCheckExpression) {
         return open(uri.toString(), timeout, pageLoadCheckExpression);
-    }
-
-    @Override
-    public Future<Boolean> open(String uri, Integer timeout, String pageLoadCheckScript) {
-        return internalBrowser.open(uri, timeout, pageLoadCheckScript);
     }
 
     @Override
@@ -117,8 +114,53 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
+    public boolean isLoadingCompleted() {
+        return internalBrowser.isLoadingCompleted();
+    }
+
+    @Override
+    public String getUrl() {
+        return internalBrowser.getUrl();
+    }
+
+    @Override
+    public void waitForCondition(String javaScriptExpression) {
+        internalBrowser.waitForCondition(javaScriptExpression);
+    }
+
+    @Override
     public void executeBeforeCompletion(Runnable runnable) {
         internalBrowser.executeBeforeCompletion(runnable);
+    }
+
+    @Override
+    public Future<Void> injectJavascriptFile(File javascriptFile) {
+        return internalBrowser.injectJsFile(javascriptFile);
+    }
+
+    @Override
+    public void injectJavascriptFileImmediately(File javascriptFile) throws Exception {
+        internalBrowser.injectJsFileImmediately(javascriptFile);
+    }
+
+    @Override
+    public Future<Void> injectCssFile(URI uri) {
+        return internalBrowser.injectCssFile(uri);
+    }
+
+    @Override
+    public void injectCssFileImmediately(URI uri) throws Exception {
+        internalBrowser.injectCssFileImmediately(uri);
+    }
+
+    @Override
+    public Future<Void> injectCss(String css) {
+        return internalBrowser.injectCss(css);
+    }
+
+    @Override
+    public void injectCssImmediately(String css) throws Exception {
+        internalBrowser.injectCssImmediately(css);
     }
 
     @Override
@@ -141,28 +183,9 @@ public class Browser extends Composite implements IBrowser {
         return internalBrowser.run(script);
     }
 
-    /**
-     * Must not be called from the SWT UI thread.
-     * May return null.
-     *
-     * @param script Javascript to be evaluated as string
-     * @return the result of the evaluation as Java object
-     */
-    public Object evaluate(String script) {
-        if (ExecUtils.isUIThread())
-            throw new IllegalStateException("This method must not be called from the SWT UI thread.");
-
-        Future<Object> res = run(script);
-        try {
-            return res.get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOGGER.debug("Interrupted while waiting for the result. Returning null.");
-            return null;
-        } catch (ExecutionException e) {
-            LOGGER.error("Could not evaluate script " + script, e);
-            return null;
-        }
+    @Override
+    public Object syncRun(String script) {
+        return internalBrowser.syncRun(script);
     }
 
     @Override
@@ -186,45 +209,75 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public Future<Void> injectJavascriptFile(File javascriptFile) {
-        return internalBrowser.injectJsFile(javascriptFile);
+    public void executeBeforeScript(ParametrizedRunnable<String> runnable) {
+        internalBrowser.executeBeforeScript(runnable);
     }
 
     @Override
-    public void injectJavascriptFileImmediately(File javascriptFile) throws Exception {
-        internalBrowser.injectJsFileImmediately(javascriptFile);
+    public void executeAfterScript(ParametrizedRunnable<Object> runnable) {
+        internalBrowser.executeAfterScript(runnable);
     }
 
     @Override
-    public Future<Void> injectCssFile(URI uri) {
-        return internalBrowser.injectCssFile(uri);
+    public Future<Boolean> containsElementWithID(String id) {
+        return run("return document.getElementById('" + id + "') != null", IConverter.CONVERTER_BOOLEAN);
     }
 
     @Override
-    public Future<Void> injectCss(String css) {
-        return internalBrowser.injectCss(css);
+    public Future<Boolean> containsElementsWithName(String name) {
+        return run("return document.getElementsByName('" + name + "').length > 0", IConverter.CONVERTER_BOOLEAN);
     }
 
     @Override
-    public void injectCssImmediately(String css) throws Exception {
-        internalBrowser.injectCssImmediately(css);
+    public Future<Void> setBodyHtml(String html) {
+        return run("document.body.innerHTML = ('" + JavascriptString.escape(html) + "');", IConverter.CONVERTER_VOID);
     }
 
-
-    /**
-     * Deactivate browser's native context/popup menu. Doing so allows the definition of menus in an inheriting composite via setMenu.
-     */
-    public void deactivateNativeMenu() {
-        internalBrowser.addListener(SWT.MenuDetect, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                event.doit = false;
-            }
-        });
+    @Override
+    public Future<String> getBodyHtml() {
+        return run("return document.body.innerHTML", IConverter.CONVERTER_STRING);
     }
 
+    @Override
+    public Future<String> getHtml() {
+        return run("return document.documentElement.outerHTML", IConverter.CONVERTER_STRING);
+    }
+
+    @Override
+    public Future<Void> pasteHtmlAtCaret(String html) {
+        try {
+            File js = File.createTempFile("paste", ".js");
+            FileUtils.write(js, JavascriptString.createJavascriptForInsertingHTML(html));
+            return injectJavascriptFile(js);
+        } catch (Exception e) {
+            return new CompletedFuture<Void>(null, e);
+        }
+    }
+
+    @Override
+    public Future<Void> addFocusBorder() {
+        return internalBrowser.run("window.__addFocusBorder();", IConverter.CONVERTER_VOID);
+    }
+
+    @Override
+    public Future<Void> removeFocusBorder() {
+        return internalBrowser.run("window.__removeFocusBorder();", IConverter.CONVERTER_VOID);
+    }
+
+    @Override
+    public void setAllowLocationChange(boolean allowed) {
+        internalBrowser.setAllowLocationChange(allowed);
+    }
+
+    @Override
     public void deactivateTextSelections() {
         this.textSelectionsDisabled = true;
+    }
+
+    @Override
+    public IBrowserFunction createBrowserFunction(final String functionName,
+                                                  final IBrowserFunction function) {
+        return internalBrowser.createBrowserFunction(functionName, function);
     }
 
     @Override
@@ -267,74 +320,16 @@ public class Browser extends Composite implements IBrowser {
         eventCatchFunctionality.removeDNDListener(dndListener);
     }
 
-
     @Override
     public void addJavaScriptExceptionListener(
-            JavaScriptExceptionListener javaScriptExceptionListener) {
-        internalBrowser.addJavaScriptExceptionListener(javaScriptExceptionListener);
+            JavaScriptExceptionListener exceptionListener) {
+        internalBrowser.addJavaScriptExceptionListener(exceptionListener);
     }
 
     @Override
     public void removeJavaScriptExceptionListener(
-            JavaScriptExceptionListener javaScriptExceptionListener) {
-        internalBrowser.removeJavaScriptExceptionListener(javaScriptExceptionListener);
-    }
-
-    @Override
-    public Future<Boolean> containsElementWithID(String id) {
-        return run("return document.getElementById('" + id + "') != null", IConverter.CONVERTER_BOOLEAN);
-    }
-
-    @Override
-    public Future<Boolean> containsElementsWithName(String name) {
-        return run("return document.getElementsByName('" + name + "').length > 0", IConverter.CONVERTER_BOOLEAN);
-    }
-
-    @Override
-    public Future<Void> setBodyHtml(String html) {
-        return run("document.body.innerHTML = ('" + JavascriptString.escape(html) + "');", IConverter.CONVERTER_VOID);
-    }
-
-    @Override
-    public Future<String> getBodyHtml() {
-        return run("return document.body.innerHTML", IConverter.CONVERTER_STRING);
-    }
-
-    @Override
-    public Future<String> getHtml() {
-        return run("return document.documentElement.outerHTML", IConverter.CONVERTER_STRING);
-    }
-
-    @Override
-    public void setBackground(Color color) {
-        super.setBackground(color);
-        String hex = color != null ? new RGB(color.getRGB()).toDecString() : "transparent";
-        try {
-            this.injectCssImmediately("html, body { background-color: " + hex + "; }");
-        } catch (Exception e) {
-            LOGGER.error("Error setting background color to " + color, e);
-        }
-    }
-
-    @Override
-    public Future<Void> pasteHtmlAtCaret(String html) {
-        try {
-            File js = File.createTempFile("paste", ".js");
-            FileUtils.write(js, JavascriptString.createJavascriptForInsertingHTML(html));
-            return injectJavascriptFile(js);
-        } catch (Exception e) {
-            return new CompletedFuture<Void>(null, e);
-        }
-    }
-
-    @Override
-    public Future<Void> addFocusBorder() {
-        return internalBrowser.run("window.__addFocusBorder();", IConverter.CONVERTER_VOID);
-    }
-
-    @Override
-    public Future<Void> removeFocusBorder() {
-        return internalBrowser.run("window.__removeFocusBorder();", IConverter.CONVERTER_VOID);
+            JavaScriptExceptionListener exceptionListener) {
+        internalBrowser.removeJavaScriptExceptionListener(exceptionListener);
     }
 
     @Override
@@ -352,8 +347,14 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public String getUrl() {
-        return internalBrowser.getUrl();
+    public void setBackground(Color color) {
+        super.setBackground(color);
+        String hex = color != null ? new RGB(color.getRGB()).toDecString() : "transparent";
+        try {
+            this.injectCssImmediately("html, body { background-color: " + hex + "; }");
+        } catch (Exception e) {
+            LOGGER.error("Error setting background color to " + color, e);
+        }
     }
 
     @Override
@@ -365,31 +366,15 @@ public class Browser extends Composite implements IBrowser {
         }
     }
 
-    public boolean isLoadingCompleted() {
-        return internalBrowser.isLoadingCompleted();
-    }
-
-    public IBrowserFunction createBrowserFunction(final String functionName,
-                                                  final IBrowserFunction function) {
-        return internalBrowser.createBrowserFunction(functionName, function);
-    }
-
-    public void waitForCondition(String condition) {
-        internalBrowser.waitForCondition(condition);
-    }
-
-    @Override
-    public void setAllowLocationChange(boolean allowed) {
-        internalBrowser.setAllowLocationChange(allowed);
-    }
-
-    @Override
-    public void scriptAboutToBeSentToBrowser(String script) {
-
-    }
-
-    @Override
-    public void scriptReturnValueReceived(Object returnValue) {
-
+    /**
+     * Deactivate browser's native context/popup menu. Doing so allows the definition of menus in an inheriting composite via setMenu.
+     */
+    public void deactivateNativeMenu() {
+        internalBrowser.addListener(SWT.MenuDetect, new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                event.doit = false;
+            }
+        });
     }
 }

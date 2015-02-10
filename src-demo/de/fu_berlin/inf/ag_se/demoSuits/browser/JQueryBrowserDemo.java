@@ -3,6 +3,7 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.utils.StringUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.ParametrizedRunnable;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.JQueryBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
@@ -21,7 +22,7 @@ import java.util.concurrent.Future;
 
 public class JQueryBrowserDemo extends AbstractDemo {
 
-    private JQueryBrowser jQueryBrowserComposite;
+    private JQueryBrowser browser;
     private Integer x = 50;
     private Integer y = 200;
 
@@ -38,7 +39,7 @@ public class JQueryBrowserDemo extends AbstractDemo {
                         log("scrolling to " + JQueryBrowserDemo.this.x + ", "
                                 + JQueryBrowserDemo.this.y);
                         try {
-                            if (JQueryBrowserDemo.this.jQueryBrowserComposite
+                            if (JQueryBrowserDemo.this.browser
                                     .scrollTo(JQueryBrowserDemo.this.x,
                                             JQueryBrowserDemo.this.y).get()) {
                                 log("Scrolled");
@@ -77,21 +78,24 @@ public class JQueryBrowserDemo extends AbstractDemo {
     }
 
     public void createDemo(Composite parent) {
-        this.jQueryBrowserComposite = new JQueryBrowser(parent, SWT.BORDER) {
+        this.browser = new JQueryBrowser(parent, SWT.BORDER);
+        browser.executeBeforeScript(new ParametrizedRunnable<String>() {
             @Override
-            public void scriptAboutToBeSentToBrowser(String script) {
-                log("SENT: " + StringUtils.shorten(script));
+            public void run(String input) {
+                log("SENT: " + StringUtils.shorten(input));
             }
+        });
+        browser.executeAfterScript(new ParametrizedRunnable<Object>() {
+            @Override
+            public void run(Object input) {
+                log("RETN: " + input);
+            }
+        });
 
-            @Override
-            public void scriptReturnValueReceived(Object returnValue) {
-                log("RETN: " + returnValue);
-            }
-        };
         try {
-            final Future<Boolean> loaded = this.jQueryBrowserComposite.open(
+            final Future<Boolean> loaded = this.browser.open(
                     new URI("http://amazon.com"), 60000);
-            this.jQueryBrowserComposite.addAnchorListener(new IAnchorListener() {
+            this.browser.addAnchorListener(new IAnchorListener() {
                 @Override
                 public void anchorHovered(IAnchor anchor, boolean entered) {
                     if (entered) {
@@ -101,7 +105,7 @@ public class JQueryBrowserDemo extends AbstractDemo {
                     }
                 }
             });
-            this.jQueryBrowserComposite.addFocusListener(new IFocusListener() {
+            this.browser.addFocusListener(new IFocusListener() {
                 @Override
                 public void focusGained(IElement element) {
                     log("Focus gainedr: " + element);
@@ -112,7 +116,7 @@ public class JQueryBrowserDemo extends AbstractDemo {
                     log("Focus lost: " + element);
                 }
             });
-            this.jQueryBrowserComposite.scrollTo(this.x, this.y);
+            this.browser.scrollTo(this.x, this.y);
             ExecUtils.nonUIAsyncExec(new Runnable() {
                 @Override
                 public void run() {

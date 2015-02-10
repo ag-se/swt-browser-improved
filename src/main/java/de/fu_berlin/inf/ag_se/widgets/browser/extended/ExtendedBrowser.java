@@ -33,7 +33,7 @@ public class ExtendedBrowser extends Browser implements IBrowser {
          * TODO FIX BUG: afterCompletion is called after the DOMReady scripts.
          * PageLoad might need to access something loaded through extensions.
          */
-        internalBrowser.executeBeforeCompletion(new Runnable() {
+        executeBeforeCompletion(new Runnable() {
             @Override
             public void run() {
                 for (IBrowserExtension extension : ExtendedBrowser.this.extensions) {
@@ -89,7 +89,7 @@ public class ExtendedBrowser extends Browser implements IBrowser {
         }
         for (URI cssExtension : extension.getCssExtensions()) {
             try {
-                internalBrowser.injectCssFileImmediately(cssExtension);
+                injectCssFileImmediately(cssExtension);
             } catch (Exception e) {
                 LOGGER.error(
                         "Could not load the JS extension \""

@@ -30,12 +30,12 @@ public class ScriptExecutingCallable<DEST> extends ThreadLabelingCallable<DEST> 
                 }
 
                 try {
-                    browser.scriptAboutToBeSentToBrowser(script);
+                    browser.executeBeforeScriptExecutionScripts(script);
                     Object returnValue = browser.evaluate(BrowserUtils.getExecutionReturningScript(script));
 
                     BrowserUtils.assertException(script, returnValue);
 
-                    browser.scriptReturnValueReceived(returnValue);
+                    browser.executeAfterScriptExecutionScripts(returnValue);
                     DEST rs = converter.convert(returnValue);
                     LOGGER.info("Returned " + rs);
                     return rs;
