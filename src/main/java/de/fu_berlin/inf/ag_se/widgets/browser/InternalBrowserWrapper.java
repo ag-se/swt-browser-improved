@@ -28,6 +28,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+/**
+ * This is an internal wrapper class around the {@link org.eclipse.swt.browser.Browser}.
+ * It enhances its core functionality and is used by {@link de.fu_berlin.inf.ag_se.widgets.browser.Browser}
+ * to provide more specific methods to the users.
+ */
 public class InternalBrowserWrapper {
 
     private static Logger LOGGER = Logger.getLogger(InternalBrowserWrapper.class);
@@ -42,22 +47,22 @@ public class InternalBrowserWrapper {
 
     private final Object monitor = new Object();
 
-    Rectangle cachedContentBounds = null;
+    private Rectangle cachedContentBounds = null;
 
-    List<Runnable> beforeLoading = new ArrayList<Runnable>();
+    private List<Runnable> beforeLoading = new ArrayList<Runnable>();
 
-    List<Runnable> afterLoading = new ArrayList<Runnable>();
+    private List<Runnable> afterLoading = new ArrayList<Runnable>();
 
-    List<Runnable> beforeCompletion = new ArrayList<Runnable>();
+    private List<Runnable> beforeCompletion = new ArrayList<Runnable>();
 
-    List<ParametrizedRunnable<String>> beforeScripts = new ArrayList<ParametrizedRunnable<String>>();
+    private List<ParametrizedRunnable<String>> beforeScripts = new ArrayList<ParametrizedRunnable<String>>();
 
-    List<ParametrizedRunnable<Object>> afterScripts = new ArrayList<ParametrizedRunnable<Object>>();
+    private List<ParametrizedRunnable<Object>> afterScripts = new ArrayList<ParametrizedRunnable<Object>>();
 
     private final List<JavaScriptExceptionListener> javaScriptExceptionListeners = Collections
             .synchronizedList(new ArrayList<JavaScriptExceptionListener>());
 
-    public InternalBrowserWrapper(Composite parent) {
+    InternalBrowserWrapper(Composite parent) {
         browser = new Browser(parent, SWT.NONE);
         browser.setVisible(false);
 
@@ -105,7 +110,7 @@ public class InternalBrowserWrapper {
         });
     }
 
-    public Future<Boolean> open(final String uri, final Integer timeout,
+    Future<Boolean> open(final String uri, final Integer timeout,
                                 final String pageLoadCheckExpression) {
         if (browser.isDisposed()) {
             throw new SWTException(SWT.ERROR_WIDGET_DISPOSED);
@@ -228,7 +233,7 @@ public class InternalBrowserWrapper {
         }
     }
 
-    public void waitForCondition(String condition) {
+    void waitForCondition(String condition) {
         if (browser == null || browser.isDisposed()) {
             return;
         }
@@ -298,16 +303,16 @@ public class InternalBrowserWrapper {
         }
     }
 
-    public Future<Boolean> inject(URI scriptURI) {
+    Future<Boolean> inject(URI scriptURI) {
         return run(scriptURI, false);
     }
 
-    public Future<Boolean> run(File scriptFile) {
+    Future<Boolean> run(File scriptFile) {
         Assert.isLegal(scriptFile.canRead());
         return run(scriptFile.toURI(), false);
     }
 
-    public Future<Boolean> run(final URI scriptURI) {
+    Future<Boolean> run(final URI scriptURI) {
         return run(scriptURI, true);
     }
 
@@ -332,7 +337,7 @@ public class InternalBrowserWrapper {
         }
     }
 
-    public Future<Object> run(final String script) {
+    Future<Object> run(final String script) {
         return run(script, new IConverter<Object, Object>() {
             @Override
             public Object convert(Object object) {
@@ -341,59 +346,59 @@ public class InternalBrowserWrapper {
         });
     }
 
-    public <DEST> Future<DEST> run(final String script,
+    <DEST> Future<DEST> run(final String script,
                                    final IConverter<Object, DEST> converter) {
         Assert.isLegal(converter != null);
         return browserStatusManager.createFuture(new ScriptExecutingCallable<DEST>(this, converter, script));
     }
 
-    public <DEST> DEST runImmediately(String script,
+    <DEST> DEST runImmediately(String script,
                                       IConverter<Object, DEST> converter) throws Exception {
         return SwtUiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(this, converter, script));
     }
 
-    public void runContentsImmediately(File scriptFile) throws Exception {
+    void runContentsImmediately(File scriptFile) throws Exception {
         runImmediately(FileUtils.readFileToString(scriptFile), IConverter.CONVERTER_VOID);
     }
 
-    public void runContentsAsScriptTagImmediately(File scriptFile)
+    void runContentsAsScriptTagImmediately(File scriptFile)
             throws Exception {
         runImmediately(JavascriptString.embedContentsIntoScriptTag(scriptFile), IConverter.CONVERTER_VOID);
     }
 
-    public void executeBeforeScript(ParametrizedRunnable<String> runnable) {
+    void executeBeforeScript(ParametrizedRunnable<String> runnable) {
         beforeScripts.add(runnable);
     }
 
-    public void executeAfterScript(ParametrizedRunnable<Object> runnable) {
+    void executeAfterScript(ParametrizedRunnable<Object> runnable) {
         afterScripts.add(runnable);
     }
 
-    public Future<Void> injectJsFile(File file) {
+    Future<Void> injectJsFile(File file) {
         return run(JavascriptString.createJsFileInjectionScript(file),
                 IConverter.CONVERTER_VOID);
     }
 
-    public void injectJsFileImmediately(File file) throws Exception {
+    void injectJsFileImmediately(File file) throws Exception {
         runImmediately(JavascriptString.createJsFileInjectionScript(file),
                 IConverter.CONVERTER_VOID);
     }
 
-    public Future<Void> injectCssFile(URI uri) {
+    Future<Void> injectCssFile(URI uri) {
         return run(JavascriptString.createCssFileInjectionScript(uri),
                 IConverter.CONVERTER_VOID);
     }
 
-    public void injectCssFileImmediately(URI uri) throws Exception {
+    void injectCssFileImmediately(URI uri) throws Exception {
         runImmediately(JavascriptString.createCssFileInjectionScript(uri),
                 IConverter.CONVERTER_VOID);
     }
 
-    public Future<Void> injectCss(String css) {
+    Future<Void> injectCss(String css) {
         return run(JavascriptString.createCssInjectionScript(css), IConverter.CONVERTER_VOID);
     }
 
-    public void injectCssImmediately(String css) throws Exception {
+    void injectCssImmediately(String css) throws Exception {
         runImmediately(JavascriptString.createCssInjectionScript(css),
                 IConverter.CONVERTER_VOID);
     }
@@ -403,85 +408,85 @@ public class InternalBrowserWrapper {
      *
      * @return
      */
-    public BrowserStatus getBrowserStatus() {
+    BrowserStatus getBrowserStatus() {
         return browserStatusManager.getBrowserStatus();
     }
 
-    public void setBrowserStatus(BrowserStatus browserStatus) throws UnexpectedBrowserStateException {
+    void setBrowserStatus(BrowserStatus browserStatus) throws UnexpectedBrowserStateException {
         browserStatusManager.setBrowserStatus(browserStatus);
     }
 
-    public void setAllowLocationChange(boolean allowed) {
+    void setAllowLocationChange(boolean allowed) {
         this.allowLocationChange = allowed;
     }
 
-    public boolean isLoadingCompleted() {
+    boolean isLoadingCompleted() {
         return getBrowserStatus() == BrowserStatus.LOADED;
     }
 
-    public boolean isDisposed() {
+    boolean isDisposed() {
         return browser.isDisposed();
     }
 
-    public Object evaluate(String javaScript) {
+    Object evaluate(String javaScript) {
         return browser.evaluate(javaScript);
     }
 
-    public String getUrl() {
+    String getUrl() {
         return browser.getUrl();
     }
 
-    public void addListener(int eventType, Listener listener) {
+    void addListener(int eventType, Listener listener) {
         // TODO evtl. erst ausführen, wenn alles wirklich geladen wurde, um
         // evtl. falsche Mauskoordinaten zu verhindern und so ein Fehlverhalten
         // im InformationControl vorzeugen
         browser.addListener(eventType, listener);
     }
 
-    protected void layoutRoot() {
+    void layoutRoot() {
         Composite root = SWTUtils.getRoot(browser);
         LOGGER.debug("layout all");
         root.layout(true, true);
     }
 
-    public void setCachedContentBounds(Rectangle rectangle) {
+    void setCachedContentBounds(Rectangle rectangle) {
         cachedContentBounds = rectangle;
     }
 
-    public Rectangle getCachedContentBounds() {
+    Rectangle getCachedContentBounds() {
         return cachedContentBounds;
     }
 
-    synchronized protected void fireJavaScriptExceptionThrown(
+    synchronized void fireJavaScriptExceptionThrown(
             JavaScriptException javaScriptException) {
         for (JavaScriptExceptionListener listener : javaScriptExceptionListeners) {
             listener.thrown(javaScriptException);
         }
     }
 
-    public void addJavaScriptExceptionListener(
+    void addJavaScriptExceptionListener(
             JavaScriptExceptionListener javaScriptExceptionListener) {
         javaScriptExceptionListeners.add(javaScriptExceptionListener);
     }
 
-    public void removeJavaScriptExceptionListener(
+    void removeJavaScriptExceptionListener(
             JavaScriptExceptionListener javaScriptExceptionListener) {
         javaScriptExceptionListeners.remove(javaScriptExceptionListener);
     }
 
-    public void executeBeforeLoading(Runnable runnable) {
+    void executeBeforeLoading(Runnable runnable) {
         beforeLoading.add(runnable);
     }
 
-    public void executeAfterLoading(Runnable runnable) {
+    void executeAfterLoading(Runnable runnable) {
         afterLoading.add(runnable);
     }
 
-    public void executeBeforeCompletion(Runnable runnable) {
+    void executeBeforeCompletion(Runnable runnable) {
         beforeCompletion.add(runnable);
     }
 
-    public IBrowserFunction createBrowserFunction(final String functionName,
+    IBrowserFunction createBrowserFunction(final String functionName,
                                                   final IBrowserFunction function) {
         try {
             return SwtUiThreadExecutor.syncExec(new Callable<IBrowserFunction>() {
@@ -502,7 +507,7 @@ public class InternalBrowserWrapper {
         return null;
     }
 
-    public void executeBeforeScriptExecutionScripts(final String script) throws Exception {
+    void executeBeforeScriptExecutionScripts(final String script) throws Exception {
         for (final ParametrizedRunnable<String> beforeScript : beforeScripts) {
             SwtUiThreadExecutor.syncExec(new Runnable() {
                 @Override
@@ -514,7 +519,7 @@ public class InternalBrowserWrapper {
 
     }
 
-    public void executeAfterScriptExecutionScripts(final Object returnValue) throws Exception {
+    void executeAfterScriptExecutionScripts(final Object returnValue) throws Exception {
         for (final ParametrizedRunnable<Object> afterScript : afterScripts) {
             SwtUiThreadExecutor.syncExec(new Runnable() {
                 @Override
@@ -525,7 +530,7 @@ public class InternalBrowserWrapper {
         }
     }
 
-    public Object syncRun(String script) {
+    Object syncRun(String script) {
         if (ExecUtils.isUIThread())
             throw new IllegalStateException("This method must not be called from the SWT UI thread.");
 
