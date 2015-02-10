@@ -195,12 +195,12 @@ function clone(e) {
     return t.innerHTML
 }
 
-window["__hoveredAnker"] = null;
+window["__hoveredAnchor"] = null;
 var lastHoveredElement = null;
 
 $(document).on("mouseenter", "a", function () {
     var r = clone(this);
-    window["__hoveredAnker"] = r;
+    window["__hoveredAnchor"] = r;
     lastHoveredElement = r;
     if (window["__mouseenter"] && typeof window["__mouseenter"]) window["__mouseenter"](r)
 });

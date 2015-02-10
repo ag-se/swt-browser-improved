@@ -6,9 +6,9 @@ import de.fu_berlin.inf.ag_se.utils.SwtUiThreadExecutor;
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnker;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnkerListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.runner.JavaScriptExceptionListener;
@@ -190,10 +190,10 @@ public class BrowserDemo extends AbstractDemo {
     public void createDemo(Composite parent) {
         browser = new Browser(parent, SWT.BORDER);
         browser.setAllowLocationChange(true);
-        browser.addAnkerListener(new IAnkerListener() {
+        browser.addAnchorListener(new IAnchorListener() {
             @Override
-            public void ankerHovered(IAnker anker, boolean entered) {
-                log("hovered " + (entered ? "over" : "out") + " " + anker);
+            public void anchorHovered(IAnchor anchor, boolean entered) {
+                log("hovered " + (entered ? "over" : "out") + " " + anchor);
             }
         });
         browser.addFocusListener(new IFocusListener() {

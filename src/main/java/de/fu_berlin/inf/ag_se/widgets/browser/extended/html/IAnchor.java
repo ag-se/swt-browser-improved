@@ -2,13 +2,13 @@ package de.fu_berlin.inf.ag_se.widgets.browser.extended.html;
 
 
 /**
- * Abstractions of an anker tag like &lt;a
+ * Abstractions of an anchor tag like &lt;a
  * href=&quot;http://bkahlert.com&quot;&gt;bkahlert.com&lt;/a&gt;.
  * 
  * @author bkahlert
  * 
  */
-public interface IAnker extends IElement {
+public interface IAnchor extends IElement {
 
 	/**
 	 * Returns the {@link IElement}'s href attribute.

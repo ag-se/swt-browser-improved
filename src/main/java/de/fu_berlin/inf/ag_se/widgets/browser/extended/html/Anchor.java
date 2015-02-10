@@ -3,22 +3,22 @@ package de.fu_berlin.inf.ag_se.widgets.browser.extended.html;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Anker extends Element implements IAnker {
+public class Anchor extends Element implements IAnchor {
 
-	public Anker(Map<String, String> attributes, String content) {
+	public Anchor(Map<String, String> attributes, String content) {
 		super("a", attributes, content);
 	}
 
-	public Anker(org.jsoup.nodes.Element anker) {
-		super(anker);
-		if (!anker.tagName().equals("a")) {
+	public Anchor(org.jsoup.nodes.Element anchor) {
+		super(anchor);
+		if (!anchor.tagName().equals("a")) {
 			throw new IllegalArgumentException(
-					"The given element is no anker tag");
+					"The given element is no anchor tag");
 		}
 	}
 
 	@SuppressWarnings("serial")
-	public Anker(final String href, final String[] classes, String content) {
+	public Anchor(final String href, final String[] classes, String content) {
 		super("a", new HashMap<String, String>() {
 			{
 				if (href != null) {

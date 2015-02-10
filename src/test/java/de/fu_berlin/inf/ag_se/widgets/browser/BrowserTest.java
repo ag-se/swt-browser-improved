@@ -42,7 +42,7 @@ public class BrowserTest {
 				SWT.NONE) {
 			@Override
 			public void scriptAboutToBeSentToBrowser(String script) {
-				if (!script.contains("successfullyInjectedAnkerHoverCallback")) {
+				if (!script.contains("successfullyInjectedAnchorHoverCallback")) {
 					scriptExecutionOrder.add(script);
 				}
 			}

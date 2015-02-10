@@ -2,7 +2,7 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.*;
 import de.fu_berlin.inf.ag_se.utils.colors.RGB;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnkerListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
@@ -228,13 +228,13 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public void addAnkerListener(IAnkerListener ankerListener) {
-        eventCatchFunctionality.addAnkerListener(ankerListener);
+    public void addAnchorListener(IAnchorListener anchorListener) {
+        eventCatchFunctionality.addAnchorListener(anchorListener);
     }
 
     @Override
-    public void removeAnkerListener(IAnkerListener ankerListener) {
-        eventCatchFunctionality.removeAnkerListener(ankerListener);
+    public void removeAnchorListener(IAnchorListener anchorListener) {
+        eventCatchFunctionality.removeAnchorListener(anchorListener);
     }
 
     @Override

@@ -5,7 +5,7 @@ import java.net.URI;
 import java.util.concurrent.Future;
 
 import de.fu_berlin.inf.ag_se.utils.IConverter;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnkerListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
@@ -304,17 +304,17 @@ public interface IBrowser {
     public Future<Boolean> containsElementsWithName(String name);
 
     /**
-     * Adds an {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnkerListener}
+     * Adds an {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener}
      * to the browser. This can be used to react to the hovering of anchor tags
-     * @param ankerListener
+     * @param anchorListener
      */
-    public void addAnkerListener(IAnkerListener ankerListener);
+    public void addAnchorListener(IAnchorListener anchorListener);
 
     /**
      *
-     * @param ankerListener
+     * @param anchorListener
      */
-    public void removeAnkerListener(IAnkerListener ankerListener);
+    public void removeAnchorListener(IAnchorListener anchorListener);
 
     /**
      *

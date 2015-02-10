@@ -1,11 +1,11 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.ClasspathFileUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Anker;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Anchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Element;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnker;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnkerListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
@@ -24,7 +24,7 @@ public class EventCatchFunctionality {
 
     private InternalBrowserWrapper browser;
 
-    private final List<IAnkerListener> ankerListeners = new ArrayList<IAnkerListener>();
+    private final List<IAnchorListener> anchorListeners = new ArrayList<IAnchorListener>();
     private final List<IMouseListener> mouseListeners = new ArrayList<IMouseListener>();
     private final List<IFocusListener> focusListeners = new ArrayList<IFocusListener>();
     private final List<IDNDListener> dndListeners = new ArrayList<IDNDListener>();
@@ -39,7 +39,7 @@ public class EventCatchFunctionality {
         browser.createBrowserFunction("__mouseenter", new IBrowserFunction() {
             public Object function(Object[] arguments) {
                 if (arguments.length == 1 && arguments[0] instanceof String) {
-                    fireAnkerHover((String) arguments[0], true);
+                    fireAnchorHover((String) arguments[0], true);
                 }
                 return null;
             }
@@ -48,7 +48,7 @@ public class EventCatchFunctionality {
             @Override
             public Object function(Object[] arguments) {
                 if (arguments.length == 1 && arguments[0] instanceof String) {
-                    fireAnkerHover((String) arguments[0], false);
+                    fireAnchorHover((String) arguments[0], false);
                 }
                 return null;
             }
@@ -217,7 +217,7 @@ public class EventCatchFunctionality {
 
 
     /**
-     * Injects the code needed for ddAnkerListener, addFokusListener and addDNDListener to work. <p> The JavaScript remembers a successful
+     * Injects the code needed for addAnchorListener, addFocusListener and addDNDListener to work. <p> The JavaScript remembers a successful
      * injection in case to consecutive calls are made. <p> As soon as a successful injection has been registered, {@link
      * #eventCatchScriptInjected} is set so no unnecessary further injection is made.
      */
@@ -261,11 +261,11 @@ public class EventCatchFunctionality {
      * @param html
      * @param mouseEnter true if mouseenter; false otherwise
      */
-    private void fireAnkerHover(String html, boolean mouseEnter) {
+    private void fireAnchorHover(String html, boolean mouseEnter) {
         IElement element = BrowserUtils.extractElement(html);
-        IAnker anker = new Anker(element.getAttributes(), element.getContent());
-        for (IAnkerListener ankerListener : ankerListeners) {
-            ankerListener.ankerHovered(anker, mouseEnter);
+        IAnchor anchor = new Anchor(element.getAttributes(), element.getContent());
+        for (IAnchorListener anchorListener : anchorListeners) {
+            anchorListener.anchorHovered(anchor, mouseEnter);
         }
     }
 
@@ -341,12 +341,12 @@ public class EventCatchFunctionality {
         }
     }
 
-    public void addAnkerListener(IAnkerListener ankerListener) {
-        ankerListeners.add(ankerListener);
+    public void addAnchorListener(IAnchorListener anchorListener) {
+        anchorListeners.add(anchorListener);
     }
 
-    public void removeAnkerListener(IAnkerListener ankerListener) {
-        ankerListeners.remove(ankerListener);
+    public void removeAnchorListener(IAnchorListener anchorListener) {
+        anchorListeners.remove(anchorListener);
     }
 
     public void addMouseListener(IMouseListener mouseListener) {

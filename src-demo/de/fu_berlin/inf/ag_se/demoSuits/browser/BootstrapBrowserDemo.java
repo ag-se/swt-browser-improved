@@ -4,9 +4,9 @@ import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.utils.StringUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.BootstrapBrowser;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnker;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnkerListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -92,13 +92,13 @@ public class BootstrapBrowserDemo extends AbstractDemo {
             }
         };
         final Future<Boolean> loaded = this.bootstrapBrowser.openBlank();
-        this.bootstrapBrowser.addAnkerListener(new IAnkerListener() {
+        this.bootstrapBrowser.addAnchorListener(new IAnchorListener() {
             @Override
-            public void ankerHovered(IAnker anker, boolean entered) {
+            public void anchorHovered(IAnchor anchor, boolean entered) {
                 if (entered) {
-                    log("Anker hovered over: " + anker);
+                    log("Anchor hovered over: " + anchor);
                 } else {
-                    log("Anker hovered out: " + anker);
+                    log("Anchor hovered out: " + anchor);
                 }
             }
         });

@@ -3,8 +3,8 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnker;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnkerListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
+import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -98,10 +98,10 @@ public class MultipleBrowsersDemo extends AbstractDemo {
         for (int i = 0; i < browsers.length; i++) {
             final int num = i;
             browsers[i] = new Browser(parent, SWT.BORDER);
-            browsers[i].addAnkerListener(new IAnkerListener() {
+            browsers[i].addAnchorListener(new IAnchorListener() {
                 @Override
-                public void ankerHovered(IAnker anker, boolean entered) {
-                    log("(" + num + ") hovered " + (entered ? "over" : "out") + " " + anker);
+                public void anchorHovered(IAnchor anchor, boolean entered) {
+                    log("(" + num + ") hovered " + (entered ? "over" : "out") + " " + anchor);
                 }
             });
             try {

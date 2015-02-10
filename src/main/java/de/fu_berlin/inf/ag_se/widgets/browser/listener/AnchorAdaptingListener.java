@@ -6,34 +6,34 @@ import java.net.URISyntaxException;
 import de.fu_berlin.inf.ag_se.utils.Assert;
 import org.apache.log4j.Logger;
 
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnker;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 
 /**
  * Instances of this class adapt {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IURIListener}s so they can be used as
- * {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnkerListener}s.
+ * {@link IAnchorListener}s.
  * 
  * @author bkahlert
  * 
  */
-public class AnkerAdaptingListener implements IAnkerListener {
+public class AnchorAdaptingListener implements IAnchorListener {
 
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = Logger
-			.getLogger(AnkerAdaptingListener.class);
+			.getLogger(AnchorAdaptingListener.class);
 
 	private final IURIListener uriListener;
 
-	public AnkerAdaptingListener(IURIListener uriListener) {
+	public AnchorAdaptingListener(IURIListener uriListener) {
 		Assert.isNotNull(uriListener);
 		this.uriListener = uriListener;
 	}
 
 	@Override
-	public void ankerHovered(IAnker anker, boolean entered) {
+	public void anchorHovered(IAnchor anchor, boolean entered) {
 		try {
-			this.uriListener.uriHovered(new URI(anker.getHref()), entered);
+			this.uriListener.uriHovered(new URI(anchor.getHref()), entered);
 		} catch (URISyntaxException e) {
-			// LOGGER.info("Error converting " + anker.getHref() + " to a "
+			// LOGGER.info("Error converting " + anchor.getHref() + " to a "
 			// + URI.class.getSimpleName(), e);
 		}
 	}
