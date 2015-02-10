@@ -1,6 +1,5 @@
 package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
-import de.fu_berlin.inf.ag_se.annotations.Demo;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.utils.StringUtils;
@@ -20,7 +19,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.Future;
 
-@Demo
 public class JQueryBrowserDemo extends AbstractDemo {
 
     private JQueryBrowser jQueryBrowserComposite;

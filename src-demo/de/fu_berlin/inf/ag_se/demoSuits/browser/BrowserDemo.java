@@ -1,6 +1,5 @@
 package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
-import de.fu_berlin.inf.ag_se.annotations.Demo;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
@@ -23,7 +22,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-@Demo
 public class BrowserDemo extends AbstractDemo {
 
     private Browser browser;

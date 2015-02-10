@@ -1,6 +1,5 @@
 package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
-import de.fu_berlin.inf.ag_se.annotations.Demo;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.utils.StringUtils;
@@ -18,7 +17,6 @@ import org.eclipse.swt.widgets.Shell;
 
 import java.util.concurrent.Future;
 
-@Demo
 public class DragnDropBrowserDemo extends AbstractDemo {
 
     private Browser browser;
