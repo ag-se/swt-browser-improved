@@ -2,10 +2,7 @@ package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 
 import java.io.File;
 import java.net.URI;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 
-import de.fu_berlin.inf.ag_se.utils.SwtUiThreadExecutor;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.widgets.Composite;
 
@@ -82,7 +79,7 @@ public class ExtendedBrowser extends Browser implements IBrowser {
                 // by running the extension directly we execute it synchronously
                 // otherwise a loader library would be necessary to satisfy the
                 // loading dependencies
-                this.runContentsAsScriptTagImmediately(jsExtension);
+                this.runContentAsScriptTagImmediately(jsExtension);
             } catch (Exception e) {
                 LOGGER.error(
                         "Could not load the JS extension \""

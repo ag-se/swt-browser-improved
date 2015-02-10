@@ -23,6 +23,15 @@ import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+/**
+ * This class is a {@link org.eclipse.swt.widgets.Composite} that provides extended functionality to
+ * the {@link org.eclipse.swt.browser.Browser}.
+ *
+ * Its features include reporting Javascript errors back to Java,
+ * checking the loading state dependent on custom Javascript conditions,
+ * delaying the execution of Javascript code based on the loading state,
+ * and providing listener for different kinds of Javascript events.
+ */
 public class Browser extends Composite implements IBrowser {
 
     private static Logger LOGGER = Logger.getLogger(Browser.class);
@@ -38,11 +47,11 @@ public class Browser extends Composite implements IBrowser {
     private EventCatchFunctionality eventCatchFunctionality;
 
     /**
-     * Constructs a new {@link de.fu_berlin.inf.ag_se.widgets.browser.Browser} with the given styles.
+     * Constructs a new browser composite with the given styles.
      *
-     * @param parent
-     * @param style  if {@link org.eclipse.swt.SWT#INHERIT_FORCE}) is set the loaded page's background is replaced by the inherited
-     *               background color
+     * @param parent a widget which will be the parent of the new instance (cannot be null)
+     * @param style  if {@link org.eclipse.swt.SWT#INHERIT_FORCE} is set the loaded page's
+     *               background is replaced by the inherited background color
      */
     public Browser(Composite parent, int style) {
         super(parent, style | SWT.EMBEDDED & ~STYLES);
@@ -72,8 +81,8 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public Future<Boolean> open(String address, Integer timeout) {
-        return open(address, timeout, null);
+    public Future<Boolean> open(String uri, Integer timeout) {
+        return open(uri, timeout, null);
     }
 
     @Override
@@ -98,12 +107,12 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public void executeBeforeLoading(Runnable runnable) {
+    public void executeBeforeSettingURI(Runnable runnable) {
         internalBrowser.executeBeforeLoading(runnable);
     }
 
     @Override
-    public void executeAfterLoading(Runnable runnable) {
+    public void executeAfterSettingURI(Runnable runnable) {
         internalBrowser.executeAfterLoading(runnable);
     }
 
@@ -118,8 +127,8 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public Future<Boolean> run(File script) {
-        return internalBrowser.run(script);
+    public Future<Boolean> run(File scriptFile) {
+        return internalBrowser.run(scriptFile);
     }
 
     @Override
@@ -162,12 +171,12 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public void runContentsImmediately(File scriptFile) throws Exception {
+    public void runContentImmediately(File scriptFile) throws Exception {
         internalBrowser.runContentsImmediately(scriptFile);
     }
 
     @Override
-    public void runContentsAsScriptTagImmediately(File scriptFile) throws Exception {
+    public void runContentAsScriptTagImmediately(File scriptFile) throws Exception {
         internalBrowser.runContentsAsScriptTagImmediately(scriptFile);
     }
 
@@ -177,13 +186,13 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public Future<Void> injectJsFile(File file) {
-        return internalBrowser.injectJsFile(file);
+    public Future<Void> injectJavascriptFile(File javascriptFile) {
+        return internalBrowser.injectJsFile(javascriptFile);
     }
 
     @Override
-    public void injectJsFileImmediately(File jsExtension) throws Exception {
-        internalBrowser.injectJsFileImmediately(jsExtension);
+    public void injectJavascriptFileImmediately(File javascriptFile) throws Exception {
+        internalBrowser.injectJsFileImmediately(javascriptFile);
     }
 
     @Override
@@ -312,7 +321,7 @@ public class Browser extends Composite implements IBrowser {
         try {
             File js = File.createTempFile("paste", ".js");
             FileUtils.write(js, JavascriptString.createJavascriptForInsertingHTML(html));
-            return injectJsFile(js);
+            return injectJavascriptFile(js);
         } catch (Exception e) {
             return new CompletedFuture<Void>(null, e);
         }
