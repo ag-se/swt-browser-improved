@@ -32,7 +32,6 @@ public class SwtUiThreadExecutor {
 
         final AtomicReference<V> r = new AtomicReference<V>();
         final AtomicReference<Exception> exception = new AtomicReference<Exception>();
-        final Semaphore mutex = new Semaphore(0);
         Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
@@ -41,14 +40,8 @@ public class SwtUiThreadExecutor {
                 } catch (Exception e) {
                     exception.set(e);
                 }
-                mutex.release();
             }
         });
-        try {
-            mutex.acquire();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
         if (exception.get() != null) {
             throw exception.get();
         }
