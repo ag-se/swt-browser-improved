@@ -3,9 +3,7 @@ package de.fu_berlin.inf.ag_se.utils;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.widgets.Display;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -134,58 +132,5 @@ public class SwtUiThreadExecutor {
                                 return null;
                             }
                         }));
-    }
-
-    /**
-     * A synchronously executes the given {@link java.util.concurrent.Callable} with a delay in the SWT UI thread.
-     *
-     * @param callable the callable to execute
-     * @param delay    the delay in milliseconds
-     * @return a future representing the result of the execution
-     *
-     * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
-     * @NonUIThread TODO implement using Display.timerExec
-     */
-    public static <V> Future<V> asyncExec(final NoCheckedExceptionCallable<V> callable,
-                                          final long delay) {
-        return new UIThreadSafeFuture<V>(ExecUtils.EXECUTOR_SERVICE.submit(new NoCheckedExceptionCallable<V>() {
-            @Override
-            public V call() {
-                try {
-                    Thread.sleep(delay);
-                } catch (InterruptedException e) {
-                    LOGGER.error("Interrupted while sleeping. Could not execute callable with a delay " + callable);
-                    Thread.currentThread().interrupt();
-                }
-
-                return syncExec(callable);
-            }
-        }));
-    }
-
-    /**
-     * Executes the given {@link Runnable} with a delay and asynchronously in the UI thread.
-     *
-     * @param runnable the runnable to execute
-     * @param delay    the delay in milliseconds
-     * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
-     * @NonUIThread TODO implement using Display.timerExec
-     */
-    public static Future<Void> asyncExec(final Runnable runnable,
-                                         final long delay) {
-        return new UIThreadSafeFuture<Void>(ExecUtils.EXECUTOR_SERVICE.submit(new NoCheckedExceptionCallable<Void>() {
-            @Override
-            public Void call() {
-                try {
-                    Thread.sleep(delay);
-                } catch (InterruptedException e) {
-                    LOGGER.error("Could not execute with a delay runnable "
-                            + runnable);
-                }
-
-                syncExec(runnable);
-                return null;
-            }
-        }));
     }
 }
