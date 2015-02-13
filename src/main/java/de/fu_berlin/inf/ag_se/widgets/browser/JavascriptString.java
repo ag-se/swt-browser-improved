@@ -95,15 +95,15 @@ public class JavascriptString {
     }
 
     /**
-     * Modifies the given script in the way that an eventually thrown error will be catched and returned. <p> Passing the return value of
-     * {@link org.eclipse.swt.browser.Browser#evaluate(String)} to {@link #assertException(String, Object)} will raise an appropriate {@link
-     * de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException} if such one was thrown within the {@link
-     * org.eclipse.swt.browser.Browser}.
+     * Modifies the given script in the way that an eventually thrown error will be caught and returned.
+     * Passing the return value of
+     * {@link org.eclipse.swt.browser.Browser#evaluate(String)} to {@link #assertException(String, Object)} will raise an appropriate
+     * {@link de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException} if such one was thrown within the browser.
      *
      * @param script
      * @return
      */
-    public static String getExecutionReturningScript(String script) {
+    public static String getExceptionReturningScript(String script) {
         return "try { return new Function('"
                 + StringEscapeUtils.escapeJavaScript(script)
                 + "')(); } catch(e) { return [ '"

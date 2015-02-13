@@ -2,9 +2,12 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.ExecUtils;
+import de.fu_berlin.inf.ag_se.utils.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.utils.SwtUiThreadExecutor;
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
+import de.fu_berlin.inf.ag_se.widgets.browser.Function;
+import de.fu_berlin.inf.ag_se.widgets.browser.ParametrizedRunnable;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
@@ -236,9 +239,9 @@ public class BrowserDemo extends AbstractDemo {
         });
 
         final Future<Boolean> success = browser.open("http://inf.fu-berlin.de", Integer.parseInt(timeoutString));
-        ExecUtils.nonUIAsyncExec(new Callable<Void>() {
+        ExecUtils.nonUIAsyncExec(new NoCheckedExceptionCallable<Object>() {
             @Override
-            public Void call() throws Exception {
+            public Void call() {
                 try {
                     if (success.get()) {
                         log("Page loaded successfully");
@@ -248,12 +251,7 @@ public class BrowserDemo extends AbstractDemo {
                 } catch (Exception e) {
                     log(e.getMessage());
                 }
-                log(SwtUiThreadExecutor.syncExec(new Callable<String>() {
-                    @Override
-                    public String call() throws Exception {
-                        return browser.getUrl();
-                    }
-                }));
+                log(browser.getUrl());
                 return null;
             }
         });

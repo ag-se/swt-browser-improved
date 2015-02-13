@@ -2,7 +2,7 @@ package de.fu_berlin.inf.ag_se.widgets.browser.exception;
 
 import java.net.URI;
 
-public class BrowserTimeoutException extends Exception {
+public class BrowserTimeoutException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 

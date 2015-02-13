@@ -72,9 +72,9 @@ public class OffWorker {
     }
 
     public void finish() {
-        this.submit(new Callable<Void>() {
+        this.submit(new NoCheckedExceptionCallable<Object>() {
             @Override
-            public Void call() throws Exception {
+            public Void call() {
                 shutdown();
                 return null;
             }

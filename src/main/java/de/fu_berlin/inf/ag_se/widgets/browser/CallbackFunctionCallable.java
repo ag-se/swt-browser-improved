@@ -1,14 +1,14 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
+import de.fu_berlin.inf.ag_se.utils.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.utils.SwtUiThreadExecutor;
 import org.apache.log4j.Logger;
 
 import java.net.URI;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class CallbackFunctionCallable implements Callable<Boolean> {
+public class CallbackFunctionCallable implements NoCheckedExceptionCallable<Boolean> {
 
     private static final Logger LOGGER = Logger.getLogger(CallbackFunctionCallable.class);
 
@@ -23,7 +23,7 @@ public class CallbackFunctionCallable implements Callable<Boolean> {
     }
 
     @Override
-    public Boolean call() throws Exception {
+    public Boolean call() {
         final Semaphore mutex = new Semaphore(0);
         final String callbackFunctionName = BrowserUtils.createRandomFunctionName();
 

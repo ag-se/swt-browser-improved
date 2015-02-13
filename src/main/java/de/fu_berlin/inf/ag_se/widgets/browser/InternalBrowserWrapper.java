@@ -2,7 +2,9 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.*;
 import de.fu_berlin.inf.ag_se.widgets.browser.BrowserStatusManager.BrowserStatus;
+import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserDisposedException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
+import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateException;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
 import org.apache.commons.io.FileUtils;
@@ -21,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -53,9 +54,9 @@ public class InternalBrowserWrapper {
 
     private List<Runnable> beforeCompletion = new ArrayList<Runnable>();
 
-    private List<ParametrizedRunnable<String>> beforeScripts = new ArrayList<ParametrizedRunnable<String>>();
+    private List<Function<String>> beforeScripts = new ArrayList<Function<String>>();
 
-    private List<ParametrizedRunnable<Object>> afterScripts = new ArrayList<ParametrizedRunnable<Object>>();
+    private List<Function<Object>> afterScripts = new ArrayList<Function<Object>>();
 
     private final List<JavaScriptExceptionListener> javaScriptExceptionListeners = Collections
             .synchronizedList(new ArrayList<JavaScriptExceptionListener>());
@@ -108,10 +109,13 @@ public class InternalBrowserWrapper {
         });
     }
 
+    /**
+     * @throws BrowserDisposedException if the browser is disposed
+     */
     Future<Boolean> open(final String uri, final Integer timeout,
-                                final String pageLoadCheckExpression) {
+                         final String pageLoadCheckExpression) {
         if (browser.isDisposed()) {
-            throw new SWTException(SWT.ERROR_WIDGET_DISPOSED);
+            throw new BrowserDisposedException();
         }
 
         setBrowserStatus(BrowserStatus.LOADING);
@@ -125,9 +129,9 @@ public class InternalBrowserWrapper {
         });
 
         return ExecUtils.nonUIAsyncExec(Browser.class, "Opening " + uri,
-                new Callable<Boolean>() {
+                new NoCheckedExceptionCallable<Boolean>() {
                     @Override
-                    public Boolean call() throws Exception {
+                    public Boolean call() {
                         // stops waiting after timeout
                         Future<Void> timeoutMonitor = null;
                         if (timeout != null && timeout > 0) {
@@ -135,12 +139,7 @@ public class InternalBrowserWrapper {
                                     "Timeout Watcher for " + uri, new Runnable() {
                                         @Override
                                         public void run() {
-                                            synchronized (monitor) {
-                                                if (getBrowserStatus() != BrowserStatus.LOADED) {
-                                                    setBrowserStatus(BrowserStatus.TIMEDOUT);
-                                                }
-                                                monitor.notifyAll();
-                                            }
+                                            executeTimeoutCallback();
                                         }
                                     }, timeout);
                         } else {
@@ -170,7 +169,11 @@ public class InternalBrowserWrapper {
                             LOGGER.debug("Waiting for " + uri + " to be loaded (Thread: "
                                     + Thread.currentThread() + "; status: " + getBrowserStatus() + ")");
                             while (browserStatusManager.isLoading()) {
-                                monitor.wait();
+                                try {
+                                    monitor.wait();
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                }
                                 // notified by progresslistener or by
                                 // timeout
                             }
@@ -185,12 +188,21 @@ public class InternalBrowserWrapper {
                 });
     }
 
+    private void executeTimeoutCallback() {
+        synchronized (monitor) {
+            if (getBrowserStatus() != BrowserStatus.LOADED) {
+                setBrowserStatus(BrowserStatus.TIMEDOUT);
+            }
+            monitor.notifyAll();
+        }
+    }
+
     /**
-     * This method waits for the {@link de.fu_berlin.inf.ag_se.widgets.browser.Browser} to complete loading. <p> It has been observed that
-     * the {@link org.eclipse.swt.browser.ProgressListener#completed(org.eclipse.swt.browser.ProgressEvent)} fires to early. This method
-     * uses JavaScript to reliably detect the completed state.
+     * This method waits for the {@link Browser} to complete loading.
+     * It has been observed that the {@link ProgressListener#completed(ProgressEvent)} fires to early.
+     * This method uses JavaScript to reliably detect the completed state.
      *
-     * @param pageLoadCheckExpression
+     * @param pageLoadCheckExpression the Javascript expression to used for checking the loading state
      */
     private void waitAndComplete(String pageLoadCheckExpression) {
         if (browser == null || browser.isDisposed()) {
@@ -200,6 +212,7 @@ public class InternalBrowserWrapper {
         if (getBrowserStatus() != BrowserStatus.LOADING) {
             if (!Arrays.asList(BrowserStatus.TIMEDOUT, BrowserStatus.DISPOSED)
                        .contains(getBrowserStatus())) {
+                //TODO State Error: LOADED
                 LOGGER.error("State Error: " + getBrowserStatus());
             }
             return;
@@ -223,7 +236,7 @@ public class InternalBrowserWrapper {
 
         try {
             runImmediately(completedCheckScript, IConverter.CONVERTER_VOID);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             LOGGER.error("An error occurred while checking the page load state", e);
             synchronized (monitor) {
                 monitor.notifyAll();
@@ -231,11 +244,15 @@ public class InternalBrowserWrapper {
         }
     }
 
+    /**
+     * @throws BrowserDisposedException if the browser is disposed
+     */
     void waitForCondition(String condition) {
         if (browser == null || browser.isDisposed()) {
-            return;
+            throw new BrowserDisposedException();
         }
 
+        //TODO Maybe we don't need the callback
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         String randomFunctionName = BrowserUtils.createRandomFunctionName();
         IBrowserFunction browserFunction = createBrowserFunction(randomFunctionName, new IBrowserFunction() {
@@ -244,16 +261,15 @@ public class InternalBrowserWrapper {
                 return null;
             }
         });
-        String checkScript = JavascriptString.createWaitForConditionJavascript(condition,
-                randomFunctionName);
+        String checkScript = JavascriptString.createWaitForConditionJavascript(condition, randomFunctionName);
 
+        runImmediately(checkScript, IConverter.CONVERTER_VOID);
         try {
-            runImmediately(checkScript, IConverter.CONVERTER_VOID);
             countDownLatch.await();
-            browserFunction.dispose();
-        } catch (Exception e) {
-            LOGGER.error("An error occurred while checking the condition", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
+        browserFunction.dispose();
     }
 
     /**
@@ -296,7 +312,7 @@ public class InternalBrowserWrapper {
     private void activateExceptionHandling() {
         try {
             runImmediately(JavascriptString.getExceptionForwardingScript("__error_callback"), IConverter.CONVERTER_VOID);
-        } catch (Exception e) {
+        } catch (ScriptExecutionException e) {
             LOGGER.error("Error activating browser's exception handling. JavaScript exceptions are not detected!", e);
         }
     }
@@ -345,30 +361,40 @@ public class InternalBrowserWrapper {
     }
 
     <DEST> Future<DEST> run(final String script,
-                                   final IConverter<Object, DEST> converter) {
+                            final IConverter<Object, DEST> converter) {
         Assert.isLegal(converter != null);
         return browserStatusManager.createFuture(new ScriptExecutingCallable<DEST>(this, converter, script));
     }
 
+    /**
+     * @throws ScriptExecutionException if an exception occurs while executing the script
+     */
     <DEST> DEST runImmediately(String script,
-                                      IConverter<Object, DEST> converter) throws Exception {
+                               IConverter<Object, DEST> converter) {
         return SwtUiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(this, converter, script));
     }
 
-    void runContentsImmediately(File scriptFile) throws Exception {
+    /**
+     * @throws ScriptExecutionException if an exception occurs while executing the script
+     * @throws IOException              if an exception occurs while reading the passed file
+     */
+    void runContentsImmediately(File scriptFile) throws IOException {
         runImmediately(FileUtils.readFileToString(scriptFile), IConverter.CONVERTER_VOID);
     }
 
-    void runContentsAsScriptTagImmediately(File scriptFile)
-            throws Exception {
+    /**
+     * @throws ScriptExecutionException if an exception occurs while executing the script
+     * @throws IOException              if an exception occurs while reading the passed file
+     */
+    void runContentsAsScriptTagImmediately(File scriptFile) throws IOException {
         runImmediately(JavascriptString.embedContentsIntoScriptTag(scriptFile), IConverter.CONVERTER_VOID);
     }
 
-    void executeBeforeScript(ParametrizedRunnable<String> runnable) {
+    void executeBeforeScript(Function<String> runnable) {
         beforeScripts.add(runnable);
     }
 
-    void executeAfterScript(ParametrizedRunnable<Object> runnable) {
+    void executeAfterScript(Function<Object> runnable) {
         afterScripts.add(runnable);
     }
 
@@ -377,7 +403,10 @@ public class InternalBrowserWrapper {
                 IConverter.CONVERTER_VOID);
     }
 
-    void injectJsFileImmediately(File file) throws Exception {
+    /**
+     * @throws ScriptExecutionException if an exception occurs while executing the script
+     */
+    void injectJsFileImmediately(File file) {
         runImmediately(JavascriptString.createJsFileInjectionScript(file),
                 IConverter.CONVERTER_VOID);
     }
@@ -387,7 +416,10 @@ public class InternalBrowserWrapper {
                 IConverter.CONVERTER_VOID);
     }
 
-    void injectCssFileImmediately(URI uri) throws Exception {
+    /**
+     * @throws ScriptExecutionException if an exception occurs while executing the script
+     */
+    void injectCssFileImmediately(URI uri) {
         runImmediately(JavascriptString.createCssFileInjectionScript(uri),
                 IConverter.CONVERTER_VOID);
     }
@@ -396,7 +428,10 @@ public class InternalBrowserWrapper {
         return run(JavascriptString.createCssInjectionScript(css), IConverter.CONVERTER_VOID);
     }
 
-    void injectCssImmediately(String css) throws Exception {
+    /**
+     * @throws ScriptExecutionException if an exception occurs while executing the script
+     */
+    void injectCssImmediately(String css) {
         runImmediately(JavascriptString.createCssInjectionScript(css),
                 IConverter.CONVERTER_VOID);
     }
@@ -404,7 +439,7 @@ public class InternalBrowserWrapper {
     /**
      * Returns the state of the browser.
      *
-     * @return
+     * @return a status enum value
      */
     BrowserStatus getBrowserStatus() {
         return browserStatusManager.getBrowserStatus();
@@ -426,12 +461,39 @@ public class InternalBrowserWrapper {
         return browser.isDisposed();
     }
 
+    /**
+     * Wrapper for {@link org.eclipse.swt.browser.Browser#evaluate(String)}.
+     * Converts {@link org.eclipse.swt.SWTException}s into SWT independent exceptions.
+     *
+     * @param javaScript the Javascript string to be executed,
+     *                   must not be null
+     * @return the return value, if any, of executing the script
+     *
+     * @throws java.lang.IllegalArgumentException if the argument is null
+     * @throws ScriptExecutionException           if an exception occurs while executing the script
+     */
     Object evaluate(String javaScript) {
-        return browser.evaluate(javaScript);
+        try {
+            String script = JavascriptString.getExceptionReturningScript(javaScript);
+            Object returnValue = browser.evaluate(script);
+            BrowserUtils.rethrowJavascriptException(script, returnValue);
+            return returnValue;
+        } catch (SWTException e) {
+            //TODO perform SWT error conversion here
+            throw new ScriptExecutionException(javaScript, e);
+        }
     }
 
+    /**
+     * May be called from whatever thread.
+     */
     String getUrl() {
-        return browser.getUrl();
+        return SwtUiThreadExecutor.syncExec(new NoCheckedExceptionCallable<String>() {
+            @Override
+            public String call() {
+                return browser.getUrl();
+            }
+        });
     }
 
     void addListener(int eventType, Listener listener) {
@@ -455,20 +517,17 @@ public class InternalBrowserWrapper {
         return cachedContentBounds;
     }
 
-    synchronized void fireJavaScriptExceptionThrown(
-            JavaScriptException javaScriptException) {
+    synchronized void fireJavaScriptExceptionThrown(JavaScriptException javaScriptException) {
         for (JavaScriptExceptionListener listener : javaScriptExceptionListeners) {
             listener.thrown(javaScriptException);
         }
     }
 
-    void addJavaScriptExceptionListener(
-            JavaScriptExceptionListener javaScriptExceptionListener) {
+    void addJavaScriptExceptionListener(JavaScriptExceptionListener javaScriptExceptionListener) {
         javaScriptExceptionListeners.add(javaScriptExceptionListener);
     }
 
-    void removeJavaScriptExceptionListener(
-            JavaScriptExceptionListener javaScriptExceptionListener) {
+    void removeJavaScriptExceptionListener(JavaScriptExceptionListener javaScriptExceptionListener) {
         javaScriptExceptionListeners.remove(javaScriptExceptionListener);
     }
 
@@ -484,53 +543,66 @@ public class InternalBrowserWrapper {
         beforeCompletion.add(runnable);
     }
 
+    /**
+     * May be called from whatever thread.
+     */
     IBrowserFunction createBrowserFunction(final String functionName,
-                                                  final IBrowserFunction function) {
-        try {
-            return SwtUiThreadExecutor.syncExec(new Callable<IBrowserFunction>() {
-                @Override
-                public IBrowserFunction call() throws Exception {
-                    new BrowserFunction(browser, functionName) {
-                        @Override
-                        public Object function(Object[] arguments) {
-                            return function.function(arguments);
-                        }
-                    };
-                    return function;
-                }
-            });
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage());
-        }
-        return null;
+                                           final IBrowserFunction function) {
+        return SwtUiThreadExecutor.syncExec(new NoCheckedExceptionCallable<IBrowserFunction>() {
+            @Override
+            public IBrowserFunction call() {
+                new BrowserFunction(browser, functionName) {
+                    @Override
+                    public Object function(Object[] arguments) {
+                        return function.function(arguments);
+                    }
+                };
+                return function;
+            }
+        });
     }
 
-    void executeBeforeScriptExecutionScripts(final String script) throws Exception {
-        for (final ParametrizedRunnable<String> beforeScript : beforeScripts) {
-            SwtUiThreadExecutor.syncExec(new Runnable() {
-                @Override
-                public void run() {
-                    beforeScript.run(script);
-                }
-            });
-        }
-
+    void executeBeforeScriptExecutionScripts(final String script) {
+        executeScriptList(beforeScripts, script);
     }
 
-    void executeAfterScriptExecutionScripts(final Object returnValue) throws Exception {
-        for (final ParametrizedRunnable<Object> afterScript : afterScripts) {
-            SwtUiThreadExecutor.syncExec(new Runnable() {
-                @Override
-                public void run() {
-                    afterScript.run(returnValue);
-                }
-            });
+    void executeAfterScriptExecutionScripts(final Object returnValue) {
+        executeScriptList(afterScripts, returnValue);
+    }
+
+    /**
+     * Executes a list of Javascript scripts sequentially.
+     * If an exceptions occurs the remaining scripts are executed nevertheless.
+     *
+     * @param scripts
+     * @param input
+     * @param <V>
+     */
+    private <V> void executeScriptList(List<Function<V>> scripts, final V input) {
+        for (final Function<V> script : scripts) {
+            try {
+                SwtUiThreadExecutor.syncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        script.run(input);
+                    }
+                });
+            } catch (RuntimeException e) {
+                LOGGER.error(e);
+                // TODO only catch some Exceptions throw the rest?
+            }
         }
     }
 
+    /**
+     * This method must not be called from the UI thread, as it is blocking.
+     *
+     * @throws IllegalStateException    if this method is called from the UI thread
+     * @throws ScriptExecutionException if an exception occurs while executing the script
+     */
     Object syncRun(String script) {
         if (ExecUtils.isUIThread())
-            throw new IllegalStateException("This method must not be called from the SWT UI thread.");
+            throw new IllegalStateException("This method must not be called from the UI thread.");
 
         Future<Object> res = run(script);
         try {
@@ -540,8 +612,7 @@ public class InternalBrowserWrapper {
             LOGGER.debug("Interrupted while waiting for the result. Returning null.");
             return null;
         } catch (ExecutionException e) {
-            LOGGER.error("Could not evaluate script " + script, e);
-            return null;
+            throw new ScriptExecutionException(script, e);
         }
     }
 }

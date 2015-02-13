@@ -41,15 +41,15 @@ public class BrowserTest {
         final Browser browser = new Browser(shell,
                 SWT.NONE);
 
-        browser.executeBeforeScript(new ParametrizedRunnable<String>() {
+        browser.executeBeforeScript(new Function<String>() {
             @Override
             public void run(String script) {
                 if (!script.contains("successfullyInjectedAnchorHoverCallback")) {
-                                scriptExecutionOrder.add(script);
-                            }
+                    scriptExecutionOrder.add(script);
+                }
             }
         });
-        browser.executeAfterScript(new ParametrizedRunnable<Object>() {
+        browser.executeAfterScript(new Function<Object>() {
             @Override
             public void run(Object returnValue) {
                 if (!returnValue.toString().equals("true")

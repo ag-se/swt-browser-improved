@@ -3,6 +3,7 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.utils.StringUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.ParametrizedRunnable;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.JQueryBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
@@ -79,13 +80,13 @@ public class JQueryBrowserDemo extends AbstractDemo {
 
     public void createDemo(Composite parent) {
         this.browser = new JQueryBrowser(parent, SWT.BORDER);
-        browser.executeBeforeScript(new ParametrizedRunnable<String>() {
+        browser.executeBeforeScript(new Function<String>() {
             @Override
             public void run(String input) {
                 log("SENT: " + StringUtils.shorten(input));
             }
         });
-        browser.executeAfterScript(new ParametrizedRunnable<Object>() {
+        browser.executeAfterScript(new Function<Object>() {
             @Override
             public void run(Object input) {
                 log("RETN: " + input);

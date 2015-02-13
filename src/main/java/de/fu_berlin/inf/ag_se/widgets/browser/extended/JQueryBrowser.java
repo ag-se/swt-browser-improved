@@ -2,9 +2,11 @@ package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import de.fu_berlin.inf.ag_se.utils.NoCheckedExceptionCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.DisposeEvent;
@@ -179,12 +181,20 @@ public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
 	@Override
 	public Future<Boolean> scrollTo(final ISelector selector) {
 		return ExecUtils.nonUIAsyncExec(JQueryBrowser.class, "Scroll To",
-				new Callable<Boolean>() {
+				new NoCheckedExceptionCallable<Boolean>() {
 					@Override
-					public Boolean call() throws Exception {
-						Point pos = JQueryBrowser.this.getScrollPosition(
-								selector).get();
-						return JQueryBrowser.this.scrollTo(pos).get();
+					public Boolean call() {
+                        Point pos = null;
+                        try {
+                            pos = JQueryBrowser.this.getScrollPosition(
+                                    selector).get();
+                            return JQueryBrowser.this.scrollTo(pos).get();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        } catch (ExecutionException e) {
+                           throw new ScriptExecutionException("Could not execute scroll to", e);
+                        }
+                        return false;
 					}
 				});
 	}
@@ -197,17 +207,20 @@ public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
 	@Override
 	public Future<IElement> getFocusedElement() {
 		return ExecUtils.nonUIAsyncExec(JQueryBrowser.class,
-				"Get Focused Element", new Callable<IElement>() {
+				"Get Focused Element", new NoCheckedExceptionCallable<IElement>() {
 					@Override
-					public IElement call() throws Exception {
+					public IElement call() {
 						try {
-							String html = JQueryBrowser.this
-									.run("return jQuery(document.activeElement).clone().wrap(\"<p>\").parent().html();",
+							String html = run("return jQuery(document.activeElement).clone().wrap(\"<p>\").parent().html();",
 											IConverter.CONVERTER_STRING).get();
 							return new Element(html);
-						} catch (Exception e) {
+						} catch (RuntimeException e) {
 							LOGGER.error("Error getting scroll position", e);
-						}
+						} catch (ExecutionException e) {
+                            LOGGER.error("Error getting scroll position", e);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
 						return null;
 					}
 				});

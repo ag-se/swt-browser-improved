@@ -1,6 +1,7 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 
 import org.apache.log4j.Logger;
@@ -37,19 +38,15 @@ public class ExtendedBrowser extends Browser implements IBrowser {
             @Override
             public void run() {
                 for (IBrowserExtension extension : ExtendedBrowser.this.extensions) {
-                    try {
-                        if (!addExtensionOnce(extension)) {
-                            LOGGER.error("Error loading " + extension);
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error(e);
+                    if (!addExtensionOnce(extension)) {
+                        LOGGER.error("Error loading " + extension);
                     }
                 }
             }
         });
     }
 
-    private Boolean hasExtension(IBrowserExtension extension) throws Exception {
+    private Boolean hasExtension(IBrowserExtension extension) {
         return this.runImmediately(extension.getVerificationScript(),
                 IConverter.CONVERTER_BOOLEAN);
     }
@@ -65,7 +62,12 @@ public class ExtendedBrowser extends Browser implements IBrowser {
                             + " could not be loaded. Still trying to add extension "
                             + extension.getName());
                 }
-            } catch (Exception e) {
+            } catch (IllegalAccessException e) {
+                LOGGER.warn(
+                        "Cannot instantiate dependency "
+                                + dependencyClass.getSimpleName()
+                                + ". Skipping.", e);
+            } catch (InstantiationException e) {
                 LOGGER.warn(
                         "Cannot instantiate dependency "
                                 + dependencyClass.getSimpleName()
@@ -79,8 +81,13 @@ public class ExtendedBrowser extends Browser implements IBrowser {
                 // by running the extension directly we execute it synchronously
                 // otherwise a loader library would be necessary to satisfy the
                 // loading dependencies
-                this.runContentAsScriptTagImmediately(jsExtension);
-            } catch (Exception e) {
+                runContentAsScriptTagImmediately(jsExtension);
+            } catch (RuntimeException e) {
+                LOGGER.error(
+                        "Could not load the JS extension \""
+                                + extension.getName() + "\".", e);
+                success = false;
+            } catch (IOException e) {
                 LOGGER.error(
                         "Could not load the JS extension \""
                                 + extension.getName() + "\".", e);
@@ -90,7 +97,7 @@ public class ExtendedBrowser extends Browser implements IBrowser {
         for (URI cssExtension : extension.getCssExtensions()) {
             try {
                 injectCssFileImmediately(cssExtension);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 LOGGER.error(
                         "Could not load the JS extension \""
                                 + extension.getName() + "\".", e);
@@ -101,8 +108,7 @@ public class ExtendedBrowser extends Browser implements IBrowser {
         return success;
     }
 
-    private Boolean addExtensionOnce(IBrowserExtension extension)
-            throws Exception {
+    private Boolean addExtensionOnce(IBrowserExtension extension) {
         if (!this.hasExtension(extension)) {
             return this.addExtension(extension);
         }

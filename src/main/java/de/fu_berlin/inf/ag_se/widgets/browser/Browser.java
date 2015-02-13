@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.Future;
 
@@ -68,7 +69,7 @@ public class Browser extends Composite implements IBrowser {
                 if (textSelectionsDisabled) {
                     try {
                         injectCssImmediately(JavascriptString.createCssToDisableTextSelection());
-                    } catch (Exception e) {
+                    } catch (RuntimeException e) {
                         LOGGER.error(e);
                     }
                 }
@@ -139,7 +140,7 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public void injectJavascriptFileImmediately(File javascriptFile) throws Exception {
+    public void injectJavascriptFileImmediately(File javascriptFile) {
         internalBrowser.injectJsFileImmediately(javascriptFile);
     }
 
@@ -149,7 +150,7 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public void injectCssFileImmediately(URI uri) throws Exception {
+    public void injectCssFileImmediately(URI uri) {
         internalBrowser.injectCssFileImmediately(uri);
     }
 
@@ -159,7 +160,7 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public void injectCssImmediately(String css) throws Exception {
+    public void injectCssImmediately(String css) {
         internalBrowser.injectCssImmediately(css);
     }
 
@@ -194,27 +195,27 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public void runContentImmediately(File scriptFile) throws Exception {
+    public void runContentImmediately(File scriptFile) throws IOException {
         internalBrowser.runContentsImmediately(scriptFile);
     }
 
     @Override
-    public void runContentAsScriptTagImmediately(File scriptFile) throws Exception {
+    public void runContentAsScriptTagImmediately(File scriptFile) throws IOException {
         internalBrowser.runContentsAsScriptTagImmediately(scriptFile);
     }
 
     @Override
-    public <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter) throws Exception {
+    public <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter) {
         return internalBrowser.runImmediately(script, converter);
     }
 
     @Override
-    public void executeBeforeScript(ParametrizedRunnable<String> runnable) {
+    public void executeBeforeScript(Function<String> runnable) {
         internalBrowser.executeBeforeScript(runnable);
     }
 
     @Override
-    public void executeAfterScript(ParametrizedRunnable<Object> runnable) {
+    public void executeAfterScript(Function<Object> runnable) {
         internalBrowser.executeAfterScript(runnable);
     }
 
@@ -249,7 +250,7 @@ public class Browser extends Composite implements IBrowser {
             File js = File.createTempFile("paste", ".js");
             FileUtils.write(js, JavascriptString.createJavascriptForInsertingHTML(html));
             return injectJavascriptFile(js);
-        } catch (Exception e) {
+        } catch (IOException e) {
             return new CompletedFuture<Void>(null, e);
         }
     }
@@ -351,8 +352,8 @@ public class Browser extends Composite implements IBrowser {
         super.setBackground(color);
         String hex = color != null ? new RGB(color.getRGB()).toDecString() : "transparent";
         try {
-            this.injectCssImmediately("html, body { background-color: " + hex + "; }");
-        } catch (Exception e) {
+            injectCssImmediately("html, body { background-color: " + hex + "; }");
+        } catch (RuntimeException e) {
             LOGGER.error("Error setting background color to " + color, e);
         }
     }

@@ -1,56 +1,49 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.IConverter;
+import de.fu_berlin.inf.ag_se.utils.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.utils.StringUtils;
 import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserDisposedException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
 import org.apache.log4j.Logger;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
 
 import java.util.concurrent.Callable;
 
-public class ScriptExecutingCallable<DEST> extends ThreadLabelingCallable<DEST> {
+class ScriptExecutingCallable<DEST> extends ThreadLabelingCallable<DEST> {
 
     private static final Logger LOGGER = Logger.getLogger(ScriptExecutingCallable.class);
     private final String script;
 
-    public ScriptExecutingCallable(final InternalBrowserWrapper browser, final IConverter<Object, DEST> converter,
+    ScriptExecutingCallable(final InternalBrowserWrapper browser, final IConverter<Object, DEST> converter,
                                    final String script) {
-        super(Browser.class, "Running " + StringUtils.shorten(script), new Callable<DEST>() {
+        super(Browser.class, "Running " + StringUtils.shorten(script), new NoCheckedExceptionCallable<DEST>() {
+            /**
+             * @throws BrowserDisposedException
+             * @throws ScriptExecutionException
+             */
             @Override
-            public DEST call() throws Exception {
+            public DEST call()  {
                 if (browser == null || browser.isDisposed()) {
-                    throw new ScriptExecutionException(script,
-                            new SWTException(SWT.ERROR_WIDGET_DISPOSED));
+                    throw new BrowserDisposedException();
                 }
 
-                try {
-                    browser.executeBeforeScriptExecutionScripts(script);
-                    Object returnValue = browser.evaluate(JavascriptString.getExecutionReturningScript(script));
+                browser.executeBeforeScriptExecutionScripts(script);
 
-                    BrowserUtils.assertException(script, returnValue);
+                Object returnValue = browser.evaluate(script);
 
-                    browser.executeAfterScriptExecutionScripts(returnValue);
-                    DEST rs = converter.convert(returnValue);
-                    LOGGER.info("Returned " + rs);
-                    return rs;
-                } catch (SWTException e) {
-                    throw e;
-                } catch (JavaScriptException e) {
-                    LOGGER.error(e);
-                    throw e;
-                } catch (Exception e) {
-                    LOGGER.error(e);
-                    throw e;
-                }
+                browser.executeAfterScriptExecutionScripts(returnValue);
+
+                DEST rs = converter.convert(returnValue);
+                LOGGER.debug("Returned " + rs);
+                return rs;
             }
         });
         this.script = script;
     }
 
-    public String getScript() {
+    String getScript() {
         return script;
     }
 }

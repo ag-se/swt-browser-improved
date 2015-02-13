@@ -1,12 +1,7 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
-import de.fu_berlin.inf.ag_se.utils.Assert;
-import de.fu_berlin.inf.ag_se.utils.CompletedFuture;
-import de.fu_berlin.inf.ag_se.utils.OffWorker;
-import de.fu_berlin.inf.ag_se.utils.SwtUiThreadExecutor;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserTimeoutException;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateException;
+import de.fu_berlin.inf.ag_se.utils.*;
+import de.fu_berlin.inf.ag_se.widgets.browser.exception.*;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -61,16 +56,27 @@ public class BrowserStatusManager {
      * Sets the browser status. This information is necessary for the correct script execution.
      *
      * @param browserStatus
-     * @throws de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateException
+     * @throws UnexpectedBrowserStateException
+     * @throws NullPointerException            if argument is null
      */
-    public void setBrowserStatus(BrowserStatus browserStatus)
-            throws UnexpectedBrowserStateException {
-        Assert.isNotNull(browserStatus);
+    public void setBrowserStatus(BrowserStatus browserStatus) {
+        if (browserStatus == null) {
+            throw new NullPointerException();
+        }
+
         if (this.browserStatus == browserStatus) {
             return;
         }
 
-        // throw exception on invalid new status
+        checkStateTransition(browserStatus);
+
+        this.browserStatus = browserStatus;
+
+        callScriptWorker();
+    }
+
+    // throw exception on invalid new status
+    private void checkStateTransition(BrowserStatus browserStatus) {
         switch (this.browserStatus) {
             case INITIALIZING:
                 if (Arrays.asList(BrowserStatus.TIMEDOUT, BrowserStatus.DISPOSED)
@@ -98,9 +104,9 @@ public class BrowserStatusManager {
                 throw new UnexpectedBrowserStateException("Cannot switch from "
                         + this.browserStatus + " to " + browserStatus);
         }
+    }
 
-        // apply new status
-        this.browserStatus = browserStatus;
+    private void callScriptWorker() {
         switch (this.browserStatus) {
             case LOADING:
 
@@ -111,9 +117,9 @@ public class BrowserStatusManager {
                 break;
             case TIMEDOUT:
             case DISPOSED:
-                delayedScriptsWorker.submit(new Callable<Void>() {
+                delayedScriptsWorker.submit(new NoCheckedExceptionCallable<Void>() {
                     @Override
-                    public Void call() throws Exception {
+                    public Void call() {
                         if (!delayedScriptsWorker.isShutdown()) {
                             delayedScriptsWorker.shutdown();
                         }
@@ -140,17 +146,12 @@ public class BrowserStatusManager {
             case LOADING:
                 return delayedScriptsWorker.submit(new ExecuteWhenLoaded<DEST>(scriptRunner, script));
             case LOADED:
-                try {
-                    return new CompletedFuture<DEST>(SwtUiThreadExecutor.syncExec(scriptRunner), null);
-                } catch (Exception e) {
-                    return new CompletedFuture<DEST>(null, e);
-                }
+                return ExecUtils.nonUIAsyncExec(new ExecuteImmediately<DEST>(scriptRunner));
             case TIMEDOUT:
                 return new CompletedFuture<DEST>(null,
                         new ScriptExecutionException(script, new BrowserTimeoutException()));
             case DISPOSED:
-                return new CompletedFuture<DEST>(null,
-                        new ScriptExecutionException(script, new SWTException(SWT.ERROR_WIDGET_DISPOSED)));
+                return new CompletedFuture<DEST>(null, new BrowserDisposedException());
             default:
                 return new CompletedFuture<DEST>(null,
                         new ScriptExecutionException(script,
@@ -189,18 +190,47 @@ public class BrowserStatusManager {
             this.script = script;
         }
 
+        /**
+         * @throws ScriptExecutionException
+         * @throws JavaScriptException
+         */
         @Override
-        public DEST call() throws Exception {
+        public DEST call() {
             switch (browserStatus) {
                 case LOADED:
-                    return SwtUiThreadExecutor.syncExec(scriptRunner);
+                    return syncExecScript(scriptRunner);
                 case TIMEDOUT:
                     throw new ScriptExecutionException(script, new BrowserTimeoutException());
                 case DISPOSED:
-                    throw new ScriptExecutionException(script, new SWTException(SWT.ERROR_WIDGET_DISPOSED));
+                    throw new ScriptExecutionException(script, new BrowserDisposedException());
                 default:
                     throw new ScriptExecutionException(script, new UnexpectedBrowserStateException(browserStatus.toString()));
             }
         }
+    }
+
+    private class ExecuteImmediately<DEST> implements NoCheckedExceptionCallable<DEST> {
+        private final ScriptExecutingCallable<DEST> scriptRunner;
+
+        public ExecuteImmediately(ScriptExecutingCallable<DEST> scriptRunner) {
+            this.scriptRunner = scriptRunner;
+        }
+
+        /**
+         * @throws ScriptExecutionException
+         * @throws JavaScriptException
+         */
+        @Override
+        public DEST call() {
+            return syncExecScript(scriptRunner);
+        }
+    }
+
+    /**
+     * @throws ScriptExecutionException
+     * @throws JavaScriptException
+     */
+    private <DEST> DEST syncExecScript(ScriptExecutingCallable<DEST> scriptRunner) {
+        return SwtUiThreadExecutor.syncExec(scriptRunner);
     }
 }

@@ -68,6 +68,7 @@ public class ExecUtils {
      *
      * @param callable
      * @return
+     *
      * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
      * @NonUIThread
      */
@@ -80,7 +81,8 @@ public class ExecUtils {
     }
 
     /**
-     * Runs the given {@link Runnable} immediately in a non-UI thread. If the caller already runs in such one the {@link Runnable} is simply
+     * Runs the given {@link Runnable} immediately in a non-UI thread. If the caller already runs in such one the {@link Runnable} is
+     * simply
      * executed. Otherwise a new thread is started.
      *
      * @param runnable
@@ -110,22 +112,25 @@ public class ExecUtils {
      * @param purpose  of the callable
      * @param callable
      * @return
+     *
      * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
      * @NonUIThread
      */
     public static <V> Future<V> nonUISyncExec(final Class<?> clazz,
-                                              final String purpose, Callable<V> callable) {
+                                              final String purpose, NoCheckedExceptionCallable<V> callable) {
         return nonUISyncExec(new ThreadLabelingCallable<V>(clazz, purpose, callable));
     }
 
     /**
-     * Runs the given {@link Runnable} immediately in a non-UI thread. If the caller already runs in such one the {@link Runnable} is simply
+     * Runs the given {@link Runnable} immediately in a non-UI thread. If the caller already runs in such one the {@link Runnable} is
+     * simply
      * executed. Otherwise a new thread is started. <p> The given {@link Class} and purpose are used to give the thread a reasonable name.
      *
      * @param clazz    that invokes this call
      * @param purpose  of the runnable
      * @param runnable
      * @return
+     *
      * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
      * @NonUIThread
      */
@@ -141,6 +146,7 @@ public class ExecUtils {
      * @param callable
      * @param delay
      * @return
+     *
      * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
      * @NonUIThread
      */
@@ -155,6 +161,7 @@ public class ExecUtils {
      * @param runnable
      * @param delay
      * @return
+     *
      * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
      * @NonUIThread
      */
@@ -173,11 +180,12 @@ public class ExecUtils {
      * @param callable
      * @param delay
      * @return
+     *
      * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
      * @NonUIThread
      */
     public static <V> Future<V> nonUISyncExec(final Class<?> clazz,
-                                              final String purpose, Callable<V> callable, int delay) {
+                                              final String purpose, NoCheckedExceptionCallable<V> callable, int delay) {
         return nonUISyncExec(new ThreadLabelingCallable<V>(clazz, purpose, callable), delay);
     }
 
@@ -191,6 +199,7 @@ public class ExecUtils {
      * @param runnable
      * @param delay
      * @return
+     *
      * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
      * @NonUIThread
      */
@@ -204,6 +213,7 @@ public class ExecUtils {
      *
      * @param callable
      * @return
+     *
      * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
      * @NonUIThread
      */
@@ -217,6 +227,7 @@ public class ExecUtils {
      *
      * @param callables
      * @return
+     *
      * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
      * @NonUIThread
      */
@@ -245,6 +256,7 @@ public class ExecUtils {
      *
      * @param runnable
      * @return
+     *
      * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
      * @NonUIThread
      */
@@ -258,18 +270,19 @@ public class ExecUtils {
         }));
     }
 
-    public static <V> Future<V> nonUIAsyncExec(final Class<?> clazz, final String purpose, final Callable<V> callable) {
+    public static <V> Future<V> nonUIAsyncExec(final Class<?> clazz, final String purpose, final NoCheckedExceptionCallable<V> callable) {
         return new UIThreadSafeFuture<V>(EXECUTOR_SERVICE.submit(new ThreadLabelingCallable<V>(clazz, purpose, callable)));
     }
 
     public static Future<Void> nonUIAsyncExec(final Class<?> clazz,
                                               final String purpose, final Runnable runnable) {
-        return new UIThreadSafeFuture<Void>(EXECUTOR_SERVICE.submit(new ThreadLabelingCallable<Void>(clazz, purpose, new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                return null;
-            }
-        })));
+        return new UIThreadSafeFuture<Void>(
+                EXECUTOR_SERVICE.submit(new ThreadLabelingCallable<Void>(clazz, purpose, new NoCheckedExceptionCallable<Void>() {
+                    @Override
+                    public Void call() {
+                        return null;
+                    }
+                })));
     }
 
     /**
@@ -279,6 +292,7 @@ public class ExecUtils {
      * @param callable
      * @param delay
      * @return
+     *
      * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
      * @NonUIThread
      */
@@ -302,6 +316,7 @@ public class ExecUtils {
      * @param runnable
      * @param delay
      * @return
+     *
      * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
      * @NonUIThread
      */
@@ -323,7 +338,7 @@ public class ExecUtils {
     }
 
     public static <V> Future<V> nonUIAsyncExec(final Class<?> clazz,
-                                               final String purpose, final Callable<V> callable, final int delay) {
+                                               final String purpose, final NoCheckedExceptionCallable<V> callable, final int delay) {
         return nonUIAsyncExec(new Callable<V>() {
             @Override
             public V call() throws Exception {

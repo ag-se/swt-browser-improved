@@ -15,6 +15,7 @@ import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Rectangle;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -215,9 +216,9 @@ public class EventCatchFunctionality {
     }
 
 
-
     /**
-     * Injects the code needed for addAnchorListener, addFocusListener and addDNDListener to work. <p> The JavaScript remembers a successful
+     * Injects the code needed for addAnchorListener, addFocusListener and addDNDListener to work. <p> The JavaScript remembers a
+     * successful
      * injection in case to consecutive calls are made. <p> As soon as a successful injection has been registered, {@link
      * #eventCatchScriptInjected} is set so no unnecessary further injection is made.
      */
@@ -231,7 +232,7 @@ public class EventCatchFunctionality {
         File events = ClasspathFileUtils.getFile("/events.js");
         try {
             browser.runContentsImmediately(events);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             if (e.getCause() instanceof SWTException) {
                 // disposed
             } else {
@@ -239,6 +240,8 @@ public class EventCatchFunctionality {
                         "Could not inject events catch script in " + browser
                                 .getClass().getSimpleName(), e);
             }
+        } catch (IOException e) {
+            LOGGER.error("Could not inject drop catch script in " + browser.getClass().getSimpleName(), e);
         }
 
         File dnd = ClasspathFileUtils.getFile("/dnd.js");
@@ -246,12 +249,14 @@ public class EventCatchFunctionality {
         try {
             browser.runContentsImmediately(dnd);
             browser.injectCssFile(dndCss.toURI());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             if (e.getCause() instanceof SWTException) {
                 // disposed
             } else {
                 LOGGER.error("Could not inject drop catch script in " + browser.getClass().getSimpleName(), e);
             }
+        } catch (IOException e) {
+            LOGGER.error("Could not inject drop catch script in " + browser.getClass().getSimpleName(), e);
         }
 
         eventCatchScriptInjected = true;

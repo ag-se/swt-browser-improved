@@ -1,10 +1,13 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.Future;
 
 import de.fu_berlin.inf.ag_se.utils.IConverter;
+import de.fu_berlin.inf.ag_se.utils.NoCheckedExceptionCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
@@ -92,6 +95,8 @@ public interface IBrowser {
     /**
      * Returns the currently set URL.
      *
+     * May be called from whatever thread.
+     *
      * @return the current URL or an empty <code>String</code> if there is no current URL
      */
     String getUrl();
@@ -143,7 +148,7 @@ public interface IBrowser {
      * @param javascriptFile the file containing the Javascript to be injected
      * @throws Exception
      */
-    void injectJavascriptFileImmediately(File javascriptFile) throws Exception;
+    void injectJavascriptFileImmediately(File javascriptFile);
 
     /**
      * Includes the given URI as a cascading style sheet.
@@ -163,7 +168,7 @@ public interface IBrowser {
      * @param uri the URI to the CSS file to be injected
      * @throws Exception
      */
-    void injectCssFileImmediately(URI uri) throws Exception;
+    void injectCssFileImmediately(URI uri);
 
     /**
      * Adds the given CSS code to current website.
@@ -188,7 +193,7 @@ public interface IBrowser {
      * @param css the CSS to be injected as string     *
      * @throws Exception
      */
-    void injectCssImmediately(String css) throws Exception;
+    void injectCssImmediately(String css);
 
     /**
      * Injects the Javascript addressed by the given URI and returns
@@ -249,6 +254,9 @@ public interface IBrowser {
      *
      * @param script Javascript to be evaluated as string
      * @return the result of the evaluation as Java object or null if an error occurred
+     *
+     * @throws IllegalStateException    if this method is called from the UI thread
+     * @throws ScriptExecutionException if an exception occurs while executing the script
      */
     Object syncRun(String script);
 
@@ -271,9 +279,10 @@ public interface IBrowser {
      * In contrast to non-immediately run methods, it does not wait for the current URL to be loaded.
      *
      * @param scriptFile a file object pointing to the Javascript code
+     * @throws IOException if an error occurred while accessing the given file
      * @ArbitraryThread may be called from whatever thread.
      */
-    void runContentImmediately(File scriptFile) throws Exception;
+    void runContentImmediately(File scriptFile) throws IOException;
 
     /**
      * Runs the script contained in the given {@link java.io.File} in the browser immediately.
@@ -282,9 +291,10 @@ public interface IBrowser {
      * In contrast to non-immediately run methods, it does not wait for the current URL to be loaded.
      *
      * @param scriptFile a file object pointing to the Javascript code
+     * @throws IOException if an error occurred while accessing the given file
      * @ArbitraryThread may be called from whatever thread.
      */
-    void runContentAsScriptTagImmediately(File scriptFile) throws Exception;
+    void runContentAsScriptTagImmediately(File scriptFile) throws IOException;
 
     /**
      * Runs the given script in the browser immediately and
@@ -298,7 +308,7 @@ public interface IBrowser {
      *
      * @ArbitraryThread may be called from whatever thread.
      */
-    <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter) throws Exception;
+    <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter);
 
     /**
      * Sets a {@link de.fu_berlin.inf.ag_se.widgets.browser.ParametrizedRunnable}
@@ -306,7 +316,7 @@ public interface IBrowser {
      *
      * @param runnable the runnable to be executed with the script as parameter
      */
-    void executeBeforeScript(ParametrizedRunnable<String> runnable);
+    void executeBeforeScript(Function<String> runnable);
 
     /**
      * Sets a {@link de.fu_berlin.inf.ag_se.widgets.browser.ParametrizedRunnable}
@@ -314,7 +324,7 @@ public interface IBrowser {
      *
      * @param runnable the runnable to be executed with the return value of the last script execution
      */
-    void executeAfterScript(ParametrizedRunnable<Object> runnable);
+    void executeAfterScript(Function<Object> runnable);
 
     /**
      * Returns a {@link java.util.concurrent.Future} indicating

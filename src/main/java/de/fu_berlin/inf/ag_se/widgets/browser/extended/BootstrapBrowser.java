@@ -136,13 +136,14 @@ public class BootstrapBrowser extends JQueryBrowser implements
 
 	@Override
 	public void setBackground(Color color) {
+        //TODO check the result or omit the call
 		super.setBackground(color);
 		String hex = color != null ? new RGB(color.getRGB()).toDecString()
 				: "transparent";
 		try {
-			this.injectCssImmediately("body { background-color: " + hex
+			injectCssImmediately("body { background-color: " + hex
 					+ " !important; }");
-		} catch (Exception e) {
+		} catch (RuntimeException e) {
 			LOGGER.error("Error setting background color to " + color, e);
 		}
 	}

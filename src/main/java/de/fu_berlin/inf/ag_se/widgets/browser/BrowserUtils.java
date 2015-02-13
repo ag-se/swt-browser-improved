@@ -169,13 +169,13 @@ public class BrowserUtils {
     /**
      * Checks a the return value of {@link org.eclipse.swt.browser.Browser#evaluate(String)} for a caught exception. If an exception was
      * found, an appropriate JavaScriptException is thrown. <p> This feature only works if the evaluated script was returned by {@link
-     * de.fu_berlin.inf.ag_se.widgets.browser.JavascriptString#getExecutionReturningScript}.
+     * de.fu_berlin.inf.ag_se.widgets.browser.JavascriptString#getExceptionReturningScript}.
      *
      * @param script
      * @param returnValue
      * @throws de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException
      */
-    public static void assertException(final String script, Object returnValue)
+    public static void rethrowJavascriptException(final String script, Object returnValue)
             throws JavaScriptException {
         // exception handling
         if (returnValue instanceof Object[]) {

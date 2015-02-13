@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 public class OffWorkerTest {
 
-	public static final class Task implements Callable<Long> {
+	public static final class Task implements NoCheckedExceptionCallable<Long> {
 		private final int i;
 
 		public Task(int i) {
@@ -25,11 +25,15 @@ public class OffWorkerTest {
 		}
 
 		@Override
-		public Long call() throws Exception {
+		public Long call()  {
 			System.out.println("Running " + Task.class.getSimpleName() + " #"
 					+ this.i + " in " + Thread.currentThread());
-			Thread.sleep(2);
-			return System.currentTimeMillis();
+            try {
+                Thread.sleep(2);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return System.currentTimeMillis();
 		}
 	}
 

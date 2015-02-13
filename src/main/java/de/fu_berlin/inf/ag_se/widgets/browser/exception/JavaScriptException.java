@@ -1,6 +1,6 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.exception;
 
-public class JavaScriptException extends Exception {
+public class JavaScriptException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
