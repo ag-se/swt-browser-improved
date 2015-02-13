@@ -1,5 +1,6 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
+import com.sun.istack.internal.Nullable;
 import de.fu_berlin.inf.ag_se.utils.CompletedFuture;
 import de.fu_berlin.inf.ag_se.utils.EventDelegator;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
@@ -21,6 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.Future;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * This class is a {@link org.eclipse.swt.widgets.Composite} that provides extended functionality to
@@ -78,23 +81,26 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public Future<Boolean> open(String uri, Integer timeout) {
+    public Future<Boolean> open(String uri, int timeout) {
+        checkNotNull(uri);
         return open(uri, timeout, null);
     }
 
     @Override
-    public Future<Boolean> open(String uri, Integer timeout, String pageLoadCheckScript) {
+    public Future<Boolean> open(String uri, int timeout, @Nullable String pageLoadCheckScript) {
+        checkNotNull(uri);
         return internalBrowser.open(uri, timeout, pageLoadCheckScript);
     }
 
     @Override
-    public Future<Boolean> open(URI uri, Integer timeout) {
+    public Future<Boolean> open(URI uri, int timeout) {
+        checkNotNull(uri);
         return open(uri.toString(), timeout, null);
     }
 
     @Override
-    public Future<Boolean> open(URI uri, Integer timeout,
-                                String pageLoadCheckExpression) {
+    public Future<Boolean> open(URI uri, int timeout, @Nullable String pageLoadCheckExpression) {
+        checkNotNull(uri);
         return open(uri.toString(), timeout, pageLoadCheckExpression);
     }
 
@@ -105,11 +111,13 @@ public class Browser extends Composite implements IBrowser {
 
     @Override
     public void executeBeforeSettingURI(Runnable runnable) {
+        checkNotNull(runnable);
         internalBrowser.executeBeforeLoading(runnable);
     }
 
     @Override
     public void executeAfterSettingURI(Runnable runnable) {
+        checkNotNull(runnable);
         internalBrowser.executeAfterLoading(runnable);
     }
 
@@ -125,116 +133,142 @@ public class Browser extends Composite implements IBrowser {
 
     @Override
     public void waitForCondition(String javaScriptExpression) {
+        checkNotNull(javaScriptExpression);
         internalBrowser.waitForCondition(javaScriptExpression);
     }
 
     @Override
     public void executeBeforeCompletion(Runnable runnable) {
+        checkNotNull(runnable);
         internalBrowser.executeBeforeCompletion(runnable);
     }
 
     @Override
     public Future<Void> injectJavascriptFile(File javascriptFile) {
+        checkNotNull(javascriptFile);
         return internalBrowser.injectJsFile(javascriptFile);
     }
 
     @Override
     public void injectJavascriptFileImmediately(File javascriptFile) {
+        checkNotNull(javascriptFile);
         internalBrowser.injectJsFileImmediately(javascriptFile);
     }
 
     @Override
     public Future<Void> injectCssFile(URI uri) {
+        checkNotNull(uri);
         return internalBrowser.injectCssFile(uri);
     }
 
     @Override
     public void injectCssFileImmediately(URI uri) {
+        checkNotNull(uri);
         internalBrowser.injectCssFileImmediately(uri);
     }
 
     @Override
     public Future<Void> injectCss(String css) {
+        checkNotNull(css);
         return internalBrowser.injectCss(css);
     }
 
     @Override
     public void injectCssImmediately(String css) {
+        checkNotNull(css);
         internalBrowser.injectCssImmediately(css);
     }
 
     @Override
     public Future<Boolean> inject(URI scriptURI) {
+        checkNotNull(scriptURI);
         return internalBrowser.inject(scriptURI);
     }
 
     @Override
     public Future<Boolean> run(File scriptFile) {
+        checkNotNull(scriptFile);
         return internalBrowser.run(scriptFile);
     }
 
     @Override
     public Future<Boolean> run(URI scriptURI) {
+        checkNotNull(scriptURI);
         return internalBrowser.run(scriptURI);
     }
 
     @Override
     public Future<Object> run(String script) {
+        checkNotNull(script);
         return internalBrowser.run(script);
     }
 
     @Override
     public Object syncRun(String script) {
+        checkNotNull(script);
         return internalBrowser.syncRun(script);
     }
 
     @Override
     public void asyncRun(String script, CallbackFunction<Object> callback) {
+        checkNotNull(script);
+        checkNotNull(callback);
         internalBrowser.syncRun(script, callback);
     }
 
     @Override
     public <DEST> Future<DEST> run(String script, IConverter<Object, DEST> converter) {
+        checkNotNull(script);
+        checkNotNull(converter);
         return internalBrowser.run(script, converter);
     }
 
     @Override
     public void runContentImmediately(File scriptFile) throws IOException {
+        checkNotNull(scriptFile);
         internalBrowser.runContentsImmediately(scriptFile);
     }
 
     @Override
     public void runContentAsScriptTagImmediately(File scriptFile) throws IOException {
+        checkNotNull(scriptFile);
         internalBrowser.runContentsAsScriptTagImmediately(scriptFile);
     }
 
     @Override
     public <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter) {
+        checkNotNull(script);
+        checkNotNull(converter);
         return internalBrowser.runImmediately(script, converter);
     }
 
     @Override
     public void executeBeforeScript(Function<String> runnable) {
+        checkNotNull(runnable);
         internalBrowser.executeBeforeScript(runnable);
     }
 
     @Override
     public void executeAfterScript(Function<Object> runnable) {
+        checkNotNull(runnable);
         internalBrowser.executeAfterScript(runnable);
     }
 
     @Override
     public Future<Boolean> containsElementWithID(String id) {
+        checkNotNull(id);
         return run("return document.getElementById('" + id + "') != null", IConverter.CONVERTER_BOOLEAN);
     }
 
     @Override
     public Future<Boolean> containsElementsWithName(String name) {
+        checkNotNull(name);
         return run("return document.getElementsByName('" + name + "').length > 0", IConverter.CONVERTER_BOOLEAN);
     }
 
     @Override
     public Future<Void> setBodyHtml(String html) {
+        checkNotNull(html);
         return run("document.body.innerHTML = ('" + JavascriptString.escape(html) + "');", IConverter.CONVERTER_VOID);
     }
 
@@ -250,6 +284,7 @@ public class Browser extends Composite implements IBrowser {
 
     @Override
     public Future<Void> pasteHtmlAtCaret(String html) {
+        checkNotNull(html);
         try {
             File js = File.createTempFile("paste", ".js");
             FileUtils.write(js, JavascriptString.createJavascriptForInsertingHTML(html));
@@ -282,58 +317,70 @@ public class Browser extends Composite implements IBrowser {
     @Override
     public IBrowserFunction createBrowserFunction(final String functionName,
                                                   final IBrowserFunction function) {
+        checkNotNull(functionName);
+        checkNotNull(function);
         return internalBrowser.createBrowserFunction(functionName, function);
     }
 
     @Override
     public void addAnchorListener(IAnchorListener anchorListener) {
+        checkNotNull(anchorListener);
         eventCatchFunctionality.addAnchorListener(anchorListener);
     }
 
     @Override
     public void removeAnchorListener(IAnchorListener anchorListener) {
+        checkNotNull(anchorListener);
         eventCatchFunctionality.removeAnchorListener(anchorListener);
     }
 
     @Override
     public void addMouseListener(IMouseListener mouseListener) {
+        checkNotNull(mouseListener);
         eventCatchFunctionality.addMouseListener(mouseListener);
     }
 
     @Override
     public void removeMouseListener(IMouseListener mouseListener) {
+        checkNotNull(mouseListener);
         eventCatchFunctionality.removeMouseListener(mouseListener);
     }
 
     @Override
     public void addFocusListener(IFocusListener focusListener) {
+        checkNotNull(focusListener);
         eventCatchFunctionality.addFocusListener(focusListener);
     }
 
     @Override
     public void removeFocusListener(IFocusListener focusListener) {
+        checkNotNull(focusListener);
         eventCatchFunctionality.removeFocusListener(focusListener);
     }
 
     @Override
     public void addDNDListener(IDNDListener dndListener) {
+        checkNotNull(dndListener);
         eventCatchFunctionality.addDNDListener(dndListener);
     }
 
     @Override
     public void removeDNDListener(IDNDListener dndListener) {
+        checkNotNull(dndListener);
         eventCatchFunctionality.removeDNDListener(dndListener);
     }
 
     @Override
     public void addJavaScriptExceptionListener(
             JavaScriptExceptionListener exceptionListener) {
+        checkNotNull(exceptionListener);
         internalBrowser.addJavaScriptExceptionListener(exceptionListener);
     }
 
     @Override
     public void removeJavaScriptExceptionListener(
             JavaScriptExceptionListener exceptionListener) {
+        checkNotNull(exceptionListener);
         internalBrowser.removeJavaScriptExceptionListener(exceptionListener);
     }
 
@@ -353,6 +400,7 @@ public class Browser extends Composite implements IBrowser {
 
     @Override
     public void setBackground(Color color) {
+        checkNotNull(color);
         super.setBackground(color);
         String hex = color != null ? new RGB(color.getRGB()).toDecString() : "transparent";
         try {
@@ -364,6 +412,7 @@ public class Browser extends Composite implements IBrowser {
 
     @Override
     public void addListener(int eventType, Listener listener) {
+        checkNotNull(listener);
         if (EventDelegator.mustDelegate(eventType, this)) {
             internalBrowser.addListener(eventType, listener);
         } else {

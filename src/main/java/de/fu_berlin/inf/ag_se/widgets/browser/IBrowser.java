@@ -1,5 +1,6 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
+import com.sun.istack.internal.Nullable;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.*;
@@ -20,42 +21,54 @@ public interface IBrowser {
      *
      * @param uri     the URI to open given as string
      * @param timeout the time after which the browser stops loading
+     *                if zero or a negative value is supplied, no timeout is used
      * @return true if page could be successfully loaded, false if the timeout was reached
+     *
+     * @throws NullPointerException if the passed uri is null
      */
-    Future<Boolean> open(String uri, Integer timeout);
+    Future<Boolean> open(String uri, int timeout);
 
     /**
      * Opens the given URI.
      *
      * @param uri                 the URI to open given as string
      * @param timeout             the time after which the browser stops loading
+     *                            if zero or a negative value is supplied, no timeout is used
      * @param pageLoadCheckScript this script must return true if the page is correctly loaded.
      *                            This is especially useful if some inner page setup takes place.
+     *                            May be null
      * @return true if page could be successfully loaded, false if the timeout was reached
+     *
+     * @throws NullPointerException if the passed uri is null
      */
-    Future<Boolean> open(String uri, Integer timeout,
-                         String pageLoadCheckScript);
+    Future<Boolean> open(String uri, int timeout, @Nullable String pageLoadCheckScript);
 
     /**
      * Opens the given URI.
      *
      * @param uri     the URI to load
      * @param timeout the time after which the browser stops loading
+     *                if zero or a negative value is supplied, no timeout is used
      * @return true if page could be successfully loaded, false if the timeout was reached
+     *
+     * @throws NullPointerException if the passed uri is null
      */
-    Future<Boolean> open(URI uri, Integer timeout);
+    Future<Boolean> open(URI uri, int timeout);
 
     /**
      * Opens the given URI.
      *
      * @param uri                 the URI to load
      * @param timeout             the time after which the browser stops loading
+     *                            if zero or a negative value is supplied, no timeout is used
      * @param pageLoadCheckScript this script must return true if the page is correctly loaded.
      *                            This is especially useful if some inner page setup takes place.
+     *                            May be null
      * @return true if page could be successfully loaded, false if the timeout was reached
+     *
+     * @throws NullPointerException if the passed uri is null
      */
-    Future<Boolean> open(URI uri, Integer timeout,
-                         String pageLoadCheckScript);
+    Future<Boolean> open(URI uri, int timeout, @Nullable String pageLoadCheckScript);
 
     /**
      * Opens a blank page.
@@ -69,6 +82,7 @@ public interface IBrowser {
      * URI is set internally.
      *
      * @param runnable the runnable to be executed
+     * @throws NullPointerException if the runnable is null
      */
     void executeBeforeSettingURI(Runnable runnable);
 
@@ -77,6 +91,7 @@ public interface IBrowser {
      * URI is set internally.
      *
      * @param runnable the runnable to be executed
+     * @throws NullPointerException if the runnable is null
      */
     void executeAfterSettingURI(Runnable runnable);
 
@@ -101,6 +116,7 @@ public interface IBrowser {
      * evaluates to true.
      *
      * @param javaScriptExpression the Javascript to be evaluation
+     * @throws NullPointerException if javaScriptExpression is null
      */
     void waitForCondition(String javaScriptExpression);
 
@@ -108,10 +124,11 @@ public interface IBrowser {
      * Set a runnable to be executed after the browser completed
      * loading the page. This takes place after the URI has been
      * set and all additional initializing has been done. Using
-     * {@link #open(String, Integer, String)} allows to supply a
+     * {@link #open(String, int, String)} allows to supply a
      * custom Javascript to check the completion.
      *
      * @param runnable the runnable to be executed
+     * @throws NullPointerException if the runnable is null1
      */
     void executeBeforeCompletion(Runnable runnable);
 
@@ -128,6 +145,8 @@ public interface IBrowser {
      *
      * @param javascriptFile the file containing the Javascript to be injected
      * @return a future to check whether the delayed execution has happened
+     *
+     * @throws NullPointerException if javascriptFile is null
      */
     Future<Void> injectJavascriptFile(File javascriptFile);
 
@@ -141,7 +160,7 @@ public interface IBrowser {
      * that this method injects the script immediately.
      *
      * @param javascriptFile the file containing the Javascript to be injected
-     * @throws Exception
+     * @throws NullPointerException if javascriptFile is null
      */
     void injectJavascriptFileImmediately(File javascriptFile);
 
@@ -154,6 +173,8 @@ public interface IBrowser {
      *
      * @param uri the URI to the CSS file to be injected
      * @return a future to check whether the delayed execution has happened
+     *
+     * @throws NullPointerException if uri is null
      */
     Future<Void> injectCssFile(URI uri);
 
@@ -161,7 +182,7 @@ public interface IBrowser {
      * Includes the given URI as a cascading style sheet immediately.
      *
      * @param uri the URI to the CSS file to be injected
-     * @throws Exception
+     * @throws NullPointerException if uri is null
      */
     void injectCssFileImmediately(URI uri);
 
@@ -175,6 +196,8 @@ public interface IBrowser {
      *
      * @param css the CSS to be injected as string
      * @return a future to check whether the delayed execution has happened
+     *
+     * @throws NullPointerException if css is null
      */
     Future<Void> injectCss(String css);
 
@@ -185,8 +208,8 @@ public interface IBrowser {
      * In contrast to the other injection methods this does not wait
      * for the browser to have finished loading.
      *
-     * @param css the CSS to be injected as string     *
-     * @throws Exception
+     * @param css the CSS to be injected as string
+     * @throws NullPointerException if css is null
      */
     void injectCssImmediately(String css);
 
@@ -199,6 +222,7 @@ public interface IBrowser {
      * @param scriptURI an URI to the Javascript code to be injected
      * @return a boolean future that blocks until script is loaded completely
      *
+     * @throws NullPointerException if scriptURI is null
      * @ArbitraryThread may be called from whatever thread.
      */
     Future<Boolean> inject(URI scriptURI);
@@ -210,6 +234,7 @@ public interface IBrowser {
      * @param scriptFile file object pointing to the script to be executed
      * @return a boolean future that blocks until script is loaded completely
      *
+     * @throws NullPointerException if scriptFile is null
      * @ArbitraryThread may be called from whatever thread.
      */
     Future<Boolean> run(File scriptFile);
@@ -227,6 +252,7 @@ public interface IBrowser {
      * @param scriptURI URI to the Javascript code to be executed
      * @return a boolean future that blocks until script is loaded completely
      *
+     * @throws NullPointerException if scriptURI is null
      * @ArbitraryThread may be called from whatever thread.
      */
     Future<Boolean> run(URI scriptURI);
@@ -238,6 +264,7 @@ public interface IBrowser {
      * @param script the Javascript code to be executed as string
      * @return an object future that blocks until script is loaded completely
      *
+     * @throws NullPointerException if script is null
      * @ArbitraryThread may be called from whatever thread.
      */
     Future<Object> run(String script);
@@ -250,11 +277,20 @@ public interface IBrowser {
      * @param script Javascript to be evaluated as string
      * @return the result of the evaluation as Java object or null if an error occurred
      *
+     * @throws NullPointerException     if script is null
      * @throws IllegalStateException    if this method is called from the UI thread
      * @throws ScriptExecutionException if an exception occurs while executing the script
      */
     Object syncRun(String script);
 
+    /**
+     * This methods runs the given Javascript asynchronously and registers a callback
+     * that gets executed after the completion.
+     *
+     * @param script the Javascript to be executed
+     * @param callback the callback function to execute after script completion
+     * @throws NullPointerException if script or callback is null
+     */
     void asyncRun(String script, CallbackFunction<Object> callback);
 
     /**
@@ -264,6 +300,7 @@ public interface IBrowser {
      * @param script    the Javascript code to be executed as string
      * @param converter a converter for the return value
      * @return a future of the converted return value
+     * @throws NullPointerException if script or converter is null
      *
      * @ArbitraryThread may be called from whatever thread.
      */
@@ -277,6 +314,7 @@ public interface IBrowser {
      *
      * @param scriptFile a file object pointing to the Javascript code
      * @throws IOException if an error occurred while accessing the given file
+     * @throws NullPointerException if scriptFile is null
      * @ArbitraryThread may be called from whatever thread.
      */
     void runContentImmediately(File scriptFile) throws IOException;
@@ -289,6 +327,7 @@ public interface IBrowser {
      *
      * @param scriptFile a file object pointing to the Javascript code
      * @throws IOException if an error occurred while accessing the given file
+     * @throws NullPointerException if scriptFile is null
      * @ArbitraryThread may be called from whatever thread.
      */
     void runContentAsScriptTagImmediately(File scriptFile) throws IOException;
@@ -302,6 +341,7 @@ public interface IBrowser {
      * @param script    the Javascript code as string
      * @param converter a converter for the return value
      * @return a future of the converted return value
+     * @throws NullPointerException if script or converter is null
      *
      * @ArbitraryThread may be called from whatever thread.
      */
@@ -312,6 +352,7 @@ public interface IBrowser {
      * that is executed if when a script is about to be executed by the browser.
      *
      * @param runnable the runnable to be executed with the script as parameter
+     * @throws NullPointerException if runnable is null
      */
     void executeBeforeScript(Function<String> runnable);
 
@@ -320,6 +361,7 @@ public interface IBrowser {
      * to get executed when a script finishes execution.
      *
      * @param runnable the runnable to be executed with the return value of the last script execution
+     * @throws NullPointerException if runnable is null
      */
     void executeAfterScript(Function<Object> runnable);
 
@@ -329,6 +371,7 @@ public interface IBrowser {
      *
      * @param id the element ID to look for
      * @return a boolean future containing the result of the search
+     * @throws NullPointerException if id is null
      */
     Future<Boolean> containsElementWithID(String id);
 
@@ -339,6 +382,7 @@ public interface IBrowser {
      *
      * @param name the element name to look for
      * @return a boolean future containing the result of the search
+     * @throws NullPointerException if name is null
      */
     Future<Boolean> containsElementsWithName(String name);
 
@@ -351,6 +395,7 @@ public interface IBrowser {
      *
      * @param html a string representing the HTML body's new content
      * @return a future to check whether the delayed execution has happened
+     * @throws NullPointerException if html is null
      */
     Future<Void> setBodyHtml(String html);
 
@@ -378,8 +423,9 @@ public interface IBrowser {
      * The execution of this method may be delayed.
      * The returned {@link java.util.concurrent.Future} can be used to check
      * if it has happened.
-     *
+     * @param html the HTML to paste as string
      * @return a future to check whether the delayed execution has happened
+     * @throws NullPointerException if html is null
      */
     Future<Void> pasteHtmlAtCaret(String html);
 
@@ -424,6 +470,7 @@ public interface IBrowser {
      * @param functionName the of the function in Javascript
      * @param function     the Java code to be executed
      * @return the created function
+     * @throws NullPointerException if functionName or function is null
      */
     IBrowserFunction createBrowserFunction(String functionName,
                                            IBrowserFunction function);
@@ -434,6 +481,7 @@ public interface IBrowser {
      * This can be used to react to the hovering of anchor tags
      *
      * @param anchorListener the listener to be added
+     * @throws NullPointerException if anchorListener is null
      */
     void addAnchorListener(IAnchorListener anchorListener);
 
@@ -441,6 +489,7 @@ public interface IBrowser {
      * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener}.
      *
      * @param anchorListener the listener to be removed
+     * @throws NullPointerException if anchorListener is null
      */
     void removeAnchorListener(IAnchorListener anchorListener);
 
@@ -450,6 +499,7 @@ public interface IBrowser {
      * This can be used to react to mouse events inside the browser
      *
      * @param mouseListener the listener to be added
+     * @throws NullPointerException if mouseListener is null
      */
     void addMouseListener(IMouseListener mouseListener);
 
@@ -457,6 +507,7 @@ public interface IBrowser {
      * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener}.
      *
      * @param mouseListener the listener to be removed
+     * @throws NullPointerException if mouseListener is null
      */
     void removeMouseListener(IMouseListener mouseListener);
 
@@ -466,6 +517,7 @@ public interface IBrowser {
      * This can be used to react to focus gaining and focus losing of HTML elements.
      *
      * @param focusListener the listener to be added
+     * @throws NullPointerException if focusListener is null
      */
     void addFocusListener(IFocusListener focusListener);
 
@@ -473,6 +525,7 @@ public interface IBrowser {
      * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener}.
      *
      * @param focusListener the listener to be removed
+     * @throws NullPointerException if focusListener is null
      */
     void removeFocusListener(IFocusListener focusListener);
 
@@ -482,6 +535,7 @@ public interface IBrowser {
      * This can be used to react to drag and drop events.
      *
      * @param dNDListener the listener to be added
+     * @throws NullPointerException if dNDListener is null
      */
     void addDNDListener(IDNDListener dNDListener);
 
@@ -489,6 +543,7 @@ public interface IBrowser {
      * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener}.
      *
      * @param dNDListener the listener to be removed
+     * @throws NullPointerException if dNDListener is null
      */
     void removeDNDListener(IDNDListener dNDListener);
 
@@ -498,6 +553,7 @@ public interface IBrowser {
      * world (e.g. a click on a button invoking erroneous code).
      *
      * @param exceptionListener the listener to be added
+     * @throws NullPointerException if exceptionListener is null
      */
     void addJavaScriptExceptionListener(JavaScriptExceptionListener exceptionListener);
 
@@ -506,6 +562,7 @@ public interface IBrowser {
      * from the browser.
      *
      * @param exceptionListener the listener to be removed
+     * @throws NullPointerException if exceptionListener is null
      */
     void removeJavaScriptExceptionListener(JavaScriptExceptionListener exceptionListener);
 }

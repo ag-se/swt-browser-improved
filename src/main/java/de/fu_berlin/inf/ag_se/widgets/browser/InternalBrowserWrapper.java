@@ -245,34 +245,6 @@ public class InternalBrowserWrapper {
     }
 
     /**
-     * @throws BrowserDisposedException if the browser is disposed
-     */
-    void waitForCondition(String condition) {
-        if (browser == null || browser.isDisposed()) {
-            throw new BrowserDisposedException();
-        }
-
-        //TODO Maybe we don't need the callback
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
-        String randomFunctionName = BrowserUtils.createRandomFunctionName();
-        IBrowserFunction browserFunction = createBrowserFunction(randomFunctionName, new IBrowserFunction() {
-            public Object function(Object[] arguments) {
-                countDownLatch.countDown();
-                return null;
-            }
-        });
-        String checkScript = JavascriptString.createWaitForConditionJavascript(condition, randomFunctionName);
-
-        runImmediately(checkScript, IConverter.CONVERTER_VOID);
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        browserFunction.dispose();
-    }
-
-    /**
      * This method is called by {@link #waitAndComplete(String)} and post processes the loaded page. <ol> <li>calls beforeCompletion</li>
      * <li>injects necessary scripts</li> <li>runs the scheduled user scripts</li> </ol>
      */
@@ -305,6 +277,34 @@ public class InternalBrowserWrapper {
         } catch (ScriptExecutionException e) {
             LOGGER.error("Error activating browser's exception handling. JavaScript exceptions are not detected!", e);
         }
+    }
+
+    /**
+     * @throws BrowserDisposedException if the browser is disposed
+     */
+    void waitForCondition(String condition) {
+        if (browser == null || browser.isDisposed()) {
+            throw new BrowserDisposedException();
+        }
+
+        //TODO Maybe we don't need the callback
+        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        String randomFunctionName = BrowserUtils.createRandomFunctionName();
+        IBrowserFunction browserFunction = createBrowserFunction(randomFunctionName, new IBrowserFunction() {
+            public Object function(Object[] arguments) {
+                countDownLatch.countDown();
+                return null;
+            }
+        });
+        String checkScript = JavascriptString.createWaitForConditionJavascript(condition, randomFunctionName);
+
+        runImmediately(checkScript, IConverter.CONVERTER_VOID);
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        browserFunction.dispose();
     }
 
     Future<Boolean> inject(URI scriptURI) {
