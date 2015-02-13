@@ -62,6 +62,7 @@ public class InternalBrowserWrapper {
 
     private final List<JavaScriptExceptionListener> javaScriptExceptionListeners = Collections
             .synchronizedList(new ArrayList<JavaScriptExceptionListener>());
+
     private Future<Void> timeoutMonitor;
 
     InternalBrowserWrapper(Composite parent) {
@@ -69,13 +70,6 @@ public class InternalBrowserWrapper {
         browser.setVisible(false);
 
         browserStatusManager = new BrowserStatusManager();
-
-        final JavaScriptExceptionListener javaScriptExceptionListener = new JavaScriptExceptionListener() {
-            @Override
-            public void thrown(JavaScriptException javaScriptException) {
-                fireJavaScriptExceptionThrown(javaScriptException);
-            }
-        };
 
         // throws exception that arise from calls within the browser,
         // meaning code that has not been invoked by Java but by JavaScript
@@ -85,7 +79,7 @@ public class InternalBrowserWrapper {
                 JavaScriptException javaScriptException = JavaScriptException
                         .parseJavaScriptException(arguments);
                 LOGGER.error(javaScriptException);
-                javaScriptExceptionListener.thrown(javaScriptException);
+                fireJavaScriptExceptionThrown(javaScriptException);
                 return false;
             }
         });
