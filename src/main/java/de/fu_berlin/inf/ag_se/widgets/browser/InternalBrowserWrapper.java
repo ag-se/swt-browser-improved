@@ -1,11 +1,20 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
-import de.fu_berlin.inf.ag_se.utils.*;
+import de.fu_berlin.inf.ag_se.utils.Assert;
+import de.fu_berlin.inf.ag_se.utils.IConverter;
+import de.fu_berlin.inf.ag_se.utils.SWTUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.BrowserStatusManager.BrowserStatus;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserDisposedException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
+import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
+import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.ParametrizedRunnable;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;

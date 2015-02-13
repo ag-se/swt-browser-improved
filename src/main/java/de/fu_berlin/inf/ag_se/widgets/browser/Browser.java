@@ -1,12 +1,14 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import com.sun.istack.internal.Nullable;
-import de.fu_berlin.inf.ag_se.utils.CompletedFuture;
 import de.fu_berlin.inf.ag_se.utils.EventDelegator;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.utils.SWTUtils;
 import de.fu_berlin.inf.ag_se.utils.colors.RGB;
+import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
+import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.*;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;

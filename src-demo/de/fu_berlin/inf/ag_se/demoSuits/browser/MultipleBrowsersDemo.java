@@ -1,17 +1,19 @@
 package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
-import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
 
 import java.io.File;
 import java.net.URI;

@@ -1,8 +1,6 @@
-package de.fu_berlin.inf.ag_se.utils.thread_labeling;
+package de.fu_berlin.inf.ag_se.widgets.browser.threading.labeling;
 
-import de.fu_berlin.inf.ag_se.utils.NoCheckedExceptionCallable;
-
-import java.util.concurrent.Callable;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
 
 public class ThreadLabelingCallable<DEST> extends AbstractThreadLabeler implements NoCheckedExceptionCallable<DEST> {
 

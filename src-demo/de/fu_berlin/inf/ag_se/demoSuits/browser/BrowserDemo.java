@@ -1,18 +1,18 @@
 package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
-import de.fu_berlin.inf.ag_se.utils.ExecUtils;
-import de.fu_berlin.inf.ag_se.utils.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
-import de.fu_berlin.inf.ag_se.widgets.browser.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
+import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;

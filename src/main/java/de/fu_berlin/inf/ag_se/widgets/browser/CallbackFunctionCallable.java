@@ -1,7 +1,7 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
-import de.fu_berlin.inf.ag_se.utils.NoCheckedExceptionCallable;
-import de.fu_berlin.inf.ag_se.utils.SwtUiThreadExecutor;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
 import org.apache.log4j.Logger;
 
 import java.net.URI;

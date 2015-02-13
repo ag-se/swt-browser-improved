@@ -1,4 +1,7 @@
-package de.fu_berlin.inf.ag_se.utils;
+package de.fu_berlin.inf.ag_se.widgets.browser.threading.futures;
+
+import de.fu_berlin.inf.ag_se.utils.Assert;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;

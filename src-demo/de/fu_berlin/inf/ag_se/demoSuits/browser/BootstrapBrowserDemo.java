@@ -1,21 +1,22 @@
 package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
-import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.utils.StringUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.Function;
-import de.fu_berlin.inf.ag_se.widgets.browser.ParametrizedRunnable;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.BootstrapBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
+import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
 
 import java.util.concurrent.Future;
 

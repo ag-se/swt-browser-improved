@@ -1,6 +1,8 @@
 package de.fu_berlin.inf.ag_se.utils;
 
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
@@ -12,7 +14,6 @@ import org.eclipse.swt.widgets.Group;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 public class SWTUtils {
 

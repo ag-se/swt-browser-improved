@@ -1,4 +1,4 @@
-package de.fu_berlin.inf.ag_se.widgets.browser;
+package de.fu_berlin.inf.ag_se.widgets.browser.functions;
 
 public interface CallbackFunction<V> {
 

@@ -1,12 +1,16 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-
-import de.fu_berlin.inf.ag_se.utils.NoCheckedExceptionCallable;
+import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.ISelector.IdSelector;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.ISelector.NameSelector;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.IBrowserExtension;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.jquery.JQueryBrowserExtension;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Element;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.DisposeEvent;
@@ -14,15 +18,10 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 
-import de.fu_berlin.inf.ag_se.utils.CompletedFuture;
-import de.fu_berlin.inf.ag_se.utils.ExecUtils;
-import de.fu_berlin.inf.ag_se.utils.IConverter;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.ISelector.IdSelector;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.ISelector.NameSelector;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.IBrowserExtension;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.jquery.JQueryBrowserExtension;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Element;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
 	private static final Logger LOGGER = Logger.getLogger(JQueryBrowser.class);
@@ -212,7 +211,7 @@ public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
 					public IElement call() {
 						try {
 							String html = run("return jQuery(document.activeElement).clone().wrap(\"<p>\").parent().html();",
-											IConverter.CONVERTER_STRING).get();
+                                    IConverter.CONVERTER_STRING).get();
 							return new Element(html);
 						} catch (RuntimeException e) {
 							LOGGER.error("Error getting scroll position", e);

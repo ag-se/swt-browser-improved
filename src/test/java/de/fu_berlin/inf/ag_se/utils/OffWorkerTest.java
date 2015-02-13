@@ -1,13 +1,12 @@
 package de.fu_berlin.inf.ag_se.utils;
 
-import de.fu_berlin.inf.ag_se.utils.ExecUtils;
-import de.fu_berlin.inf.ag_se.utils.OffWorker;
 import de.fu_berlin.inf.ag_se.utils.OffWorker.StateException;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;

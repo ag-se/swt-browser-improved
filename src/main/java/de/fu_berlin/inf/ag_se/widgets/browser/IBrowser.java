@@ -3,7 +3,10 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 import com.sun.istack.internal.Nullable;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
+import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
+import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.*;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.ParametrizedRunnable;
 
 import java.io.File;
 import java.io.IOException;
@@ -348,7 +351,7 @@ public interface IBrowser {
     <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter);
 
     /**
-     * Sets a {@link de.fu_berlin.inf.ag_se.widgets.browser.ParametrizedRunnable}
+     * Sets a {@link ParametrizedRunnable}
      * that is executed if when a script is about to be executed by the browser.
      *
      * @param runnable the runnable to be executed with the script as parameter
@@ -357,7 +360,7 @@ public interface IBrowser {
     void executeBeforeScript(Function<String> runnable);
 
     /**
-     * Sets a {@link de.fu_berlin.inf.ag_se.widgets.browser.ParametrizedRunnable}
+     * Sets a {@link ParametrizedRunnable}
      * to get executed when a script finishes execution.
      *
      * @param runnable the runnable to be executed with the return value of the last script execution

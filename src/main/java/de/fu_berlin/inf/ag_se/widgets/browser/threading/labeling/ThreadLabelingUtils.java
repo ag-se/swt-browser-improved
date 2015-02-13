@@ -1,4 +1,4 @@
-package de.fu_berlin.inf.ag_se.utils.thread_labeling;
+package de.fu_berlin.inf.ag_se.widgets.browser.threading.labeling;
 
 public class ThreadLabelingUtils {
 

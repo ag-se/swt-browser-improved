@@ -1,13 +1,12 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.listener;
 
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
+import org.apache.log4j.Logger;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
-
-import org.apache.log4j.Logger;
-
-import de.fu_berlin.inf.ag_se.utils.ExecUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 
 /**
  * Instances of this class handle {@link de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement} based on their schema (e.g.

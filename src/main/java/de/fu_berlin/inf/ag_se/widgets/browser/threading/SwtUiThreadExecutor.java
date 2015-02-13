@@ -1,5 +1,6 @@
-package de.fu_berlin.inf.ag_se.utils;
+package de.fu_berlin.inf.ag_se.widgets.browser.threading;
 
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.UIThreadSafeFuture;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.widgets.Display;
 

@@ -1,8 +1,9 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
-import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
-import de.fu_berlin.inf.ag_se.utils.SwtUiThreadExecutor;
+import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;

@@ -1,7 +1,11 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
-import de.fu_berlin.inf.ag_se.utils.*;
+import de.fu_berlin.inf.ag_se.utils.OffWorker;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.*;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.log4j.Logger;
 
 import java.util.Arrays;

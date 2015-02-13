@@ -1,15 +1,12 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.IConverter;
-import de.fu_berlin.inf.ag_se.utils.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.utils.StringUtils;
-import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingCallable;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserDisposedException;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.labeling.ThreadLabelingCallable;
 import org.apache.log4j.Logger;
-
-import java.util.concurrent.Callable;
 
 class ScriptExecutingCallable<DEST> extends ThreadLabelingCallable<DEST> {
 

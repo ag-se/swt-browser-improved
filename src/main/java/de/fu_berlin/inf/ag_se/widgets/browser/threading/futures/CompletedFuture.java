@@ -1,4 +1,4 @@
-package de.fu_berlin.inf.ag_se.utils;
+package de.fu_berlin.inf.ag_se.widgets.browser.threading.futures;
 
 import java.util.concurrent.*;
 

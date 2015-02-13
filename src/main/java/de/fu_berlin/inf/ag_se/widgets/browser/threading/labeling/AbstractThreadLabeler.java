@@ -1,6 +1,4 @@
-package de.fu_berlin.inf.ag_se.utils.thread_labeling;
-
-import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingUtils;
+package de.fu_berlin.inf.ag_se.widgets.browser.threading.labeling;
 
 public abstract class AbstractThreadLabeler {
 

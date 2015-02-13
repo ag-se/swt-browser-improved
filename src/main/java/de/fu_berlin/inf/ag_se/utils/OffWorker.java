@@ -1,7 +1,6 @@
 package de.fu_berlin.inf.ag_se.utils;
 
-import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingCallable;
-import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;

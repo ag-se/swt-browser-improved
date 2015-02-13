@@ -1,8 +1,11 @@
-package de.fu_berlin.inf.ag_se.utils;
+package de.fu_berlin.inf.ag_se.widgets.browser.threading;
 
-import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingUtils;
-import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingCallable;
-import de.fu_berlin.inf.ag_se.utils.thread_labeling.ThreadLabelingRunnable;
+import de.fu_berlin.inf.ag_se.utils.Assert;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.UIThreadSafeFuture;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.labeling.ThreadLabelingCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.labeling.ThreadLabelingRunnable;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.labeling.ThreadLabelingUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
