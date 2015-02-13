@@ -3,8 +3,6 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 import de.fu_berlin.inf.ag_se.utils.*;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.*;
 import org.apache.log4j.Logger;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
 
 import java.util.Arrays;
 import java.util.concurrent.Callable;
@@ -79,7 +77,7 @@ public class BrowserStatusManager {
     private void checkStateTransition(BrowserStatus browserStatus) {
         switch (this.browserStatus) {
             case INITIALIZING:
-                if (Arrays.asList(BrowserStatus.TIMEDOUT, BrowserStatus.DISPOSED)
+                if (Arrays.asList(BrowserStatus.TIMEDOUT, BrowserStatus.LOADED)
                           .contains(browserStatus)) {
                     throw new UnexpectedBrowserStateException("Cannot switch from "
                             + this.browserStatus + " to " + browserStatus);
@@ -92,8 +90,15 @@ public class BrowserStatusManager {
                 }
                 break;
             case LOADED:
-                throw new UnexpectedBrowserStateException("Cannot switch from "
-                        + this.browserStatus + " to " + browserStatus);
+                if (browserStatus == BrowserStatus.TIMEDOUT) {
+                    return;
+                }
+
+                if (browserStatus != BrowserStatus.DISPOSED) {
+                    throw new UnexpectedBrowserStateException("Cannot switch from "
+                            + this.browserStatus + " to " + browserStatus);
+                }
+                break;
             case TIMEDOUT:
                 throw new UnexpectedBrowserStateException("Cannot switch from "
                         + this.browserStatus + " to " + browserStatus);
@@ -117,18 +122,18 @@ public class BrowserStatusManager {
                 break;
             case TIMEDOUT:
             case DISPOSED:
-                delayedScriptsWorker.submit(new NoCheckedExceptionCallable<Void>() {
-                    @Override
-                    public Void call() {
-                        if (!delayedScriptsWorker.isShutdown()) {
+                if (!delayedScriptsWorker.isShutdown()) {
+                    delayedScriptsWorker.submit(new NoCheckedExceptionCallable<Void>() {
+                        @Override
+                        public Void call() {
                             delayedScriptsWorker.shutdown();
+                            return null;
                         }
-                        return null;
-                    }
-                });
+                    });
 
-                delayedScriptsWorker.start();
-                delayedScriptsWorker.finish();
+                    delayedScriptsWorker.start();
+                    delayedScriptsWorker.finish();
+                }
                 break;
             default:
         }
@@ -159,26 +164,28 @@ public class BrowserStatusManager {
         }
     }
 
-    protected Boolean queryLoadingStatus(String uri) {
+    protected Boolean wasLoadingSuccessful(String uri) {
         switch (getBrowserStatus()) {
             case LOADED:
                 LOGGER.debug("Successfully loaded " + uri);
-                break;
+                return true;
             case TIMEDOUT:
                 LOGGER.warn("Aborted loading " + uri + " due to timeout");
-                break;
+               return false;
             case DISPOSED:
                 LOGGER.info("Aborted loading " + uri + " due to disposal");
-                break;
+                return false;
             default:
                 throw new RuntimeException("Implementation error");
         }
-
-        return getBrowserStatus() == BrowserStatusManager.BrowserStatus.LOADED;
     }
 
-    protected boolean isLoading() {
+    boolean isLoading() {
         return getBrowserStatus() == BrowserStatusManager.BrowserStatus.LOADING;
+    }
+
+    boolean isLoadingCompleted() {
+        return getBrowserStatus() == BrowserStatus.LOADED;
     }
 
     private class ExecuteWhenLoaded<DEST> implements Callable<DEST> {

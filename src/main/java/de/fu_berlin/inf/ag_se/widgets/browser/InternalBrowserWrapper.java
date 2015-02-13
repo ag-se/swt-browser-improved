@@ -5,7 +5,6 @@ import de.fu_berlin.inf.ag_se.widgets.browser.BrowserStatusManager.BrowserStatus
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserDisposedException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.UnexpectedBrowserStateException;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -63,6 +62,7 @@ public class InternalBrowserWrapper {
 
     private final List<JavaScriptExceptionListener> javaScriptExceptionListeners = Collections
             .synchronizedList(new ArrayList<JavaScriptExceptionListener>());
+    private Future<Void> timeoutMonitor;
 
     InternalBrowserWrapper(Composite parent) {
         browser = new Browser(parent, SWT.NONE);
@@ -94,7 +94,7 @@ public class InternalBrowserWrapper {
             @Override
             public void changing(LocationEvent event) {
                 if (!settingUri) {
-                    event.doit = allowLocationChange || getBrowserStatus() == BrowserStatus.LOADING;
+                    event.doit = allowLocationChange || browserStatusManager.isLoading();
                 }
             }
         });
@@ -103,9 +103,7 @@ public class InternalBrowserWrapper {
             @Override
             public void widgetDisposed(DisposeEvent e) {
                 synchronized (monitor) {
-                    if (getBrowserStatus() == BrowserStatus.LOADING) {
-                        setBrowserStatus(BrowserStatus.DISPOSED);
-                    }
+                    browserStatusManager.setBrowserStatus(BrowserStatus.DISPOSED);
                     monitor.notifyAll();
                 }
             }
@@ -121,7 +119,8 @@ public class InternalBrowserWrapper {
             throw new BrowserDisposedException();
         }
 
-        setBrowserStatus(BrowserStatus.LOADING);
+        browserStatusManager.setBrowserStatus(BrowserStatus.LOADING);
+
         activateExceptionHandling();
 
         browser.addProgressListener(new ProgressAdapter() {
@@ -135,19 +134,7 @@ public class InternalBrowserWrapper {
                 new NoCheckedExceptionCallable<Boolean>() {
                     @Override
                     public Boolean call() {
-                        // stops waiting after timeout
-                        Future<Void> timeoutMonitor = null;
-                        if (timeout != null && timeout > 0) {
-                            timeoutMonitor = ExecUtils.nonUIAsyncExec(Browser.class,
-                                    "Timeout Watcher for " + uri, new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            executeTimeoutCallback();
-                                        }
-                                    }, timeout);
-                        } else {
-                            LOGGER.warn("timeout must be greater or equal 0. Ignoring timeout.");
-                        }
+                        startTimeout(uri, timeout);
 
                         for (Runnable runnable : beforeLoading) {
                             ExecUtils.nonUISyncExec(runnable);
@@ -169,33 +156,49 @@ public class InternalBrowserWrapper {
                         }
 
                         synchronized (monitor) {
-                            LOGGER.debug("Waiting for " + uri + " to be loaded (Thread: "
-                                    + Thread.currentThread() + "; status: " + getBrowserStatus() + ")");
+                            LOGGER.debug("Waiting for " + uri + " to be loaded (Thread: " + Thread.currentThread());
                             while (browserStatusManager.isLoading()) {
                                 try {
+                                    // notified by progresslistener or by
+                                    // timeout
                                     monitor.wait();
                                 } catch (InterruptedException e) {
                                     Thread.currentThread().interrupt();
                                 }
-                                // notified by progresslistener or by
-                                // timeout
                             }
 
-                            if (timeoutMonitor != null) {
-                                timeoutMonitor.cancel(true);
-                            }
+                            cancelTimeout();
 
-                            return browserStatusManager.queryLoadingStatus(uri);
+                            return browserStatusManager.wasLoadingSuccessful(uri);
                         }
                     }
                 });
     }
 
+    private void startTimeout(String uri, Integer timeout) {
+        if (timeout == null || timeout <= 0) {
+            timeoutMonitor = null;
+            LOGGER.warn("timeout must be greater or equal 0. Ignoring timeout.");
+        } else {
+            timeoutMonitor = ExecUtils.nonUIAsyncExec(Browser.class,
+                    "Timeout Watcher for " + uri, new Runnable() {
+                        @Override
+                        public void run() {
+                            executeTimeoutCallback();
+                        }
+                    }, timeout);
+        }
+    }
+
+    private void cancelTimeout() {
+        if (timeoutMonitor != null) {
+            timeoutMonitor.cancel(true);
+        }
+    }
+
     private void executeTimeoutCallback() {
         synchronized (monitor) {
-            if (getBrowserStatus() != BrowserStatus.LOADED) {
-                setBrowserStatus(BrowserStatus.TIMEDOUT);
-            }
+            browserStatusManager.setBrowserStatus(BrowserStatus.TIMEDOUT);
             monitor.notifyAll();
         }
     }
@@ -212,10 +215,10 @@ public class InternalBrowserWrapper {
             return;
         }
 
-        if (getBrowserStatus() != BrowserStatus.LOADING) {
+        if (!browserStatusManager.isLoading()) {
             if (!Arrays.asList(BrowserStatus.TIMEDOUT, BrowserStatus.DISPOSED)
                        .contains(getBrowserStatus())) {
-                //TODO State Error: LOADED
+                //TODO state error loaded
                 LOGGER.error("State Error: " + getBrowserStatus());
             }
             return;
@@ -285,24 +288,14 @@ public class InternalBrowserWrapper {
             ExecUtils.nonUISyncExec(runnable);
         }
 
-        ExecUtils.nonUISyncExec(Browser.class, "Progress Check for " + uri,
+        ExecUtils.nonUISyncExec(Browser.class, "Setting state to loaded for " + uri,
                 new Runnable() {
                     @Override
                     public void run() {
-                        SwtUiThreadExecutor.asyncExec(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (!browser.isDisposed()) {
-                                    browser.setVisible(true);
-                                }
-                            }
-                        });
+                        setVisible(true);
 
                         synchronized (monitor) {
-                            if (!Arrays.asList(BrowserStatus.TIMEDOUT,
-                                    BrowserStatus.DISPOSED).contains(getBrowserStatus())) {
-                                setBrowserStatus(BrowserStatus.LOADED);
-                            }
+                            browserStatusManager.setBrowserStatus(BrowserStatus.LOADED);
                             monitor.notifyAll();
                         }
                     }
@@ -340,7 +333,7 @@ public class InternalBrowserWrapper {
             if (removeAfterExecution) {
                 LOGGER.warn("The script "
                         + scriptURI
-                        + " is on the local file system. To circument security restrictions its content becomes directly executed and thus cannot be removed.");
+                        + " is on the local file system. To circumvent security restrictions its content becomes directly executed and thus cannot be removed.");
             }
 
             try {
@@ -444,12 +437,8 @@ public class InternalBrowserWrapper {
      *
      * @return a status enum value
      */
-    BrowserStatus getBrowserStatus() {
+    private BrowserStatus getBrowserStatus() {
         return browserStatusManager.getBrowserStatus();
-    }
-
-    void setBrowserStatus(BrowserStatus browserStatus) throws UnexpectedBrowserStateException {
-        browserStatusManager.setBrowserStatus(browserStatus);
     }
 
     void setAllowLocationChange(boolean allowed) {
@@ -457,7 +446,7 @@ public class InternalBrowserWrapper {
     }
 
     boolean isLoadingCompleted() {
-        return getBrowserStatus() == BrowserStatus.LOADED;
+        return browserStatusManager.isLoadingCompleted();
     }
 
     boolean isDisposed() {
@@ -504,6 +493,17 @@ public class InternalBrowserWrapper {
         // evtl. falsche Mauskoordinaten zu verhindern und so ein Fehlverhalten
         // im InformationControl vorzeugen
         browser.addListener(eventType, listener);
+    }
+
+    void setVisible(final boolean visible) {
+        SwtUiThreadExecutor.asyncExec(new Runnable() {
+            @Override
+            public void run() {
+                if (!browser.isDisposed()) {
+                    browser.setVisible(visible);
+                }
+            }
+        });
     }
 
     void layoutRoot() {
