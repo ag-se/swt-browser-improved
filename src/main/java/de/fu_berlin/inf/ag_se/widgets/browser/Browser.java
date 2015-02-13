@@ -1,12 +1,11 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
-import de.fu_berlin.inf.ag_se.utils.*;
+import de.fu_berlin.inf.ag_se.utils.CompletedFuture;
+import de.fu_berlin.inf.ag_se.utils.EventDelegator;
+import de.fu_berlin.inf.ag_se.utils.IConverter;
+import de.fu_berlin.inf.ag_se.utils.SWTUtils;
 import de.fu_berlin.inf.ag_se.utils.colors.RGB;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.listener.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
@@ -187,6 +186,11 @@ public class Browser extends Composite implements IBrowser {
     @Override
     public Object syncRun(String script) {
         return internalBrowser.syncRun(script);
+    }
+
+    @Override
+    public void asyncRun(String script, CallbackFunction<Object> callback) {
+        internalBrowser.syncRun(script, callback);
     }
 
     @Override

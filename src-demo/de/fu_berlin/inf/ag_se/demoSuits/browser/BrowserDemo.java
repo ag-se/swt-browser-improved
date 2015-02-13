@@ -3,11 +3,9 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.ExecUtils;
 import de.fu_berlin.inf.ag_se.utils.NoCheckedExceptionCallable;
-import de.fu_berlin.inf.ag_se.utils.SwtUiThreadExecutor;
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
-import de.fu_berlin.inf.ag_se.widgets.browser.Function;
-import de.fu_berlin.inf.ag_se.widgets.browser.ParametrizedRunnable;
+import de.fu_berlin.inf.ag_se.widgets.browser.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
@@ -19,7 +17,9 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -138,22 +138,29 @@ public class BrowserDemo extends AbstractDemo {
         this.createControlButton("raise runtime exception", new Runnable() {
             @Override
             public void run() {
-                try {
-                    browser.run("alert(x);").get();
-                } catch (Exception e) {
-                    log(e);
-                }
+                browser.asyncRun("alert(x);", new CallbackFunction<Object>() {
+                    @Override
+                    public void run(Object input, RuntimeException e) {
+                        log(e);
+                    }
+                });
             }
         });
 
         this.createControlButton("raise syntax exception", new Runnable() {
             @Override
             public void run() {
-                try {
-                    browser.run("alert('x);").get();
-                } catch (Exception e) {
-                    log(e);
-                }
+                final Future<Object> future = browser.run("alert('x);");
+                ExecUtils.nonUIAsyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            future.get();
+                        } catch (Exception e) {
+                            log(e);
+                        }
+                    }
+                });
             }
         });
 

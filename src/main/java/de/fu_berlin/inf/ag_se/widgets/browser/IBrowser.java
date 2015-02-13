@@ -1,18 +1,13 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
+import de.fu_berlin.inf.ag_se.utils.IConverter;
+import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
+import de.fu_berlin.inf.ag_se.widgets.browser.listener.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.Future;
-
-import de.fu_berlin.inf.ag_se.utils.IConverter;
-import de.fu_berlin.inf.ag_se.utils.NoCheckedExceptionCallable;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
 
 /**
  * This interface encapsulates a broad range of functionality of a web browser.
@@ -259,6 +254,8 @@ public interface IBrowser {
      * @throws ScriptExecutionException if an exception occurs while executing the script
      */
     Object syncRun(String script);
+
+    void asyncRun(String script, CallbackFunction<Object> callback);
 
     /**
      * Runs the given script in the browser as soon as loading is completed

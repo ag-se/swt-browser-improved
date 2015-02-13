@@ -11,8 +11,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
-import org.eclipse.swt.browser.*;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Rectangle;
@@ -22,7 +22,10 @@ import org.eclipse.swt.widgets.Listener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -614,5 +617,29 @@ public class InternalBrowserWrapper {
         } catch (ExecutionException e) {
             throw new ScriptExecutionException(script, e);
         }
+    }
+
+    public void syncRun(final String script, final CallbackFunction<Object> callback) {
+        ExecUtils.nonUIAsyncExec(new Runnable() {
+            @Override
+            public void run() {
+                Object returnValue = null;
+                RuntimeException exception = null;
+                try {
+                    returnValue = InternalBrowserWrapper.this.run(script).get();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                } catch (ExecutionException e) {
+                    exception = (RuntimeException) e.getCause();
+                }
+                ExecUtils.nonUIAsyncExec(new ParametrizedRunnable<Object>(returnValue, exception) {
+                    @Override
+                    public void run(Object input, RuntimeException exception) {
+                        callback.run(input, exception);
+                    }
+                });
+            }
+        });
     }
 }
