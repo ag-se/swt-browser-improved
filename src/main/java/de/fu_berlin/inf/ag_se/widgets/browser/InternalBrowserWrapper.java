@@ -10,10 +10,10 @@ import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.ParametrizedRunnable;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -30,13 +30,8 @@ import org.eclipse.swt.widgets.Listener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * This is an internal wrapper class around the {@link org.eclipse.swt.browser.Browser}.
@@ -59,11 +54,11 @@ public class InternalBrowserWrapper {
 
     private Rectangle cachedContentBounds = null;
 
-    private List<Runnable> beforeLoading = new ArrayList<Runnable>();
+    private List<Callable<Object>> beforeLoading = new ArrayList<Callable<Object>>();
 
-    private List<Runnable> afterLoading = new ArrayList<Runnable>();
+    private List<Callable<Object>> afterLoading = new ArrayList<Callable<Object>>();
 
-    private List<Runnable> beforeCompletion = new ArrayList<Runnable>();
+    private List<Callable<Object>> beforeCompletion = new ArrayList<Callable<Object>>();
 
     private List<Function<String>> beforeScripts = new ArrayList<Function<String>>();
 
@@ -72,11 +67,15 @@ public class InternalBrowserWrapper {
     private final List<JavaScriptExceptionListener> javaScriptExceptionListeners = Collections
             .synchronizedList(new ArrayList<JavaScriptExceptionListener>());
 
-    private Future<Void> timeoutMonitor;
+    private Future<?> timeoutMonitor;
+
+    private final UIThreadAwareScheduledThreadPoolExecutor executor;
 
     InternalBrowserWrapper(Composite parent) {
         browser = new Browser(parent, SWT.NONE);
         browser.setVisible(false);
+
+        executor = UIThreadAwareScheduledThreadPoolExecutor.getInstance();
 
         browserStatusManager = new BrowserStatusManager();
 
@@ -133,14 +132,16 @@ public class InternalBrowserWrapper {
             }
         });
 
-        return ExecUtils.nonUIAsyncExec(Browser.class, "Opening " + uri,
+        return executor.nonUIAsyncExec(Browser.class, "Opening " + uri,
                 new NoCheckedExceptionCallable<Boolean>() {
                     @Override
                     public Boolean call() {
                         startTimeout(uri, timeout);
 
-                        for (Runnable runnable : beforeLoading) {
-                            ExecUtils.nonUISyncExec(runnable);
+                        try {
+                            executor.invokeAll(beforeLoading);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
                         }
 
                         SwtUiThreadExecutor.syncExec(new Runnable() {
@@ -154,8 +155,10 @@ public class InternalBrowserWrapper {
                             }
                         });
 
-                        for (Runnable runnable : afterLoading) {
-                            ExecUtils.nonUISyncExec(runnable);
+                        try {
+                            executor.invokeAll(afterLoading);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
                         }
 
                         synchronized (monitor) {
@@ -183,7 +186,7 @@ public class InternalBrowserWrapper {
             timeoutMonitor = null;
             LOGGER.warn("timeout must be greater or equal 0. Ignoring timeout.");
         } else {
-            timeoutMonitor = ExecUtils.nonUIAsyncExec(Browser.class,
+            timeoutMonitor = executor.nonUIAsyncExec(Browser.class,
                     "Timeout Watcher for " + uri, new Runnable() {
                         @Override
                         public void run() {
@@ -235,7 +238,12 @@ public class InternalBrowserWrapper {
         createBrowserFunction(randomFunctionName, new IBrowserFunction() {
             @Override
             public Object function(Object[] arguments) {
-                complete();
+                executor.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        complete();
+                    }
+                });
                 dispose();
                 return null;
             }
@@ -258,23 +266,18 @@ public class InternalBrowserWrapper {
      * <li>injects necessary scripts</li> <li>runs the scheduled user scripts</li> </ol>
      */
     private void complete() {
-        final String uri = getUrl();
-        for (Runnable runnable : beforeCompletion) {
-            ExecUtils.nonUISyncExec(runnable);
+        try {
+            executor.invokeAll(beforeCompletion);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
 
-        ExecUtils.nonUISyncExec(Browser.class, "Setting state to loaded for " + uri,
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        setVisible(true);
+        setVisible(true);
 
-                        synchronized (monitor) {
-                            browserStatusManager.setBrowserStatus(BrowserStatus.LOADED);
-                            monitor.notifyAll();
-                        }
-                    }
-                });
+        synchronized (monitor) {
+            browserStatusManager.setBrowserStatus(BrowserStatus.LOADED);
+            monitor.notifyAll();
+        }
     }
 
     /**
@@ -345,7 +348,7 @@ public class InternalBrowserWrapper {
                 return new CompletedFuture<Boolean>(null, e);
             }
         } else {
-            return ExecUtils.nonUIAsyncExec(Browser.class, "Script Runner for: " + scriptURI,
+            return executor.nonUIAsyncExec(Browser.class, "Script Runner for: " + scriptURI,
                     new CallbackFunctionCallable(this, scriptURI, removeAfterExecution));
         }
     }
@@ -469,9 +472,14 @@ public class InternalBrowserWrapper {
      */
     Object evaluate(String javaScript) {
         try {
+            executeBeforeScriptExecutionScripts(javaScript);
+
             String script = JavascriptString.getExceptionReturningScript(javaScript);
             Object returnValue = browser.evaluate(script);
             BrowserUtils.rethrowJavascriptException(script, returnValue);
+
+            executeAfterScriptExecutionScripts(returnValue);
+
             return returnValue;
         } catch (SWTException e) {
             //TODO perform SWT error conversion here
@@ -499,7 +507,7 @@ public class InternalBrowserWrapper {
     }
 
     void setVisible(final boolean visible) {
-        SwtUiThreadExecutor.asyncExec(new Runnable() {
+        executor.asyncUIExec(new Runnable() {
             @Override
             public void run() {
                 if (!browser.isDisposed()) {
@@ -537,16 +545,16 @@ public class InternalBrowserWrapper {
         javaScriptExceptionListeners.remove(javaScriptExceptionListener);
     }
 
-    void executeBeforeLoading(Runnable runnable) {
-        beforeLoading.add(runnable);
+    void executeBeforeLoading(final Runnable runnable) {
+        beforeLoading.add(Executors.callable(runnable));
     }
 
     void executeAfterLoading(Runnable runnable) {
-        afterLoading.add(runnable);
+        afterLoading.add(Executors.callable(runnable));
     }
 
     void executeBeforeCompletion(Runnable runnable) {
-        beforeCompletion.add(runnable);
+        beforeCompletion.add(Executors.callable(runnable));
     }
 
     /**
@@ -585,19 +593,22 @@ public class InternalBrowserWrapper {
      * @param <V>
      */
     private <V> void executeScriptList(List<Function<V>> scripts, final V input) {
+        Collection<NoCheckedExceptionCallable<Object>> res = new ArrayList<NoCheckedExceptionCallable<Object>>();
         for (final Function<V> script : scripts) {
-            try {
-                SwtUiThreadExecutor.syncExec(new Runnable() {
-                    @Override
-                    public void run() {
-                        script.run(input);
-                    }
-                });
-            } catch (RuntimeException e) {
-                LOGGER.error(e);
-                // TODO only catch some Exceptions throw the rest?
-            }
+            res.add(new NoCheckedExceptionCallable<Object>() {
+                @Override
+                public Void call() {
+                    script.run(input);
+                    return null;
+                }
+            });
         }
+        try {
+            executor.invokeAll(res);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
     }
 
     /**
@@ -607,7 +618,7 @@ public class InternalBrowserWrapper {
      * @throws ScriptExecutionException if an exception occurs while executing the script
      */
     Object syncRun(String script) {
-        if (ExecUtils.isUIThread())
+        if (SwtUiThreadExecutor.isUIThread())
             throw new IllegalStateException("This method must not be called from the UI thread.");
 
         Future<Object> res = run(script);
@@ -623,7 +634,7 @@ public class InternalBrowserWrapper {
     }
 
     public void syncRun(final String script, final CallbackFunction<Object> callback) {
-        ExecUtils.nonUIAsyncExec(new Runnable() {
+        UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
             @Override
             public void run() {
                 Object returnValue = null;
@@ -636,7 +647,7 @@ public class InternalBrowserWrapper {
                 } catch (ExecutionException e) {
                     exception = (RuntimeException) e.getCause();
                 }
-                ExecUtils.nonUIAsyncExec(new ParametrizedRunnable<Object>(returnValue, exception) {
+                UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new ParametrizedRunnable<Object>(returnValue, exception) {
                     @Override
                     public void run(Object input, RuntimeException exception) {
                         callback.run(input, exception);

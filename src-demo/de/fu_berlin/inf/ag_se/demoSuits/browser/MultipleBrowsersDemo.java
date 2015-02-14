@@ -4,7 +4,7 @@ import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -109,7 +109,7 @@ public class MultipleBrowsersDemo extends AbstractDemo {
             try {
                 final Future<Boolean> success = this.browsers[i]
                         .open(new URI(URLS[i]), Integer.parseInt(timeoutString));
-                ExecUtils.nonUISyncExec(new Runnable() {
+                UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
                     @Override
                     public void run() {
                         try {

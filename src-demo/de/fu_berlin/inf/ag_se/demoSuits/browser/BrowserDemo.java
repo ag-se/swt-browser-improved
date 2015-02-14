@@ -11,8 +11,7 @@ import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -22,9 +21,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class BrowserDemo extends AbstractDemo {
 
@@ -151,7 +150,7 @@ public class BrowserDemo extends AbstractDemo {
             @Override
             public void run() {
                 final Future<Object> future = browser.run("alert('x);");
-                ExecUtils.nonUIAsyncExec(new Runnable() {
+                UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -178,15 +177,14 @@ public class BrowserDemo extends AbstractDemo {
                         browser.addJavaScriptExceptionListener(javaScriptExceptionListener);
                         try {
                             browser.run("window.setTimeout(function() { alert(x); }, 50);").get();
-                            ExecUtils.nonUIAsyncExec(
-                                    new Callable<Void>() {
+                            UIThreadAwareScheduledThreadPoolExecutor.getInstance().schedule(
+                                    new Runnable() {
                                         @Override
-                                        public Void call() throws Exception {
+                                        public void run() {
                                             browser.removeJavaScriptExceptionListener(
                                                     javaScriptExceptionListener);
-                                            return null;
                                         }
-                                    }, 100);
+                                    }, 100, TimeUnit.MILLISECONDS);
                         } catch (Exception e) {
                             log("IMPLEMENTATION ERROR - This exception should have be thrown asynchronously!");
                             log(e);
@@ -246,22 +244,21 @@ public class BrowserDemo extends AbstractDemo {
         });
 
         final Future<Boolean> success = browser.open("http://inf.fu-berlin.de", Integer.parseInt(timeoutString));
-        ExecUtils.nonUIAsyncExec(new NoCheckedExceptionCallable<Object>() {
-            @Override
-            public Void call() {
-                try {
-                    if (success.get()) {
-                        log("Page loaded successfully");
-                    } else {
-                        log("Page load timed out");
-                    }
-                } catch (Exception e) {
-                    log(e.getMessage());
-                }
-                log(browser.getUrl());
-                return null;
-            }
-        });
+//        UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    if (success.get()) {
+//                        log("Page loaded successfully");
+//                    } else {
+//                        log("Page load timed out");
+//                    }
+//                } catch (Exception e) {
+//                    log(e.getMessage());
+//                }
+//                log(browser.getUrl());
+//            }
+//        });
     }
 
     public static void main(String[] args) throws InterruptedException {

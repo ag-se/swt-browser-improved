@@ -8,8 +8,8 @@ import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.IBrowserExtens
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.jquery.JQueryBrowserExtension;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Element;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWTException;
@@ -179,10 +179,10 @@ public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
 
 	@Override
 	public Future<Boolean> scrollTo(final ISelector selector) {
-		return ExecUtils.nonUIAsyncExec(JQueryBrowser.class, "Scroll To",
-				new NoCheckedExceptionCallable<Boolean>() {
-					@Override
-					public Boolean call() {
+		return UIThreadAwareScheduledThreadPoolExecutor.getInstance().nonUIAsyncExec(JQueryBrowser.class, "Scroll To",
+                new NoCheckedExceptionCallable<Boolean>() {
+                    @Override
+                    public Boolean call() {
                         Point pos = null;
                         try {
                             pos = JQueryBrowser.this.getScrollPosition(
@@ -191,11 +191,11 @@ public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                         } catch (ExecutionException e) {
-                           throw new ScriptExecutionException("Could not execute scroll to", e);
+                            throw new ScriptExecutionException("Could not execute scroll to", e);
                         }
                         return false;
-					}
-				});
+                    }
+                });
 	}
 
 	@Override
@@ -205,24 +205,24 @@ public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
 
 	@Override
 	public Future<IElement> getFocusedElement() {
-		return ExecUtils.nonUIAsyncExec(JQueryBrowser.class,
-				"Get Focused Element", new NoCheckedExceptionCallable<IElement>() {
-					@Override
-					public IElement call() {
-						try {
-							String html = run("return jQuery(document.activeElement).clone().wrap(\"<p>\").parent().html();",
+		return UIThreadAwareScheduledThreadPoolExecutor.getInstance().nonUIAsyncExec(JQueryBrowser.class,
+                "Get Focused Element", new NoCheckedExceptionCallable<IElement>() {
+                    @Override
+                    public IElement call() {
+                        try {
+                            String html = run("return jQuery(document.activeElement).clone().wrap(\"<p>\").parent().html();",
                                     IConverter.CONVERTER_STRING).get();
-							return new Element(html);
-						} catch (RuntimeException e) {
-							LOGGER.error("Error getting scroll position", e);
-						} catch (ExecutionException e) {
+                            return new Element(html);
+                        } catch (RuntimeException e) {
+                            LOGGER.error("Error getting scroll position", e);
+                        } catch (ExecutionException e) {
                             LOGGER.error("Error getting scroll position", e);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                         }
-						return null;
-					}
-				});
+                        return null;
+                    }
+                });
 	}
 
 	@Override

@@ -26,11 +26,7 @@ class ScriptExecutingCallable<DEST> extends ThreadLabelingCallable<DEST> {
                     throw new BrowserDisposedException();
                 }
 
-                browser.executeBeforeScriptExecutionScripts(script);
-
                 Object returnValue = browser.evaluate(script);
-
-                browser.executeAfterScriptExecutionScripts(returnValue);
 
                 DEST rs = converter.convert(returnValue);
                 LOGGER.debug("Returned " + rs);

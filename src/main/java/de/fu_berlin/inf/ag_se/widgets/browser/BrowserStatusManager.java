@@ -2,9 +2,9 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.OffWorker;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.*;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.log4j.Logger;
 
@@ -155,7 +155,7 @@ public class BrowserStatusManager {
             case LOADING:
                 return delayedScriptsWorker.submit(new ExecuteWhenLoaded<DEST>(scriptRunner, script));
             case LOADED:
-                return ExecUtils.nonUIAsyncExec(new ExecuteImmediately<DEST>(scriptRunner));
+                return UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new ExecuteImmediately<DEST>(scriptRunner));
             case TIMEDOUT:
                 return new CompletedFuture<DEST>(null,
                         new ScriptExecutionException(script, new BrowserTimeoutException()));

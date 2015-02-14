@@ -2,8 +2,8 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
@@ -109,7 +109,7 @@ public class BrowserTest {
             threads[thread].start();
         }
 
-        final Future<?> assertionJoin = ExecUtils.nonUISyncExec(new Runnable() {
+        final Future<?> assertionJoin = UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
             @Override
             public void run() {
                 for (Thread thread : threads) {
@@ -136,7 +136,7 @@ public class BrowserTest {
             }
         });
 
-        ExecUtils.nonUISyncExec(new Runnable() {
+        UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -144,7 +144,7 @@ public class BrowserTest {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                SwtUiThreadExecutor.asyncExec(new Runnable() {
+                SwtUiThreadExecutor.syncExec(new Runnable() {
                     @Override
                     public void run() {
                         shell.close();

@@ -8,7 +8,7 @@ import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -32,7 +32,7 @@ public class BootstrapBrowserDemo extends AbstractDemo {
         setBodyHtml.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                ExecUtils.nonUISyncExec(new Runnable() {
+                UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
                     @Override
                     public void run() {
                         log("setting body html to "
@@ -65,7 +65,7 @@ public class BootstrapBrowserDemo extends AbstractDemo {
         scrollButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                ExecUtils.nonUISyncExec(new Runnable() {
+                UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
                     @Override
                     public void run() {
                         log("scrolling down " + BootstrapBrowserDemo.this.html);
@@ -118,7 +118,7 @@ public class BootstrapBrowserDemo extends AbstractDemo {
                 log("Focus lost: " + element);
             }
         });
-        ExecUtils.nonUIAsyncExec(new Runnable() {
+        UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
             @Override
             public void run() {
                 try {

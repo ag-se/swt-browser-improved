@@ -1,10 +1,9 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.threading;
 
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.UIThreadSafeFuture;
 import org.apache.log4j.Logger;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
 
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -27,10 +26,9 @@ public class SwtUiThreadExecutor {
      * @NonUIThread
      */
     public static <V> V syncExec(final NoCheckedExceptionCallable<V> callable) {
-        if (ExecUtils.isUIThread()) {
+        if (isUIThread()) {
             return callable.call();
         }
-
         final AtomicReference<V> r = new AtomicReference<V>();
         final AtomicReference<RuntimeException> exception = new AtomicReference<RuntimeException>();
         Display.getDefault().syncExec(new Runnable() {
@@ -59,8 +57,8 @@ public class SwtUiThreadExecutor {
      * @UIThread
      * @NonUIThread
      */
-    public static void syncExec(final Runnable runnable) throws RuntimeException {
-        if (ExecUtils.isUIThread()) {
+    public static void syncExec(final Runnable runnable) {
+        if (isUIThread()) {
             runnable.run();
         } else {
             final AtomicReference<RuntimeException> exception = new AtomicReference<RuntimeException>();
@@ -82,56 +80,16 @@ public class SwtUiThreadExecutor {
     }
 
     /**
-     * Asynchronously executes the given {@link NoCheckedExceptionCallable} in the SWT UI thread.
-     * The return value is returned in the calling thread.
+     * Checks if the current thread is an SWT UI thread.
      *
-     * @param callable the callable to execute
-     * @return a future representing the result of the execution
-     *
-     * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
-     * @NonUIThread
+     * @return true if it is, false otherwise
      */
-    public static <V> Future<V> asyncExec(final NoCheckedExceptionCallable<V> callable) {
-        return new UIThreadSafeFuture<V>(
-                ExecUtils.EXECUTOR_SERVICE.submit(new NoCheckedExceptionCallable<V>() {
-                    @Override
-                    public V call() {
-                        return syncExec(callable);
-                    }
-                }));
+    public static boolean isUIThread() {
+        try {
+            return Display.getCurrent() != null;
+        } catch (SWTException e) {
+            return false;
+        }
     }
 
-    /**
-     * Asynchronously executes the given {@link Runnable} in the SWT UI thread.
-     *
-     * @param runnable the runnable to execute
-     * @return a future that can be used to check when the code has been executed
-     *
-     * @UIThread <b>Warning: {@link java.util.concurrent.Future#get()} must not be called from the UI thread</b>
-     * @NonUIThread
-     */
-    public static Future<Void> asyncExec(final Runnable runnable) {
-        return new UIThreadSafeFuture<Void>(
-                ExecUtils.EXECUTOR_SERVICE
-                        .submit(new NoCheckedExceptionCallable<Void>() {
-                            @Override
-                            public Void call() {
-                                final AtomicReference<RuntimeException> exception = new AtomicReference<RuntimeException>();
-                                Display.getDefault().asyncExec(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            runnable.run();
-                                        } catch (RuntimeException e) {
-                                            exception.set(e);
-                                        }
-                                    }
-                                });
-                                if (exception.get() != null) {
-                                    throw exception.get();
-                                }
-                                return null;
-                            }
-                        }));
-    }
 }

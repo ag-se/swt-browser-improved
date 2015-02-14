@@ -1,7 +1,7 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.listener;
 
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.ExecUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import org.apache.log4j.Logger;
 
 import java.net.URI;
@@ -14,7 +14,7 @@ import java.util.Map;
  * <p>
  * Furthermore independently of which thread calls the listener the provided
  * listeners are called from a non-UI thread. If you need to make changes to the
- * GUI you will have to use {@link ExecUtils}.
+ * GUI you will have to use {@link UIThreadAwareScheduledThreadPoolExecutor}.
  * 
  * @author bkahlert
  * 
@@ -45,46 +45,46 @@ public class SchemeAnchorListener implements IAnchorListener {
 
 	@Override
 	public void anchorHovered(final IAnchor anchor, final boolean entered) {
-		ExecUtils.nonUIAsyncExec(SchemeAnchorListener.class,
-				"Anchor Hovered Notification", new Runnable() {
-					@Override
-					public void run() {
-						try {
-							final URI uri = new URI(anchor.getHref());
-							if (uri.getScheme() == null) {
-								if (SchemeAnchorListener.this.listeners
-										.containsKey(null)) {
-									SchemeAnchorListener.this.listeners
-											.get(null).anchorHovered(anchor,
+		UIThreadAwareScheduledThreadPoolExecutor.getInstance().nonUIAsyncExec(SchemeAnchorListener.class,
+                "Anchor Hovered Notification", new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            final URI uri = new URI(anchor.getHref());
+                            if (uri.getScheme() == null) {
+                                if (SchemeAnchorListener.this.listeners
+                                        .containsKey(null)) {
+                                    SchemeAnchorListener.this.listeners
+                                            .get(null).anchorHovered(anchor,
                                             entered);
-								} else {
-									return;
-								}
-							} else {
-								boolean handled = false;
-								for (String schema : SchemeAnchorListener.this.listeners
-										.keySet()) {
-									if (uri.getScheme()
-											.equalsIgnoreCase(schema)) {
-										SchemeAnchorListener.this.listeners.get(
-												schema).anchorHovered(anchor,
+                                } else {
+                                    return;
+                                }
+                            } else {
+                                boolean handled = false;
+                                for (String schema : SchemeAnchorListener.this.listeners
+                                        .keySet()) {
+                                    if (uri.getScheme()
+                                           .equalsIgnoreCase(schema)) {
+                                        SchemeAnchorListener.this.listeners.get(
+                                                schema).anchorHovered(anchor,
                                                 entered);
-										handled = true;
-										break;
-									}
-								}
-								if (!handled) {
-									SchemeAnchorListener.this.defaultListener
-											.anchorHovered(anchor, entered);
-								}
-							}
-						} catch (URISyntaxException e) {
-							LOGGER.info("Invalid URI in "
-									+ SchemeAnchorListener.class.getSimpleName()
-									+ ": " + anchor);
-						}
-					}
-				});
+                                        handled = true;
+                                        break;
+                                    }
+                                }
+                                if (!handled) {
+                                    SchemeAnchorListener.this.defaultListener
+                                            .anchorHovered(anchor, entered);
+                                }
+                            }
+                        } catch (URISyntaxException e) {
+                            LOGGER.info("Invalid URI in "
+                                    + SchemeAnchorListener.class.getSimpleName()
+                                    + ": " + anchor);
+                        }
+                    }
+                });
 	}
 
 }
