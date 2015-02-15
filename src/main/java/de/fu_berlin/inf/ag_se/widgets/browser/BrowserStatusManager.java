@@ -61,11 +61,7 @@ public class BrowserStatusManager {
      * @throws UnexpectedBrowserStateException
      * @throws NullPointerException            if argument is null
      */
-    public void setBrowserStatus(BrowserStatus browserStatus) {
-        if (browserStatus == null) {
-            throw new NullPointerException();
-        }
-
+    public synchronized void setBrowserStatus(BrowserStatus browserStatus) {
         if (this.browserStatus == browserStatus) {
             return;
         }
@@ -97,15 +93,16 @@ public class BrowserStatusManager {
                 if (browserStatus == BrowserStatus.TIMEDOUT) {
                     return;
                 }
-
                 if (browserStatus != BrowserStatus.DISPOSED) {
                     throw new UnexpectedBrowserStateException("Cannot switch from "
                             + this.browserStatus + " to " + browserStatus);
                 }
                 break;
             case TIMEDOUT:
-                throw new UnexpectedBrowserStateException("Cannot switch from "
-                        + this.browserStatus + " to " + browserStatus);
+                if (browserStatus != BrowserStatus.DISPOSED) {
+                    throw new UnexpectedBrowserStateException("Cannot switch from "
+                            + this.browserStatus + " to " + browserStatus);
+                }
             case DISPOSED:
                 throw new UnexpectedBrowserStateException("Cannot switch from "
                         + this.browserStatus + " to " + browserStatus);
@@ -143,11 +140,11 @@ public class BrowserStatusManager {
         }
     }
 
-    public BrowserStatus getBrowserStatus() {
+    public synchronized BrowserStatus getBrowserStatus() {
         return browserStatus;
     }
 
-    public <DEST> Future<DEST> createFuture(final ScriptExecutingCallable<DEST> scriptRunner) {
+    public synchronized <DEST> Future<DEST> createFuture(final ScriptExecutingCallable<DEST> scriptRunner) {
         final String script = scriptRunner.getScript();
         switch (browserStatus) {
             case INITIALIZING:
