@@ -2,7 +2,6 @@ package de.fu_berlin.inf.ag_se.utils;
 
 import de.fu_berlin.inf.ag_se.utils.OffWorker.StateException;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -49,12 +48,12 @@ public class OffWorkerTest {
 			futures.add(future);
 
 			if (i == numTasks / 2) {
-				UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
+				new Thread(new Runnable() {
                     @Override
                     public void run() {
                         offWorker.start();
                     }
-                });
+                }).start();
 			}
 		}
 

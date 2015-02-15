@@ -6,7 +6,6 @@ import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.layout.FillLayout;
@@ -91,7 +90,7 @@ public class DragnDropBrowserDemo extends AbstractDemo {
             }
         });
 
-        UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
+        executor.execute(new Runnable() {
             @Override
             public void run() {
                 try {

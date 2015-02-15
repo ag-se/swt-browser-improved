@@ -8,8 +8,7 @@ import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.IBrowserExtens
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.jquery.JQueryBrowserExtension;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Element;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
+import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWTException;
@@ -105,8 +104,7 @@ public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
 	 * character associated with the depressed key, else 0 );
 	 * $elements.each(function() { this.dispatchEvent(keyboardEvent); }); }
 	 * 
-	 * @see http 
-	 *      ://stackoverflow.com/questions/596481/simulate-javascript-key-events
+	 * {@see http://stackoverflow.com/questions/596481/simulate-javascript-key-events}
 	 */
 	private String getSimulateKeyPress() {
 		return "function simulateKeyPress(e,t){var n=document.createEvent('KeyboardEvent');var r=typeof n.initKeyboardEvent!=='undefined'?'initKeyboardEvent':'initKeyEvent';n[r](t,true,true,window,false,false,false,false,16,0);e.each(function(){this.dispatchEvent(n)})}";
@@ -179,23 +177,35 @@ public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
 
 	@Override
 	public Future<Boolean> scrollTo(final ISelector selector) {
-		return UIThreadAwareScheduledThreadPoolExecutor.getInstance().nonUIAsyncExec(JQueryBrowser.class, "Scroll To",
-                new NoCheckedExceptionCallable<Boolean>() {
-                    @Override
-                    public Boolean call() {
-                        Point pos = null;
-                        try {
-                            pos = JQueryBrowser.this.getScrollPosition(
-                                    selector).get();
-                            return JQueryBrowser.this.scrollTo(pos).get();
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                        } catch (ExecutionException e) {
-                            throw new ScriptExecutionException("Could not execute scroll to", e);
-                        }
-                        return false;
-                    }
-                });
+        return internalBrowser.runWithCallback(getScrollPosition(selector), new CallbackFunction<Point, Boolean>() {
+            @Override
+            public Boolean apply(Point input, Exception e) {
+                try {
+                    return JQueryBrowser.this.scrollTo(input).get();
+                } catch (InterruptedException e1) {
+                    Thread.currentThread().interrupt();
+                    return false;
+                } catch (ExecutionException e1) {
+                    throw new ScriptExecutionException("Could not execute scroll to", e);
+                }
+            }
+        });
+//		return UIThreadAwareScheduledThreadPoolExecutor.getInstance().nonUIAsyncExec(JQueryBrowser.class, "Scroll To",
+//                new NoCheckedExceptionCallable<Boolean>() {
+//                    @Override
+//                    public Boolean call() {
+//                        Point pos = null;
+//                        try {
+//                            pos = JQueryBrowser.this.getScrollPosition(selector).get();
+//                            return JQueryBrowser.this.scrollTo(pos).get();
+//                        } catch (InterruptedException e) {
+//                            Thread.currentThread().interrupt();
+//                        } catch (ExecutionException e) {
+//                            throw new ScriptExecutionException("Could not execute scroll to", e);
+//                        }
+//                        return false;
+//                    }
+//                });
 	}
 
 	@Override
@@ -205,24 +215,34 @@ public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
 
 	@Override
 	public Future<IElement> getFocusedElement() {
-		return UIThreadAwareScheduledThreadPoolExecutor.getInstance().nonUIAsyncExec(JQueryBrowser.class,
-                "Get Focused Element", new NoCheckedExceptionCallable<IElement>() {
+        return run("return jQuery(document.activeElement).clone().wrap(\"<p>\").parent().html();", IConverter.CONVERTER_STRING,
+                new CallbackFunction<String, IElement>() {
                     @Override
-                    public IElement call() {
-                        try {
-                            String html = run("return jQuery(document.activeElement).clone().wrap(\"<p>\").parent().html();",
-                                    IConverter.CONVERTER_STRING).get();
-                            return new Element(html);
-                        } catch (RuntimeException e) {
+                    public IElement apply(String input, Exception e) {
+                        if (e != null) {
                             LOGGER.error("Error getting scroll position", e);
-                        } catch (ExecutionException e) {
-                            LOGGER.error("Error getting scroll position", e);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
                         }
-                        return null;
+                        return new Element(input);
                     }
                 });
+//		return UIThreadAwareScheduledThreadPoolExecutor.getInstance().nonUIAsyncExec(JQueryBrowser.class,
+//                "Get Focused Element", new NoCheckedExceptionCallable<IElement>() {
+//                    @Override
+//                    public IElement call() {
+//                        try {
+//                            String html = run("return jQuery(document.activeElement).clone().wrap(\"<p>\").parent().html();",
+//                                    IConverter.CONVERTER_STRING).get();
+//                            return new Element(html);
+//                        } catch (RuntimeException e) {
+//                            LOGGER.error("Error getting scroll position", e);
+//                        } catch (ExecutionException e) {
+//                            LOGGER.error("Error getting scroll position", e);
+//                        } catch (InterruptedException e) {
+//                            Thread.currentThread().interrupt();
+//                        }
+//                        return null;
+//                    }
+//                });
 	}
 
 	@Override

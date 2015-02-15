@@ -4,8 +4,13 @@ import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
+
+import java.util.concurrent.Executor;
 
 public abstract class AbstractDemo {
 
@@ -17,6 +22,17 @@ public abstract class AbstractDemo {
     private Composite composite;
     protected Composite controls;
     protected Composite content;
+
+    protected final Executor executor;
+
+    protected AbstractDemo() {
+        executor = new Executor() {
+            @Override
+            public void execute(Runnable command) {
+                new Thread(command).start();
+            }
+        };
+    }
 
     public final void createPartControls(Composite composite) {
         this.composite = composite;

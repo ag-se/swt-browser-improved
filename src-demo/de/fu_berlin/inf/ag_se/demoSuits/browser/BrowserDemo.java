@@ -11,7 +11,6 @@ import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -23,7 +22,6 @@ import org.eclipse.swt.widgets.Text;
 import java.io.File;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 public class BrowserDemo extends AbstractDemo {
 
@@ -38,20 +36,13 @@ public class BrowserDemo extends AbstractDemo {
                 new Runnable() {
                     @Override
                     public void run() {
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                log("alerting");
-                                try {
-                                    browser.run("alert('" + alertString + "');").get();
-                                } catch (InterruptedException e1) {
-                                    e1.printStackTrace();
-                                } catch (ExecutionException e2) {
-                                    e2.printStackTrace();
-                                }
-                                log("alerted");
-                            }
-                        }).start();
+                        log("alerting");
+                        try {
+                            browser.runImmediately("alert('" + alertString + "');");
+                        } catch (RuntimeException e) {
+                            log(e);
+                        }
+                        log("alerted");
                     }
                 });
 
@@ -60,20 +51,20 @@ public class BrowserDemo extends AbstractDemo {
                 new Runnable() {
                     @Override
                     public void run() {
-                        new Thread(new Runnable() {
+                        executor.execute(new Runnable() {
                             @Override
                             public void run() {
                                 log("alerting using external file");
                                 try {
                                     File jsFile = File.createTempFile(BrowserDemo.class.getSimpleName(), ".js");
                                     FileUtils.write(jsFile, "alert(\"" + alertString + "\");");
-                                    browser.run(jsFile);
+                                    browser.run(jsFile).get();
                                 } catch (Exception e) {
-                                    log(e.toString());
+                                    log(e);
                                 }
                                 log("alerted using external file");
                             }
-                        }).start();
+                        });
                     }
                 });
 
@@ -104,7 +95,7 @@ public class BrowserDemo extends AbstractDemo {
                         log("changing background to " + newColor);
                         final Future<Void> voidFuture = browser
                                 .injectCss("html, body { background-color: " + newColor + "; }");
-                        UIThreadAwareScheduledThreadPoolExecutor.getInstance().asyncUIExec(new Runnable() {
+                        executor.execute(new Runnable() {
                             @Override
                             public void run() {
                                 try {
@@ -156,7 +147,7 @@ public class BrowserDemo extends AbstractDemo {
             @Override
             public void run() {
                 final Future<Object> future = browser.run("alert('x);");
-                UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
+                executor.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -183,14 +174,18 @@ public class BrowserDemo extends AbstractDemo {
                         browser.addJavaScriptExceptionListener(javaScriptExceptionListener);
                         try {
                             browser.run("window.setTimeout(function() { alert(x); }, 50);").get();
-                            UIThreadAwareScheduledThreadPoolExecutor.getInstance().schedule(
+                            executor.execute(
                                     new Runnable() {
                                         @Override
                                         public void run() {
-                                            browser.removeJavaScriptExceptionListener(
-                                                    javaScriptExceptionListener);
+                                            try {
+                                                Thread.sleep(1000);
+                                            } catch (InterruptedException e) {
+                                                Thread.currentThread().interrupt();
+                                            }
+                                            browser.removeJavaScriptExceptionListener(javaScriptExceptionListener);
                                         }
-                                    }, 100, TimeUnit.MILLISECONDS);
+                                    });
                         } catch (Exception e) {
                             log("IMPLEMENTATION ERROR - This exception should have be thrown asynchronously!");
                             log(e);
@@ -249,10 +244,9 @@ public class BrowserDemo extends AbstractDemo {
             }
         });
 
-//        final Future<Boolean> success = browser.openBlank();
         final Future<Boolean> success = browser.openBlank();
 //        final Future<Boolean> success = browser.open("https://google.de", Integer.parseInt(timeoutString));
-        UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
+        executor.execute(new Runnable() {
             @Override
             public void run() {
                 try {

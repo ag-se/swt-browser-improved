@@ -4,7 +4,6 @@ import de.fu_berlin.inf.ag_se.utils.OffWorker;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.*;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.log4j.Logger;
 
@@ -151,8 +150,6 @@ public class BrowserStatusManager {
                 return delayedScriptsWorker.submit(new ExecuteWhenLoaded<DEST>(scriptRunner, script));
             case LOADING:
                 return delayedScriptsWorker.submit(new ExecuteWhenLoaded<DEST>(scriptRunner, script));
-            case LOADED:
-                return UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new ExecuteImmediately<DEST>(scriptRunner));
             case TIMEDOUT:
                 return new CompletedFuture<DEST>(null,
                         new ScriptExecutionException(script, new BrowserTimeoutException()));
@@ -206,7 +203,7 @@ public class BrowserStatusManager {
         public DEST call() {
             switch (browserStatus) {
                 case LOADED:
-                    return syncExecScript(scriptRunner);
+                    return SwtUiThreadExecutor.syncExec(scriptRunner);
                 case TIMEDOUT:
                     throw new ScriptExecutionException(script, new BrowserTimeoutException());
                 case DISPOSED:
@@ -215,30 +212,5 @@ public class BrowserStatusManager {
                     throw new ScriptExecutionException(script, new UnexpectedBrowserStateException(browserStatus.toString()));
             }
         }
-    }
-
-    private class ExecuteImmediately<DEST> implements NoCheckedExceptionCallable<DEST> {
-        private final ScriptExecutingCallable<DEST> scriptRunner;
-
-        public ExecuteImmediately(ScriptExecutingCallable<DEST> scriptRunner) {
-            this.scriptRunner = scriptRunner;
-        }
-
-        /**
-         * @throws ScriptExecutionException
-         * @throws JavaScriptException
-         */
-        @Override
-        public DEST call() {
-            return syncExecScript(scriptRunner);
-        }
-    }
-
-    /**
-     * @throws ScriptExecutionException
-     * @throws JavaScriptException
-     */
-    private <DEST> DEST syncExecScript(ScriptExecutingCallable<DEST> scriptRunner) {
-        return SwtUiThreadExecutor.syncExec(scriptRunner);
     }
 }

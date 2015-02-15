@@ -13,14 +13,8 @@ public class UIThreadAwareScheduledThreadPoolExecutor extends ScheduledThreadPoo
 
     private static final Logger LOGGER = Logger.getLogger(UIThreadAwareScheduledThreadPoolExecutor.class);
 
-    private UIThreadAwareScheduledThreadPoolExecutor() {
+    public UIThreadAwareScheduledThreadPoolExecutor() {
         super(20, createThreadFactory(UIThreadAwareScheduledThreadPoolExecutor.class, ""));
-    }
-
-    private static UIThreadAwareScheduledThreadPoolExecutor INSTANCE = new UIThreadAwareScheduledThreadPoolExecutor();
-
-    public static UIThreadAwareScheduledThreadPoolExecutor getInstance() {
-        return INSTANCE;
     }
 
     static class ThreadSafeUITask<V> implements RunnableScheduledFuture<V> {

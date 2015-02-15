@@ -192,5 +192,12 @@ public interface IConverter<SRC, DEST> {
         }
     };
 
+    public static final IConverter<Object, Object> CONVERTER_IDENT = new IConverter<Object, Object>() {
+        @Override
+        public Object convert(Object returnValue) {
+            return returnValue;
+        }
+    };
+
     public DEST convert(SRC returnValue);
 }

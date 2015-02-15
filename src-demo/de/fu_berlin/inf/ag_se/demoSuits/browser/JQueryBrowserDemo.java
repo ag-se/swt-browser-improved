@@ -8,7 +8,6 @@ import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -35,7 +34,7 @@ public class JQueryBrowserDemo extends AbstractDemo {
         scrollTo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
+                executor.execute(new Runnable() {
                     @Override
                     public void run() {
                         log("scrolling to " + JQueryBrowserDemo.this.x + ", "
@@ -119,7 +118,7 @@ public class JQueryBrowserDemo extends AbstractDemo {
                 }
             });
             this.browser.scrollTo(this.x, this.y);
-            UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
+            executor.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {

@@ -45,8 +45,7 @@ public class SchemeAnchorListener implements IAnchorListener {
 
 	@Override
 	public void anchorHovered(final IAnchor anchor, final boolean entered) {
-		UIThreadAwareScheduledThreadPoolExecutor.getInstance().nonUIAsyncExec(SchemeAnchorListener.class,
-                "Anchor Hovered Notification", new Runnable() {
+		new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -84,7 +83,7 @@ public class SchemeAnchorListener implements IAnchorListener {
                                     + ": " + anchor);
                         }
                     }
-                });
+                }).start();
 	}
 
 }

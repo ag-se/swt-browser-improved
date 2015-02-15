@@ -3,7 +3,6 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
@@ -14,8 +13,10 @@ import org.junit.Test;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 
 public class BrowserTest {
 
@@ -109,9 +110,9 @@ public class BrowserTest {
             threads[thread].start();
         }
 
-        final Future<?> assertionJoin = UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
+        final Future<?> assertionJoin = new FutureTask<Void>(new Callable<Void>() {
             @Override
-            public void run() {
+            public Void call() {
                 for (Thread thread : threads) {
                     try {
                         thread.join();
@@ -133,10 +134,11 @@ public class BrowserTest {
                 }
 
                 System.err.println("exit");
+                return null;
             }
         });
 
-        UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -151,7 +153,7 @@ public class BrowserTest {
                     }
                 });
             }
-        });
+        }).start();
 
         // Set up the event loop.
         while (!shell.isDisposed()) {

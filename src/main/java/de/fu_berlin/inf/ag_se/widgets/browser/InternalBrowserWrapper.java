@@ -74,7 +74,7 @@ public class InternalBrowserWrapper {
         browser = new Browser(parent, SWT.NONE);
         browser.setVisible(false);
 
-        executor = UIThreadAwareScheduledThreadPoolExecutor.getInstance();
+        executor = new UIThreadAwareScheduledThreadPoolExecutor();
 
         browserStatusManager = new BrowserStatusManager();
 
@@ -107,6 +107,7 @@ public class InternalBrowserWrapper {
                     browserStatusManager.setBrowserStatus(BrowserStatus.DISPOSED);
                     monitor.notifyAll();
                 }
+                executor.shutdownNow();
             }
         });
     }
@@ -121,8 +122,6 @@ public class InternalBrowserWrapper {
         }
 
         browserStatusManager.setBrowserStatus(BrowserStatus.LOADING);
-
-        activateExceptionHandling();
 
         browser.addProgressListener(new ProgressAdapter() {
             @Override
@@ -265,6 +264,8 @@ public class InternalBrowserWrapper {
      * <li>injects necessary scripts</li> <li>runs the scheduled user scripts</li> </ol>
      */
     private void complete() {
+        activateExceptionHandling();
+
         try {
             executor.invokeAll(beforeCompletion);
         } catch (InterruptedException e) {
@@ -284,7 +285,7 @@ public class InternalBrowserWrapper {
      */
     private void activateExceptionHandling() {
         try {
-            run(JavascriptString.getExceptionForwardingScript("__error_callback"), IConverter.CONVERTER_VOID);
+            runImmediately(JavascriptString.getExceptionForwardingScript("__error_callback"), IConverter.CONVERTER_VOID);
         } catch (ScriptExecutionException e) {
             LOGGER.error("Error activating browser's exception handling. JavaScript exceptions are not detected!", e);
         }
@@ -353,16 +354,19 @@ public class InternalBrowserWrapper {
     }
 
     Future<Object> run(final String script) {
-        return run(script, new IConverter<Object, Object>() {
-            @Override
-            public Object convert(Object object) {
-                return object;
-            }
-        });
+        return run(script, IConverter.CONVERTER_IDENT);
     }
 
     <DEST> Future<DEST> run(final String script,
                             final IConverter<Object, DEST> converter) {
+        if (isLoadingCompleted()) {
+            try {
+                DEST dest = SwtUiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(this, converter, script));
+                return new CompletedFuture<DEST>(dest, null);
+            } catch (RuntimeException e) {
+                return new CompletedFuture<DEST>(null, e);
+            }
+        }
         return browserStatusManager.createFuture(new ScriptExecutingCallable<DEST>(this, converter, script));
     }
 
@@ -372,6 +376,10 @@ public class InternalBrowserWrapper {
     <DEST> DEST runImmediately(String script,
                                IConverter<Object, DEST> converter) {
         return SwtUiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(this, converter, script));
+    }
+
+    Object runImmediately(String script) {
+        return runImmediately(script, IConverter.CONVERTER_IDENT);
     }
 
     /**
@@ -635,8 +643,8 @@ public class InternalBrowserWrapper {
         return runWithCallback(InternalBrowserWrapper.this.run(script), callback);
     }
 
-    <V, T> Future<T> runWithCallback(final Future<V> future, final CallbackFunction<V, T> callback) {
-        return UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Callable<T>() {
+    public <V, T> Future<T> runWithCallback(final Future<V> future, final CallbackFunction<V, T> callback) {
+        return executor.submit(new Callable<T>() {
             @Override
             public T call() throws InterruptedException {
                 V returnValue = null;
