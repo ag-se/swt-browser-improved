@@ -52,10 +52,10 @@ public class CallbackFunctionCallable implements NoCheckedExceptionCallable<Bool
             // ... which destroys itself and releases this
             // lock
             mutex.acquire();
+            return true;
         } catch (InterruptedException e) {
-            LOGGER.error(e);
+            Thread.currentThread().interrupt();
         }
-        //TODO don't return null
-        return null;
+        return false;
     }
 }
