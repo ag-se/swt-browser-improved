@@ -231,7 +231,7 @@ public class EventCatchFunctionality {
 
         File events = ClasspathFileUtils.getFile("/events.js");
         try {
-            browser.runContentsImmediately(events);
+            browser.runContent(events);
         } catch (RuntimeException e) {
             if (e.getCause() instanceof SWTException) {
                 // disposed
@@ -247,7 +247,7 @@ public class EventCatchFunctionality {
         File dnd = ClasspathFileUtils.getFile("/dnd.js");
         File dndCss = ClasspathFileUtils.getFile("/dnd.css");
         try {
-            browser.runContentsImmediately(dnd);
+            browser.runContent(dnd);
             browser.injectCssFile(dndCss.toURI());
         } catch (RuntimeException e) {
             if (e.getCause() instanceof SWTException) {

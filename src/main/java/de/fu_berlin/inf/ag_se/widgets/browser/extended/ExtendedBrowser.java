@@ -1,16 +1,15 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-
-import org.apache.log4j.Logger;
-import org.eclipse.swt.widgets.Composite;
-
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.IBrowserExtension;
+import org.apache.log4j.Logger;
+import org.eclipse.swt.widgets.Composite;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 
 /**
  * This {@link IBrowser} behaves like the {@link Browser} but allows {@link de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.IBrowserExtension}s
@@ -81,7 +80,7 @@ public class ExtendedBrowser extends Browser implements IBrowser {
                 // by running the extension directly we execute it synchronously
                 // otherwise a loader library would be necessary to satisfy the
                 // loading dependencies
-                runContentAsScriptTagImmediately(jsExtension);
+                runContentAsScriptTag(jsExtension);
             } catch (RuntimeException e) {
                 LOGGER.error(
                         "Could not load the JS extension \""

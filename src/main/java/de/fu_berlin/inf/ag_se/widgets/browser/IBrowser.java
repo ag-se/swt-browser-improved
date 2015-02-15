@@ -154,6 +154,23 @@ public interface IBrowser {
     Future<Void> injectJavascriptFile(File javascriptFile);
 
     /**
+     * Injects the Javascript addressed by the given URI and returns
+     * a {@link java.util.concurrent.Future} that blocks until
+     * the script is completely loaded.
+     * In contrast to {@link #run(java.net.URI)} the script tag is kept after the execution.
+     *
+     * @param scriptURI an URI to the Javascript code to be injected
+     * @return a boolean future that blocks until script is loaded completely
+     *
+     * @throws NullPointerException if scriptURI is null
+     * @ArbitraryThread may be called from whatever thread.
+     */
+    Future<Boolean> injectJavascriptURI(URI scriptURI);
+
+    /**
+     * Deprecated as it does not work reliably. Depending on how much of the
+     * page is already loaded it may have no effect.
+     *
      * Adds the content of the Javascript contained in the given file
      * to the current website immediately.
      * For that a new script tag is added to HTML head linking to
@@ -165,6 +182,7 @@ public interface IBrowser {
      * @param javascriptFile the file containing the Javascript to be injected
      * @throws NullPointerException if javascriptFile is null
      */
+    @Deprecated
     void injectJavascriptFileImmediately(File javascriptFile);
 
     /**
@@ -182,11 +200,15 @@ public interface IBrowser {
     Future<Void> injectCssFile(URI uri);
 
     /**
+     * Deprecated as it does not work reliably. Depending on how much of the
+     * page is already loaded it may have no effect.
+     *
      * Includes the given URI as a cascading style sheet immediately.
      *
      * @param uri the URI to the CSS file to be injected
      * @throws NullPointerException if uri is null
      */
+    @Deprecated
     void injectCssFileImmediately(URI uri);
 
     /**
@@ -205,6 +227,9 @@ public interface IBrowser {
     Future<Void> injectCss(String css);
 
     /**
+     * Deprecated as it does not work reliably. Depending on how much of the
+     * page is already loaded it may have no effect.
+     *
      * Adds the given CSS code to the current website immediately.
      * For that a new style tag is added inside the HTML head.
      *
@@ -214,21 +239,8 @@ public interface IBrowser {
      * @param css the CSS to be injected as string
      * @throws NullPointerException if css is null
      */
+    @Deprecated
     void injectCssImmediately(String css);
-
-    /**
-     * Injects the Javascript addressed by the given URI and returns
-     * a {@link java.util.concurrent.Future} that blocks until
-     * the script is completely loaded.
-     * In contrast to {@link #run(java.net.URI)} the script tag is kept after the execution.
-     *
-     * @param scriptURI an URI to the Javascript code to be injected
-     * @return a boolean future that blocks until script is loaded completely
-     *
-     * @throws NullPointerException if scriptURI is null
-     * @ArbitraryThread may be called from whatever thread.
-     */
-    Future<Boolean> inject(URI scriptURI);
 
     /**
      * Runs the Javascript contained in the given file in the browser as soon as
@@ -246,11 +258,11 @@ public interface IBrowser {
      * Runs the Javascript addressed by the given URI in the browser as soon as
      * loading is completed.
      *
-     * In contrast to {@link #inject(java.net.URI)} functionality made available
+     * In contrast to {@link #injectJavascriptURI(java.net.URI)} functionality made available
      * through the script does not persist.
      * Exception: If the resource is an actual file on the local file system, its
      * content will be run and therefore persisted to circumvent security restrictions.
-     * To inject script libraries like jQuery {@link #inject(java.net.URI)} is recommended.
+     * To inject script libraries like jQuery {@link #injectJavascriptURI(java.net.URI)} is recommended.
      *
      * @param scriptURI URI to the Javascript code to be executed
      * @return a boolean future that blocks until script is loaded completely
@@ -290,11 +302,11 @@ public interface IBrowser {
      * This methods runs the given Javascript asynchronously and registers a callback
      * that gets executed after the completion.
      *
-     * @param script the Javascript to be executed
+     * @param script   the Javascript to be executed
      * @param callback the callback function to execute after script completion
      * @throws NullPointerException if script or callback is null
      */
-    void asyncRun(String script, CallbackFunction<Object> callback);
+    <T> Future<T> run(String script, CallbackFunction<Object, T> callback);
 
     /**
      * Runs the given script in the browser as soon as loading is completed
@@ -303,39 +315,56 @@ public interface IBrowser {
      * @param script    the Javascript code to be executed as string
      * @param converter a converter for the return value
      * @return a future of the converted return value
-     * @throws NullPointerException if script or converter is null
      *
+     * @throws NullPointerException if script or converter is null
      * @ArbitraryThread may be called from whatever thread.
      */
     <DEST> Future<DEST> run(String script, IConverter<Object, DEST> converter);
 
     /**
+     *
+     * @param script
+     * @param converter
+     * @param callback
+     * @param <T>
+     * @param <DEST>
+     * @return
+     */
+    <T, DEST> Future<T> run(String script, IConverter<Object, DEST> converter, CallbackFunction<DEST, T> callback);
+
+    /**
+     * Deprecated as it does not work reliably. Depending on how much of the
+     * page is already loaded it may have no effect.
      * Runs the script contained in the given {@link java.io.File} in the browser immediately.
      * This means the file is not linked but its content is read and directly executed.
      *
      * In contrast to non-immediately run methods, it does not wait for the current URL to be loaded.
      *
      * @param scriptFile a file object pointing to the Javascript code
-     * @throws IOException if an error occurred while accessing the given file
+     * @throws IOException          if an error occurred while accessing the given file
      * @throws NullPointerException if scriptFile is null
      * @ArbitraryThread may be called from whatever thread.
      */
-    void runContentImmediately(File scriptFile) throws IOException;
+    Future<Void> runContent(File scriptFile) throws IOException;
 
     /**
-     * Runs the script contained in the given {@link java.io.File} in the browser immediately.
+     * Runs the script contained in the given {@link java.io.File} in the browser.
      * This means the file is not linked but its content is directly put into a script tag.
      *
-     * In contrast to non-immediately run methods, it does not wait for the current URL to be loaded.
+     * In contrast to immediately run methods, it does not wait for the current URL to be loaded
+     * completely.
      *
      * @param scriptFile a file object pointing to the Javascript code
-     * @throws IOException if an error occurred while accessing the given file
+     * @throws IOException          if an error occurred while accessing the given file
      * @throws NullPointerException if scriptFile is null
      * @ArbitraryThread may be called from whatever thread.
      */
-    void runContentAsScriptTagImmediately(File scriptFile) throws IOException;
+    Future<Void> runContentAsScriptTag(File scriptFile) throws IOException;
 
     /**
+     * Deprecated as it does not work reliably. Depending on how much of the
+     * page is already loaded it may have no effect.
+     *
      * Runs the given script in the browser immediately and
      * returns the evaluation's converted return value.
      *
@@ -344,11 +373,30 @@ public interface IBrowser {
      * @param script    the Javascript code as string
      * @param converter a converter for the return value
      * @return a future of the converted return value
-     * @throws NullPointerException if script or converter is null
      *
+     * @throws NullPointerException if script or converter is null
      * @ArbitraryThread may be called from whatever thread.
      */
+    @Deprecated
     <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter);
+
+    /**
+     * Deprecated as it does not work reliably. Depending on how much of the
+     * page is already loaded it may have no effect.
+     *
+     * Runs the given script in the browser immediately and
+     * returns the evaluation's converted return value.
+     *
+     * In contrast to non-immediately run methods, it does not wait for the current URL to be loaded.
+     *
+     * @param script    the Javascript code as string
+     * @return a future of the converted return value
+     *
+     * @throws NullPointerException if script or converter is null
+     * @ArbitraryThread may be called from whatever thread.
+     */
+    @Deprecated
+    Object runImmediately(String script);
 
     /**
      * Sets a {@link ParametrizedRunnable}
@@ -374,6 +422,7 @@ public interface IBrowser {
      *
      * @param id the element ID to look for
      * @return a boolean future containing the result of the search
+     *
      * @throws NullPointerException if id is null
      */
     Future<Boolean> containsElementWithID(String id);
@@ -385,6 +434,7 @@ public interface IBrowser {
      *
      * @param name the element name to look for
      * @return a boolean future containing the result of the search
+     *
      * @throws NullPointerException if name is null
      */
     Future<Boolean> containsElementsWithName(String name);
@@ -398,6 +448,7 @@ public interface IBrowser {
      *
      * @param html a string representing the HTML body's new content
      * @return a future to check whether the delayed execution has happened
+     *
      * @throws NullPointerException if html is null
      */
     Future<Void> setBodyHtml(String html);
@@ -420,14 +471,18 @@ public interface IBrowser {
      */
     Future<String> getHtml();
 
+    <T> Future<T> getHtml(CallbackFunction<String, T> callbackFunction);
+
     /**
      * Inserts the given html at the current caret / cursor position
      * after the page has been loaded.
      * The execution of this method may be delayed.
      * The returned {@link java.util.concurrent.Future} can be used to check
      * if it has happened.
+     *
      * @param html the HTML to paste as string
      * @return a future to check whether the delayed execution has happened
+     *
      * @throws NullPointerException if html is null
      */
     Future<Void> pasteHtmlAtCaret(String html);
@@ -473,6 +528,7 @@ public interface IBrowser {
      * @param functionName the of the function in Javascript
      * @param function     the Java code to be executed
      * @return the created function
+     *
      * @throws NullPointerException if functionName or function is null
      */
     IBrowserFunction createBrowserFunction(String functionName,

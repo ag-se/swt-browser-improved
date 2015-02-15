@@ -92,27 +92,27 @@ if (!window.console) console = {log: function() {}};
 
 console.log = function() {
     window.__consoleLog.apply(this, serialize(arguments));
-}
+};
 
 console.error = function() {
 	window.__consoleError.apply(this, serialize(arguments));
-}
+};
 
-    navigator.sayswho= (function(){
-        var ua= navigator.userAgent, tem,
-        M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
-        if(/trident/i.test(M[1])){
-            tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
-            return 'IE '+(tem[1] || '');
-        }
-        if(M[1]=== 'Chrome'){
-            tem= ua.match(/\bOPR\/(\d+)/)
-            if(tem!= null) return 'Opera '+tem[1];
-        }
-        M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
-        if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
-        return M.join(' ');
-    })();
+navigator.sayswho= (function(){
+    var ua= navigator.userAgent, tem,
+    M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+    if(/trident/i.test(M[1])){
+        tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+        return 'IE '+(tem[1] || '');
+    }
+    if(M[1]=== 'Chrome'){
+        tem= ua.match(/\bOPR\/(\d+)/)
+        if(tem!= null) return 'Opera '+tem[1];
+    }
+    M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+    if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+    return M.join(' ');
+})();
 
 
 window.__addFocusBorder = function() {
@@ -249,9 +249,9 @@ window['__notifySize'] = function() {
 		$('#size-debug').css({ left: bounds.x+1 + "px", top: bounds.y+1 + "px", width: bounds.w-2 + "px", height: bounds.h-2 + "px" });
 	}
 	if (window["__resize"] && typeof window["__resize"]) window["__resize"](bounds.x, bounds.y, bounds.w-bounds.x, bounds.h-bounds.y);
-}
+};
 
-var debouncingNotifySize = jQuery.debounce(150, window['__notifySize']);
+var debouncingNotifySize = $.debounce(150, window['__notifySize']);
 $(document).ready(function() {
 	window.setTimeout(debouncingNotifySize, 1);
 });

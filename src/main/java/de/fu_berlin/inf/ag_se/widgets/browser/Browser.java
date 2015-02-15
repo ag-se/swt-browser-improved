@@ -151,6 +151,7 @@ public class Browser extends Composite implements IBrowser {
         return internalBrowser.injectJsFile(javascriptFile);
     }
 
+    @Deprecated
     @Override
     public void injectJavascriptFileImmediately(File javascriptFile) {
         checkNotNull(javascriptFile);
@@ -182,7 +183,7 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public Future<Boolean> inject(URI scriptURI) {
+    public Future<Boolean> injectJavascriptURI(URI scriptURI) {
         checkNotNull(scriptURI);
         return internalBrowser.inject(scriptURI);
     }
@@ -212,10 +213,10 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public void asyncRun(String script, CallbackFunction<Object> callback) {
+    public <T> Future<T> run(String script, CallbackFunction<Object, T> callback) {
         checkNotNull(script);
         checkNotNull(callback);
-        internalBrowser.syncRun(script, callback);
+        return internalBrowser.runWithCallback(run(script), callback);
     }
 
     @Override
@@ -226,15 +227,23 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public void runContentImmediately(File scriptFile) throws IOException {
-        checkNotNull(scriptFile);
-        internalBrowser.runContentsImmediately(scriptFile);
+    public <T, DEST> Future<T> run(String script, IConverter<Object, DEST> converter, CallbackFunction<DEST, T> callback) {
+        checkNotNull(script);
+        checkNotNull(converter);
+        checkNotNull(callback);
+        return internalBrowser.runWithCallback(run(script, converter), callback);
     }
 
     @Override
-    public void runContentAsScriptTagImmediately(File scriptFile) throws IOException {
+    public Future<Void> runContent(File scriptFile) throws IOException {
         checkNotNull(scriptFile);
-        internalBrowser.runContentsAsScriptTagImmediately(scriptFile);
+        return internalBrowser.runContent(scriptFile);
+    }
+
+    @Override
+    public Future<Void> runContentAsScriptTag(File scriptFile) throws IOException {
+        checkNotNull(scriptFile);
+        return internalBrowser.runContentsAsScriptTag(scriptFile);
     }
 
     @Override
@@ -242,6 +251,12 @@ public class Browser extends Composite implements IBrowser {
         checkNotNull(script);
         checkNotNull(converter);
         return internalBrowser.runImmediately(script, converter);
+    }
+
+    @Override
+    public Object runImmediately(String script) {
+        checkNotNull(script);
+        return internalBrowser.runImmediately(script);
     }
 
     @Override
@@ -282,6 +297,11 @@ public class Browser extends Composite implements IBrowser {
     @Override
     public Future<String> getHtml() {
         return run("return document.documentElement.outerHTML", IConverter.CONVERTER_STRING);
+    }
+
+    @Override
+    public <T> Future<T> getHtml(CallbackFunction<String, T> callbackFunction) {
+        return internalBrowser.runWithCallback(getHtml(), callbackFunction);
     }
 
     @Override

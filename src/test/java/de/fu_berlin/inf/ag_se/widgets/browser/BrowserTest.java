@@ -26,7 +26,7 @@ public class BrowserTest {
         final int numRuns = 200;
         final int numThreads = 5;
 
-        Display display = new Display();
+        Display display = Display.getDefault();
         final Shell shell = new Shell(display);
 
         shell.setLayout(new FillLayout());

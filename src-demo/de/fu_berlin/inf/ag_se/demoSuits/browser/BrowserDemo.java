@@ -100,19 +100,24 @@ public class BrowserDemo extends AbstractDemo {
                 new Runnable() {
                     @Override
                     public void run() {
-                        new Thread(new Runnable() {
+                        String newColor = ColorUtils.getRandomRGB().toDecString();
+                        log("changing background to " + newColor);
+                        final Future<Void> voidFuture = browser
+                                .injectCss("html, body { background-color: " + newColor + "; }");
+                        UIThreadAwareScheduledThreadPoolExecutor.getInstance().asyncUIExec(new Runnable() {
                             @Override
                             public void run() {
-                                log("changing background");
                                 try {
-                                    browser.injectCss("html, body { background-color: "
-                                            + ColorUtils.getRandomRGB().toDecString() + "; }");
-                                } catch (Exception e) {
-                                    log(e.toString());
+                                    voidFuture.get();
+                                    log("changed background");
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                } catch (ExecutionException e) {
+                                    log("could not change background: ");
+                                    log(e);
                                 }
-                                log("changed background");
                             }
-                        }).start();
+                        });
                     }
                 });
 
@@ -137,10 +142,11 @@ public class BrowserDemo extends AbstractDemo {
         this.createControlButton("raise runtime exception", new Runnable() {
             @Override
             public void run() {
-                browser.asyncRun("alert(x);", new CallbackFunction<Object>() {
+                browser.run("alert(x);", new CallbackFunction<Object, Void>() {
                     @Override
-                    public void run(Object input, RuntimeException e) {
+                    public Void apply(Object input, Exception e) {
                         log(e);
+                        return null;
                     }
                 });
             }
@@ -243,22 +249,24 @@ public class BrowserDemo extends AbstractDemo {
             }
         });
 
-        final Future<Boolean> success = browser.open("http://inf.fu-berlin.de", Integer.parseInt(timeoutString));
-//        UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
-//            @Override
-//            public void run() {
-//                try {
-//                    if (success.get()) {
-//                        log("Page loaded successfully");
-//                    } else {
-//                        log("Page load timed out");
-//                    }
-//                } catch (Exception e) {
-//                    log(e.getMessage());
-//                }
-//                log(browser.getUrl());
-//            }
-//        });
+//        final Future<Boolean> success = browser.openBlank();
+        final Future<Boolean> success = browser.openBlank();
+//        final Future<Boolean> success = browser.open("https://google.de", Integer.parseInt(timeoutString));
+        UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (success.get()) {
+                        log("Page loaded successfully");
+                    } else {
+                        log("Page load timed out");
+                    }
+                } catch (Exception e) {
+                    log(e.getMessage());
+                }
+                log(browser.getUrl());
+            }
+        });
     }
 
     public static void main(String[] args) throws InterruptedException {

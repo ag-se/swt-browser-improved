@@ -11,7 +11,6 @@ import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.ParametrizedRunnable;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
@@ -285,7 +284,7 @@ public class InternalBrowserWrapper {
      */
     private void activateExceptionHandling() {
         try {
-            runImmediately(JavascriptString.getExceptionForwardingScript("__error_callback"), IConverter.CONVERTER_VOID);
+            run(JavascriptString.getExceptionForwardingScript("__error_callback"), IConverter.CONVERTER_VOID);
         } catch (ScriptExecutionException e) {
             LOGGER.error("Error activating browser's exception handling. JavaScript exceptions are not detected!", e);
         }
@@ -310,7 +309,7 @@ public class InternalBrowserWrapper {
         });
         String checkScript = JavascriptString.createWaitForConditionJavascript(condition, randomFunctionName);
 
-        runImmediately(checkScript, IConverter.CONVERTER_VOID);
+        run(checkScript, IConverter.CONVERTER_VOID);
         try {
             countDownLatch.await();
         } catch (InterruptedException e) {
@@ -364,7 +363,6 @@ public class InternalBrowserWrapper {
 
     <DEST> Future<DEST> run(final String script,
                             final IConverter<Object, DEST> converter) {
-        Assert.isLegal(converter != null);
         return browserStatusManager.createFuture(new ScriptExecutingCallable<DEST>(this, converter, script));
     }
 
@@ -380,16 +378,16 @@ public class InternalBrowserWrapper {
      * @throws ScriptExecutionException if an exception occurs while executing the script
      * @throws IOException              if an exception occurs while reading the passed file
      */
-    void runContentsImmediately(File scriptFile) throws IOException {
-        runImmediately(FileUtils.readFileToString(scriptFile), IConverter.CONVERTER_VOID);
+    Future<Void> runContent(File scriptFile) throws IOException {
+        return run(FileUtils.readFileToString(scriptFile), IConverter.CONVERTER_VOID);
     }
 
     /**
      * @throws ScriptExecutionException if an exception occurs while executing the script
      * @throws IOException              if an exception occurs while reading the passed file
      */
-    void runContentsAsScriptTagImmediately(File scriptFile) throws IOException {
-        runImmediately(JavascriptString.embedContentsIntoScriptTag(scriptFile), IConverter.CONVERTER_VOID);
+    Future<Void> runContentsAsScriptTag(File scriptFile) throws IOException {
+        return run(JavascriptString.embedContentsIntoScriptTag(scriptFile), IConverter.CONVERTER_VOID);
     }
 
     void executeBeforeScript(Function<String> runnable) {
@@ -633,26 +631,22 @@ public class InternalBrowserWrapper {
         }
     }
 
-    public void syncRun(final String script, final CallbackFunction<Object> callback) {
-        UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Runnable() {
+    <T> Future<T> syncRun(final String script, final CallbackFunction<Object, T> callback) {
+        return runWithCallback(InternalBrowserWrapper.this.run(script), callback);
+    }
+
+    <V, T> Future<T> runWithCallback(final Future<V> future, final CallbackFunction<V, T> callback) {
+        return UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new Callable<T>() {
             @Override
-            public void run() {
-                Object returnValue = null;
+            public T call() throws InterruptedException {
+                V returnValue = null;
                 RuntimeException exception = null;
                 try {
-                    returnValue = InternalBrowserWrapper.this.run(script).get();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
+                    returnValue = future.get();
                 } catch (ExecutionException e) {
                     exception = (RuntimeException) e.getCause();
                 }
-                UIThreadAwareScheduledThreadPoolExecutor.getInstance().submit(new ParametrizedRunnable<Object>(returnValue, exception) {
-                    @Override
-                    public void run(Object input, RuntimeException exception) {
-                        callback.run(input, exception);
-                    }
-                });
+                return callback.apply(returnValue, exception);
             }
         });
     }

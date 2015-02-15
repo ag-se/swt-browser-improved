@@ -1,6 +1,6 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.functions;
 
-public interface CallbackFunction<V> {
+public interface CallbackFunction<V, T> {
 
-    void run(V input, RuntimeException e);
+    T apply(V input, Exception e);
 }
