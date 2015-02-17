@@ -14,6 +14,12 @@ import java.util.concurrent.Future;
 
 /**
  * This interface encapsulates a broad range of functionality of a web browser.
+ * Its main features are the opening of URLs and the execution or injection of Javascript
+ * or CSS code.
+ * The difference between injection and execution is that generally injected code remains in
+ * the website.
+ * Most of the execution and injection methods are delayed until the website is fully loaded
+ * because otherwise their result would be undetermined.
  */
 @SuppressWarnings("UnusedDeclaration")
 public interface IBrowser {
@@ -23,6 +29,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param uri     the URI to open given as string
      * @param timeout the time after which the browser stops loading
@@ -39,6 +49,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param uri                 the URI to open given as string
      * @param timeout             the time after which the browser stops loading
@@ -58,6 +72,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param uri     the URI to load
      * @param timeout the time after which the browser stops loading
@@ -90,6 +108,10 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
+     *
      * @param uri      the URI to load
      * @param timeout  the time after which the browser stops loading
      *                 if zero or a negative value is supplied, no timeout is used
@@ -105,6 +127,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param uri                 the URI to load
      * @param timeout             the time after which the browser stops loading
@@ -144,6 +170,10 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
+     *
      * @param uri      the URI to load
      * @param timeout  the time after which the browser stops loading
      *                 if zero or a negative value is supplied, no timeout is used
@@ -160,6 +190,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @return a boolean future indicating whether the page could be loaded successfully
      */
@@ -203,6 +237,10 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
+     *
      * @param javaScriptExpression the Javascript expression to be evaluated
      * @return a future that is done when the condition is met
      *
@@ -217,6 +255,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param javaScriptExpression the Javascript expression to be evaluated
      * @param callback             the function to be executed when the condition is fulfilled
@@ -236,6 +278,8 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * The added runnable will be called from a non-UI thread.
+     *
      * @param runnable the runnable to be executed
      * @throws NullPointerException if the runnable is null1
      */
@@ -253,6 +297,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param javascriptFile the file containing the Javascript to be injected
      * @return a future to check whether the delayed execution has happened
@@ -274,6 +322,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param scriptURI the URI to the Javascript code to be injected
      * @return a boolean future that blocks until script is loaded completely
@@ -312,6 +364,10 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
+     *
      * @param cssURI the URI to the CSS to be injected
      * @return a boolean future to check whether the delayed execution was successful
      *
@@ -344,6 +400,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param css the CSS to be injected as string
      * @return a boolean future to check whether the delayed execution was successful
@@ -378,6 +438,10 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
+     *
      * @param css      the CSS to be injected as string
      * @param callback the callback function to be executed after the injection
      * @return a future containing the return value of the callback function
@@ -397,6 +461,10 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
+     *
      * @param scriptFile file object pointing to the script to be executed
      * @return a boolean future that blocks until script is has been executed
      *
@@ -414,11 +482,15 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
+     *
      * @param scriptFile a file object pointing to the Javascript code
      * @return a boolean future that blocks until script is has been executed
      *
      * @throws NullPointerException if scriptFile is null
-     * @throws IOException if a exception is thrown while accessing the file
+     * @throws IOException          if a exception is thrown while accessing the file
      */
     Future<Boolean> runContentAsScriptTag(File scriptFile) throws IOException;
 
@@ -438,6 +510,10 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
+     *
      * @param scriptURI URI to the Javascript code to be executed
      * @return a boolean future that blocks until script is has been executed
      *
@@ -453,6 +529,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param script the Javascript code to be executed as string
      * @return an object future that blocks until script is has been executed
@@ -485,6 +565,10 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
+     *
      * @param script   the Javascript to be executed
      * @param callback the callback function to execute after completion
      * @return a future containing the return value of the callback function
@@ -499,6 +583,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param script    the Javascript code to be executed as string
      * @param converter a converter for the return value
@@ -532,6 +620,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param script    the Javascript code to be executed as string
      * @param converter a converter for the return value
@@ -569,6 +661,10 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
+     *
      * @param id the element ID to look for
      * @return a boolean future containing the result of the search
      *
@@ -583,6 +679,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param name the element name to look for
      * @return a boolean future containing the result of the search
@@ -601,6 +701,10 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
+     *
      * @param html a string representing the HTML body's new content
      * @return a future to check whether the delayed execution has successful
      *
@@ -616,6 +720,10 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
+     *
      * @return a string future containing the body's inner HTML
      */
     Future<String> getBodyHtml();
@@ -628,6 +736,10 @@ public interface IBrowser {
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
+     *
      * @return a string future containing the document's inner HTML
      */
     Future<String> getHtml();
@@ -638,6 +750,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param callback the callback function to be executed
      * @return a future containing the return value of the callback function
@@ -655,6 +771,10 @@ public interface IBrowser {
      *
      * May be called from whatever thread. Note, however, that {@link Future#get()} may not
      * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * Important note: Anyone interested in whether this method has executed successfully or
+     * in thrown exceptions has to query the returned future because this method does not throw any
+     * exception (except by illegal use).
      *
      * @param html the HTML to paste as string
      * @return a future to check whether the delayed execution has happened

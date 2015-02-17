@@ -102,6 +102,7 @@ public class BrowserStatusManager {
                     throw new UnexpectedBrowserStateException("Cannot switch from "
                             + this.browserStatus + " to " + browserStatus);
                 }
+                break;
             case DISPOSED:
                 throw new UnexpectedBrowserStateException("Cannot switch from "
                         + this.browserStatus + " to " + browserStatus);

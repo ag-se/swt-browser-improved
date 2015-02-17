@@ -3,6 +3,7 @@ package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
+import de.fu_berlin.inf.ag_se.widgets.browser.JavascriptString;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.IBrowserExtension;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.widgets.Composite;
@@ -37,8 +38,10 @@ public class ExtendedBrowser extends Browser {
             @Override
             public void run() {
                 for (IBrowserExtension extension : ExtendedBrowser.this.extensions) {
-                    if (!addExtensionOnce(extension)) {
-                        LOGGER.error("Error loading " + extension);
+                    if (!hasExtension(extension)) {
+                        if (!addExtension(extension)) {
+                            LOGGER.error("Error loading " + extension);
+                        }
                     }
                 }
             }
@@ -46,13 +49,11 @@ public class ExtendedBrowser extends Browser {
     }
 
     private Boolean hasExtension(IBrowserExtension extension) {
-        return syncRun(extension.getVerificationScript(),
-                IConverter.CONVERTER_BOOLEAN);
+        return runImmediately(extension.getVerificationScript(), IConverter.CONVERTER_BOOLEAN);
     }
 
     private Boolean addExtension(IBrowserExtension extension) {
-        for (Class<? extends IBrowserExtension> dependencyClass : extension
-                .getDependencies()) {
+        for (Class<? extends IBrowserExtension> dependencyClass : extension.getDependencies()) {
             try {
                 IBrowserExtension dependency = dependencyClass.newInstance();
                 if (!this.addExtension(dependency)) {
@@ -62,55 +63,45 @@ public class ExtendedBrowser extends Browser {
                             + extension.getName());
                 }
             } catch (IllegalAccessException e) {
-                LOGGER.warn(
-                        "Cannot instantiate dependency "
-                                + dependencyClass.getSimpleName()
-                                + ". Skipping.", e);
+                LOGGER.error("Cannot instantiate dependency " + dependencyClass.getSimpleName(), e);
+                return false;
             } catch (InstantiationException e) {
-                LOGGER.warn(
-                        "Cannot instantiate dependency "
-                                + dependencyClass.getSimpleName()
-                                + ". Skipping.", e);
+                LOGGER.error("Cannot instantiate dependency " + dependencyClass.getSimpleName(), e);
+                return false;
             }
         }
 
-        boolean success = true;
         for (File jsExtension : extension.getJsExtensions()) {
+            // by running the extension directly we execute it synchronously
+            // otherwise a loader library would be necessary to satisfy the
+            // loading dependencies
             try {
-                // by running the extension directly we execute it synchronously
-                // otherwise a loader library would be necessary to satisfy the
-                // loading dependencies
-                runContentAsScriptTag(jsExtension);
+                if (runImmediately(JavascriptString.embedContentsIntoScriptTag(jsExtension), IConverter.CONVERTER_BOOLEAN)) {
+                    LOGGER.error("Could not load the JS extension \"" + extension.getName() + "\".");
+                    return false;
+                }
             } catch (RuntimeException e) {
-                LOGGER.error(
-                        "Could not load the JS extension \""
-                                + extension.getName() + "\".", e);
-                success = false;
+                LOGGER.error("Could not load the JS extension \"" + extension.getName() + "\".", e);
+                return false;
             } catch (IOException e) {
-                LOGGER.error(
-                        "Could not load the JS extension \""
-                                + extension.getName() + "\".", e);
-                success = false;
+                LOGGER.error("Could not load the JS extension \"" + extension.getName() + "\".", e);
             }
+            LOGGER.info("Loaded \"" + jsExtension + " successfully.");
         }
+
         for (URI cssExtension : extension.getCssExtensions()) {
             try {
-                injectCssURI(cssExtension);
+                if (!runImmediately(JavascriptString.createCssFileInjectionScript(cssExtension), IConverter.CONVERTER_BOOLEAN)) {
+                    LOGGER.error("Could not load the JS extension \"" + extension.getName() + "\".");
+                    return false;
+                }
             } catch (RuntimeException e) {
-                LOGGER.error(
-                        "Could not load the JS extension \""
-                                + extension.getName() + "\".", e);
-                success = false;
+                LOGGER.error("Could not load the JS extension \"" + extension.getName() + "\".", e.getCause());
+                return false;
             }
+            LOGGER.info("Loaded \"" + cssExtension + " successfully.");
         }
 
-        return success;
-    }
-
-    private Boolean addExtensionOnce(IBrowserExtension extension) {
-        if (!this.hasExtension(extension)) {
-            return this.addExtension(extension);
-        }
         return true;
     }
 }

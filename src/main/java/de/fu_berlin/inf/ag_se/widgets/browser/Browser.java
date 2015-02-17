@@ -138,7 +138,7 @@ public class Browser extends Composite implements IBrowser {
 
     @Override
     public Future<Boolean> openBlank() {
-        return open(BrowserUtils.createBlankHTMLFile(), 3000);
+        return open(BrowserUtils.createBlankHTMLFile(), 6000);
     }
 
     @Override
@@ -174,7 +174,7 @@ public class Browser extends Composite implements IBrowser {
     @Override
     public void executeAfterCompletion(Runnable runnable) {
         checkNotNull(runnable);
-        internalBrowser.executeBeforeCompletion(runnable);
+        internalBrowser.executeAfterCompletion(runnable);
     }
 
     @Override
@@ -242,7 +242,7 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public Future<Boolean> runContentAsScriptTag(File scriptFile) throws IOException{
+    public Future<Boolean> runContentAsScriptTag(File scriptFile) throws IOException {
         checkNotNull(scriptFile);
         return internalBrowser.runContentAsScriptTag(scriptFile);
     }
@@ -290,6 +290,20 @@ public class Browser extends Composite implements IBrowser {
             checkNotUIThread();
         }
         return internalBrowser.syncRun(script, converter);
+    }
+
+    /**
+     * Use with care!
+     * This method is just for internal usage. It may be useful for browser extensions' afterComplete scripts as they get executed before
+     * the status
+     * is set to loaded, but the browser status is fairly defined.
+     *
+     * @param script the script to be executed
+     * @param converter the converter for the return value
+     * @return the converted return value
+     */
+    protected <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter) {
+        return internalBrowser.runImmediately(script, converter);
     }
 
     @Override

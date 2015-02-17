@@ -58,7 +58,7 @@ public class InternalBrowserWrapper {
 
     private List<Callable<Object>> afterLoading = new ArrayList<Callable<Object>>();
 
-    private List<Callable<Object>> beforeCompletion = new ArrayList<Callable<Object>>();
+    private List<Callable<Object>> afterCompletion = new ArrayList<Callable<Object>>();
 
     private List<Function<String>> beforeScripts = new ArrayList<Function<String>>();
 
@@ -261,14 +261,14 @@ public class InternalBrowserWrapper {
     }
 
     /**
-     * This method is called by {@link #waitAndComplete(String)} and post processes the loaded page. <ol> <li>calls beforeCompletion</li>
+     * This method is called by {@link #waitAndComplete(String)} and post processes the loaded page. <ol> <li>calls afterCompletion</li>
      * <li>injects necessary scripts</li> <li>runs the scheduled user scripts</li> </ol>
      */
     private void complete() {
         activateExceptionHandling();
 
         try {
-            executor.invokeAll(beforeCompletion);
+            executor.invokeAll(afterCompletion);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -667,8 +667,8 @@ public class InternalBrowserWrapper {
         afterLoading.add(Executors.callable(runnable));
     }
 
-    void executeBeforeCompletion(Runnable runnable) {
-        beforeCompletion.add(Executors.callable(runnable));
+    void executeAfterCompletion(Runnable runnable) {
+        afterCompletion.add(Executors.callable(runnable));
     }
 
     /**

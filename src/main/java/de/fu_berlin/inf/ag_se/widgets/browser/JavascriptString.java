@@ -45,7 +45,7 @@ public class JavascriptString {
                         + "\"; document.getElementsByTagName(\"head\")[0].appendChild(script);";
     }
 
-    static String createCssFileInjectionScript(URI uri) {
+    public static String createCssFileInjectionScript(URI uri) {
         return "if(document.createStyleSheet){document.createStyleSheet(\""
                 + uri.toString()
                 + "\")}else{var link=document.createElement(\"link\"); link.rel=\"stylesheet\"; link.type=\"text/css\"; link.href=\""

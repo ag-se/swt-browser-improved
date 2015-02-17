@@ -195,7 +195,7 @@ public class BrowserUtils {
         try {
             empty = File.createTempFile("blank", ".html");
             FileUtils.writeStringToFile(empty,
-                    "<html><head></head><body></body></html>", "UTF-8");
+                    "<!DOCTYPE html><html><head></head><body></body></html>", "UTF-8");
         } catch (IOException e) {
             LOGGER.error("Error creating blank.html in temp folder.", e);
         }

@@ -1,13 +1,13 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions;
 
+import de.fu_berlin.inf.ag_se.utils.Assert;
+import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
+
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import de.fu_berlin.inf.ag_se.utils.Assert;
-import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
 
 /**
  * This standard implementation of the {@link IBrowserExtension} can extend
@@ -17,7 +17,7 @@ import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
  * the file is on the local machine it is loaded inline. Otherwise a
  * <code>script</code> tag is generated.
  * <p>
- * TODO Currently the loading of external ressources does not work reliably.
+ * TODO Currently the loading of external resources does not work reliably.
  * This can lead to waiting threads which are never notified.
  * 
  * @author bkahlert

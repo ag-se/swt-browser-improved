@@ -6,14 +6,19 @@ import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
 
 import java.util.concurrent.Future;
 
+/**
+ * Apart from the additional methods.
+ * The main difference between instances of {@link IBrowser} and {@link IJQueryBrowser} is that the run methods
+ * in the latter may execute JQuery code.
+ */
 public interface IJQueryBrowser extends IBrowser {
 
 	/**
-	 * Returns a {@link java.util.concurrent.Future} that tells you if at least one element can be
-	 * found with the given {@link de.fu_berlin.inf.ag_se.widgets.browser.extended.ISelector}.
+	 * Returns a {@link Future} that tells you if at least one element can be
+	 * found with the given {@link ISelector}.
 	 * 
-	 * @param name
-	 * @return
+	 * @param selector the selector to look for in the website
+	 * @return a boolean future indicating the presence of the element
 	 */
 	public Future<Boolean> containsElement(ISelector selector);
 

@@ -5,6 +5,7 @@ import de.fu_berlin.inf.ag_se.utils.StringUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.JQueryBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
+import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
@@ -19,7 +20,6 @@ import org.eclipse.swt.widgets.Text;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.concurrent.Future;
 
 public class JQueryBrowserDemo extends AbstractDemo {
 
@@ -37,18 +37,14 @@ public class JQueryBrowserDemo extends AbstractDemo {
                 executor.execute(new Runnable() {
                     @Override
                     public void run() {
-                        log("scrolling to " + JQueryBrowserDemo.this.x + ", "
-                                + JQueryBrowserDemo.this.y);
+                        log("scrolling to " + x + ", " + y);
                         try {
-                            if (JQueryBrowserDemo.this.browser
-                                    .scrollTo(JQueryBrowserDemo.this.x,
-                                            JQueryBrowserDemo.this.y).get()) {
+                            if (browser.scrollTo(x, y).get()) {
                                 log("Scrolled");
                             } else {
                                 log("Already at desired position");
                             }
-                            log("scrolled to " + JQueryBrowserDemo.this.x
-                                    + ", " + JQueryBrowserDemo.this.y);
+                            log("scrolled to " + x + ", " + y);
                         } catch (Exception e) {
                             log(e.getMessage());
                         }
@@ -58,12 +54,11 @@ public class JQueryBrowserDemo extends AbstractDemo {
         });
 
         Text xText = new Text(composite, SWT.BORDER);
-        xText.setText(this.x + "");
+        xText.setText(x + "");
         xText.addModifyListener(new ModifyListener() {
             @Override
             public void modifyText(ModifyEvent e) {
-                JQueryBrowserDemo.this.x = Integer.valueOf(((Text) e
-                        .getSource()).getText());
+                x = Integer.valueOf(((Text) e.getSource()).getText());
             }
         });
 
@@ -72,14 +67,13 @@ public class JQueryBrowserDemo extends AbstractDemo {
         yText.addModifyListener(new ModifyListener() {
             @Override
             public void modifyText(ModifyEvent e) {
-                JQueryBrowserDemo.this.y = Integer.valueOf(((Text) e
-                        .getSource()).getText());
+                y = Integer.valueOf(((Text) e.getSource()).getText());
             }
         });
     }
 
     public void createDemo(Composite parent) {
-        this.browser = new JQueryBrowser(parent, SWT.BORDER);
+        browser = new JQueryBrowser(parent, SWT.BORDER);
         browser.executeBeforeScript(new Function<String>() {
             @Override
             public void run(String input) {
@@ -94,47 +88,46 @@ public class JQueryBrowserDemo extends AbstractDemo {
         });
 
         try {
-            final Future<Boolean> loaded = this.browser.open(
-                    new URI("http://amazon.com"), 60000);
-            this.browser.addAnchorListener(new IAnchorListener() {
+            browser.open(new URI("http://amazon.com"), 6000, new CallbackFunction<Boolean, Boolean>() {
                 @Override
-                public void anchorHovered(IAnchor anchor, boolean entered) {
-                    if (entered) {
-                        log("Anchor hovered over: " + anchor);
+                public Boolean apply(Boolean input, Exception e) {
+                    if (input) {
+                        log("loaded successfully");
                     } else {
-                        log("Anchor hovered out: " + anchor);
+                        log("loading failed");
                     }
-                }
-            });
-            this.browser.addFocusListener(new IFocusListener() {
-                @Override
-                public void focusGained(IElement element) {
-                    log("Focus gainedr: " + element);
-                }
-
-                @Override
-                public void focusLost(IElement element) {
-                    log("Focus lost: " + element);
-                }
-            });
-            this.browser.scrollTo(this.x, this.y);
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        if (loaded.get()) {
-                            log("loaded successfully");
-                        } else {
-                            log("loading failed");
-                        }
-                    } catch (Exception e) {
-                        log("loading error: " + e);
+                    if (e != null) {
+                        log("loading error:");
+                        log(e);
                     }
+                    return input;
                 }
             });
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+        browser.addAnchorListener(new IAnchorListener() {
+            @Override
+            public void anchorHovered(IAnchor anchor, boolean entered) {
+                if (entered) {
+                    log("Anchor hovered over: " + anchor);
+                } else {
+                    log("Anchor hovered out: " + anchor);
+                }
+            }
+        });
+        browser.addFocusListener(new IFocusListener() {
+            @Override
+            public void focusGained(IElement element) {
+                log("Focus gainedr: " + element);
+            }
+
+            @Override
+            public void focusLost(IElement element) {
+                log("Focus lost: " + element);
+            }
+        });
+        browser.scrollTo(this.x, this.y);
     }
 
     public static void main(String[] args) throws InterruptedException {

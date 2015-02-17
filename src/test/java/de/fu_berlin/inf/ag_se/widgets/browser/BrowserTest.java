@@ -18,13 +18,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
+import static org.junit.Assert.fail;
+
 public class BrowserTest {
 
     @Test
     public void testJavaScriptRunOrder() throws InterruptedException,
             ExecutionException {
 
-        final int numRuns = 200;
+        final int numRuns = 20;
         final int numThreads = 5;
 
         Display display = Display.getDefault();
@@ -32,21 +34,16 @@ public class BrowserTest {
 
         shell.setLayout(new FillLayout());
 
-        final List<String> scriptSubmitOrder = Collections
-                .synchronizedList(new ArrayList<String>());
-        final List<String> scriptExecutionOrder = Collections
-                .synchronizedList(new ArrayList<String>());
-        final Map<String, String> scriptResults = Collections
-                .synchronizedMap(new HashMap<String, String>());
-        final List<String> resultFinishedOrder = Collections
-                .synchronizedList(new ArrayList<String>());
-        final Browser browser = new Browser(shell,
-                SWT.NONE);
+        final List<String> scriptSubmitOrder = Collections.synchronizedList(new ArrayList<String>());
+        final List<String> scriptExecutionOrder = Collections.synchronizedList(new ArrayList<String>());
+        final Map<String, String> scriptResults = Collections.synchronizedMap(new HashMap<String, String>());
+        final List<String> resultFinishedOrder = Collections.synchronizedList(new ArrayList<String>());
+        final Browser browser = new Browser(shell, SWT.NONE);
 
         browser.executeBeforeScript(new Function<String>() {
             @Override
             public void run(String script) {
-                if (!script.contains("successfullyInjectedAnchorHoverCallback")) {
+                if (!script.contains("successfullyInjectedAnchorHoverCallback") && !script.contains("complete") && script.contains("document.write(")) {
                     scriptExecutionOrder.add(script);
                 }
             }
@@ -101,7 +98,8 @@ public class BrowserTest {
                         try {
                             f.get();
                         } catch (Exception e) {
-                            Assert.assertTrue(false);
+                            e.printStackTrace();
+                            fail();
                         }
                     }
                 }
@@ -110,7 +108,7 @@ public class BrowserTest {
             threads[thread].start();
         }
 
-        final Future<?> assertionJoin = new FutureTask<Void>(new Callable<Void>() {
+        final FutureTask<Void> assertionJoin = new FutureTask<Void>(new Callable<Void>() {
             @Override
             public Void call() {
                 for (Thread thread : threads) {
@@ -138,7 +136,9 @@ public class BrowserTest {
             }
         });
 
-        new Thread(new Runnable() {
+        new Thread(assertionJoin).start();
+
+        Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -153,7 +153,8 @@ public class BrowserTest {
                     }
                 });
             }
-        }).start();
+        });
+        thread.start();
 
         // Set up the event loop.
         while (!shell.isDisposed()) {
