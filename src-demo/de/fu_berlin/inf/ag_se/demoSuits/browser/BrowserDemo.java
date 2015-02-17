@@ -38,7 +38,7 @@ public class BrowserDemo extends AbstractDemo {
                     public void run() {
                         log("alerting");
                         try {
-                            browser.runImmediately("alert('" + alertString + "');");
+                            browser.syncRun("alert('" + alertString + "');");
                         } catch (RuntimeException e) {
                             log(e);
                         }
@@ -93,7 +93,7 @@ public class BrowserDemo extends AbstractDemo {
                     public void run() {
                         String newColor = ColorUtils.getRandomRGB().toDecString();
                         log("changing background to " + newColor);
-                        final Future<Void> voidFuture = browser
+                        final Future<Boolean> voidFuture = browser
                                 .injectCss("html, body { background-color: " + newColor + "; }");
                         executor.execute(new Runnable() {
                             @Override

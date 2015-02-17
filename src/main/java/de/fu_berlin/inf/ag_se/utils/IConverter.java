@@ -1,6 +1,5 @@
 package de.fu_berlin.inf.ag_se.utils;
 
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 
 import java.util.ArrayList;

@@ -1,11 +1,10 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 
-import java.util.concurrent.Future;
-
-import org.eclipse.swt.graphics.Point;
-
+import de.fu_berlin.inf.ag_se.utils.Point;
 import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
+
+import java.util.concurrent.Future;
 
 public interface IJQueryBrowser extends IBrowser {
 
@@ -16,7 +15,7 @@ public interface IJQueryBrowser extends IBrowser {
 	 * @param name
 	 * @return
 	 */
-	public Future<Boolean> containsElements(ISelector selector);
+	public Future<Boolean> containsElement(ISelector selector);
 
 	public Future<Point> getRelativePosition(ISelector selector);
 
@@ -150,5 +149,4 @@ public interface IJQueryBrowser extends IBrowser {
 	 * @return
 	 */
 	public Future<Object> submit(ISelector selector);
-
 }

@@ -71,7 +71,7 @@ public class CssInjectionTest {
             public void run() {
                 Browser browser = browserAtomicReference.get();
                 browser.open(ClasspathFileUtils.getFileUri("/empty_html5.html"), 5000);
-                browser.injectJavascriptFile(ClasspathFileUtils.getFile("/returning42.js"));
+                browser.injectJavascript(ClasspathFileUtils.getFile("/returning42.js"));
                 browser.run("return newFunction();", IConverter.CONVERTER_INTEGER, new CallbackFunction<Integer, Void>() {
                     @Override
                     public Void apply(Integer input, Exception e) {
@@ -95,7 +95,7 @@ public class CssInjectionTest {
             public void run() {
                 Browser browser = browserAtomicReference.get();
                 browser.open(ClasspathFileUtils.getFileUri("/empty_html5.html"), 5000);
-                browser.injectJavascriptURI(ClasspathFileUtils.getFileUri("/returning42.js"));
+                browser.injectJavascript(ClasspathFileUtils.getFileUri("/returning42.js"));
                 browser.run("return newFunction();", IConverter.CONVERTER_INTEGER, new CallbackFunction<Integer, Void>() {
                     @Override
                     public Void apply(Integer input, Exception e) {
@@ -111,40 +111,6 @@ public class CssInjectionTest {
     }
 
     @Test
-    public void testInjectJavascriptFileImmediately() throws InterruptedException {
-        final CountDownLatch finishedCatch = new CountDownLatch(1);
-        final AtomicReference<String> returnValue = new AtomicReference<String>();
-        Display.getDefault().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                Browser browser = browserAtomicReference.get();
-                browser.open(ClasspathFileUtils.getFileUri("/empty_html5.html"), 5000);
-
-            }
-        });
-
-        Thread.sleep(2000);
-        Display.getDefault().syncExec(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        Browser browser = browserAtomicReference.get();
-                        browser.injectJavascriptFileImmediately(ClasspathFileUtils.getFile("/returning42.js"));
-                        browser.getHtml(new CallbackFunction<String, Object>() {
-                            @Override
-                            public Object apply(String input, Exception e) {
-                                returnValue.set(input);
-                                finishedCatch.countDown();
-                                return null;
-                            }
-                        });
-                    }
-                });
-        finishedCatch.await();
-        Assert.assertTrue(returnValue.get().contains("returning42.js"));
-    }
-
-    @Test
     public void testInjectCssFile() throws InterruptedException, IOException {
         final CountDownLatch finishedCatch = new CountDownLatch(1);
 
@@ -154,44 +120,7 @@ public class CssInjectionTest {
             public void run() {
                 Browser browser = browserAtomicReference.get();
                 browser.open(ClasspathFileUtils.getFileUri("/empty_html5.html"), 5000);
-                browser.injectCssFile(ClasspathFileUtils.getFileUri("/redBackground.css"));
-                browser.run("return getComputedStyle(document.body, null).backgroundColor;", IConverter.CONVERTER_STRING,
-                        new CallbackFunction<String, Void>() {
-                            @Override
-                            public Void apply(String input, Exception e) {
-                                returnValue.set(input);
-                                finishedCatch.countDown();
-                                return null;
-                            }
-                        });
-            }
-        });
-        finishedCatch.await();
-        Assert.assertEquals("rgb(255, 0, 0)", returnValue.get());
-    }
-
-    @Test
-    public void testInjectCssFileImmediately() throws InterruptedException, IOException {
-        final CountDownLatch finishedCatch = new CountDownLatch(1);
-
-        final AtomicReference<String> returnValue = new AtomicReference<String>();
-        Display.getDefault().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                Browser browser = browserAtomicReference.get();
-                browser.open(ClasspathFileUtils.getFileUri("/empty_html5.html"), 5000);
-
-
-            }
-        });
-
-        Thread.sleep(2000);
-
-        Display.getDefault().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                Browser browser = browserAtomicReference.get();
-                browser.injectCssFileImmediately(ClasspathFileUtils.getFileUri("/redBackground.css"));
+                browser.injectCssURI(ClasspathFileUtils.getFileUri("/redBackground.css"));
                 browser.run("return getComputedStyle(document.body, null).backgroundColor;", IConverter.CONVERTER_STRING,
                         new CallbackFunction<String, Void>() {
                             @Override
@@ -234,41 +163,7 @@ public class CssInjectionTest {
     }
 
     @Test
-    public void testInjectCssImmediately() throws InterruptedException, IOException {
-        final CountDownLatch finishedCatch = new CountDownLatch(1);
-        final AtomicReference<String> returnValue = new AtomicReference<String>();
-        final String css = "body { background-color: red; }";
-        Display.getDefault().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                Browser browser = browserAtomicReference.get();
-                browser.open(ClasspathFileUtils.getFileUri("/empty_html5.html"), 5000);
-
-
-            }
-        });
-        Thread.sleep(2000);
-        Display.getDefault().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                Browser browser = browserAtomicReference.get();
-                browser.injectCssImmediately(css);
-                browser.getHtml(new CallbackFunction<String, Void>() {
-                    @Override
-                    public Void apply(String input, Exception e) {
-                        returnValue.set(input);
-                        finishedCatch.countDown();
-                        return null;
-                    }
-                });
-            }
-        });
-        finishedCatch.await();
-        Assert.assertTrue(returnValue.get().contains(css));
-    }
-
-    @Test
-    public void testRunContentAsScriptTagImmediately() throws InterruptedException {
+    public void testRunContentAsScriptTag() throws InterruptedException {
         final CountDownLatch finishedCatch = new CountDownLatch(1);
         final AtomicReference<String> returnValue = new AtomicReference<String>();
         Display.getDefault().syncExec(new Runnable() {
@@ -305,7 +200,7 @@ public class CssInjectionTest {
     }
 
     @Test
-    public void testRunContentImmediately() throws InterruptedException {
+    public void testRunContent() throws InterruptedException {
         final CountDownLatch finishedCatch = new CountDownLatch(1);
         final AtomicReference<String> returnValue = new AtomicReference<String>();
         Display.getDefault().syncExec(new Runnable() {
@@ -314,11 +209,7 @@ public class CssInjectionTest {
                 Browser browser = browserAtomicReference.get();
                 browser.open(ClasspathFileUtils.getFileUri("/empty_html5.html"), 5000);
 
-                try {
-                    browser.runContent(ClasspathFileUtils.getFile("/empty.js"));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                browser.run(ClasspathFileUtils.getFile("/empty.js"));
                 browser.run("return getComputedStyle(document.body, null).backgroundColor;", IConverter.CONVERTER_STRING,
                         new CallbackFunction<String, Void>() {
                             @Override

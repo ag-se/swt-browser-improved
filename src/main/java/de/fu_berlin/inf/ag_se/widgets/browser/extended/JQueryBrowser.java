@@ -1,6 +1,7 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 
 import de.fu_berlin.inf.ag_se.utils.IConverter;
+import de.fu_berlin.inf.ag_se.utils.Point;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.ISelector.IdSelector;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.ISelector.NameSelector;
@@ -14,7 +15,6 @@ import org.apache.log4j.Logger;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 
 import java.util.ArrayList;
@@ -118,7 +118,7 @@ public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
 	}
 
 	@Override
-	public Future<Boolean> containsElements(ISelector selector) {
+	public Future<Boolean> containsElement(ISelector selector) {
 		return this.run("return $('" + selector.toString() + "').length > 0;",
 				IConverter.CONVERTER_BOOLEAN);
 	}

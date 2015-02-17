@@ -1,16 +1,15 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import org.apache.log4j.Logger;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Composite;
-
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
 import de.fu_berlin.inf.ag_se.utils.colors.RGB;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.IBrowserExtension;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.bootstrap.BootstrapBrowserExtension;
+import org.apache.log4j.Logger;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Composite;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class BootstrapBrowser extends JQueryBrowser implements
 		IBootstrapBrowser {
@@ -141,8 +140,7 @@ public class BootstrapBrowser extends JQueryBrowser implements
 		String hex = color != null ? new RGB(color.getRGB()).toDecString()
 				: "transparent";
 		try {
-			injectCssImmediately("body { background-color: " + hex
-					+ " !important; }");
+			injectCss("body { background-color: " + hex + " !important; }");
 		} catch (RuntimeException e) {
 			LOGGER.error("Error setting background color to " + color, e);
 		}

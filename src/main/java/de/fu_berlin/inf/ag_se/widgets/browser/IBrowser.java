@@ -6,7 +6,6 @@ import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.*;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.ParametrizedRunnable;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,10 +21,14 @@ public interface IBrowser {
     /**
      * Opens the given URI.
      *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
      * @param uri     the URI to open given as string
      * @param timeout the time after which the browser stops loading
      *                if zero or a negative value is supplied, no timeout is used
-     * @return true if page could be successfully loaded, false if the timeout was reached
+     * @return a boolean future containing true if page could be successfully loaded,
+     * false if the timeout was reached
      *
      * @throws NullPointerException if the passed uri is null
      */
@@ -34,13 +37,17 @@ public interface IBrowser {
     /**
      * Opens the given URI.
      *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
      * @param uri                 the URI to open given as string
      * @param timeout             the time after which the browser stops loading
      *                            if zero or a negative value is supplied, no timeout is used
      * @param pageLoadCheckScript this script must return true if the page is correctly loaded.
      *                            This is especially useful if some inner page setup takes place.
      *                            May be null
-     * @return true if page could be successfully loaded, false if the timeout was reached
+     * @return a boolean future containing true if page could be successfully loaded,
+     * false if the timeout was reached
      *
      * @throws NullPointerException if the passed uri is null
      */
@@ -49,17 +56,73 @@ public interface IBrowser {
     /**
      * Opens the given URI.
      *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
      * @param uri     the URI to load
      * @param timeout the time after which the browser stops loading
      *                if zero or a negative value is supplied, no timeout is used
-     * @return true if page could be successfully loaded, false if the timeout was reached
+     * @return a boolean future containing true if page could be successfully loaded,
+     * false if the timeout was reached
      *
      * @throws NullPointerException if the passed uri is null
      */
     Future<Boolean> open(URI uri, int timeout);
 
     /**
-     * Opens the given URI.
+     * Opens the given URI and waits for the result.
+     *
+     * It must not be called from the UI thread as it is blocking.
+     *
+     * @param uri     the URI to load
+     * @param timeout the time after which the browser stops loading
+     *                if zero or a negative value is supplied, no timeout is used
+     * @return true if page could be successfully loaded, false if the timeout was reached
+     *
+     * @throws NullPointerException  if the passed uri is null
+     * @throws IllegalStateException if called from the UI thread
+     */
+    boolean syncOpen(URI uri, int timeout);
+
+    /**
+     * Opens the given URI and executes the given callback function after loading is complete.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * @param uri      the URI to load
+     * @param timeout  the time after which the browser stops loading
+     *                 if zero or a negative value is supplied, no timeout is used
+     * @param callback the callback function to execute after loading
+     * @return the boolean future returned from the user provided callback function
+     *
+     * @throws NullPointerException if the passed uri or callback is null
+     */
+    Future<Boolean> open(URI uri, int timeout, CallbackFunction<Boolean, Boolean> callback);
+
+    /**
+     * Opens the given URI and checks completion with a specified Javascript expression.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * @param uri                 the URI to load
+     * @param timeout             the time after which the browser stops loading
+     *                            if zero or a negative value is supplied, no timeout is used
+     * @param pageLoadCheckScript this script must return true if the page is correctly loaded.
+     *                            This is especially useful if some inner page setup takes place.
+     *                            May be null
+     * @return a boolean future containing true if page could be successfully loaded,
+     * false if the timeout was reached
+     *
+     * @throws NullPointerException if the passed uri is null
+     */
+    Future<Boolean> open(URI uri, int timeout, @Nullable String pageLoadCheckScript);
+
+    /**
+     * Opens the given URI and checks completion with a specified Javascript expression.
+     *
+     * It must not be called from the UI thread as it is blocking.
      *
      * @param uri                 the URI to load
      * @param timeout             the time after which the browser stops loading
@@ -69,37 +132,45 @@ public interface IBrowser {
      *                            May be null
      * @return true if page could be successfully loaded, false if the timeout was reached
      *
+     * @throws NullPointerException  if the passed uri is null
+     * @throws IllegalStateException if called from the UI thread
+     */
+    boolean syncOpen(URI uri, int timeout, @Nullable String pageLoadCheckScript);
+
+    /**
+     * Opens the given URI, checks completion with a specified Javascript expression,
+     * and executes a callback function after that.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * @param uri      the URI to load
+     * @param timeout  the time after which the browser stops loading
+     *                 if zero or a negative value is supplied, no timeout is used
+     * @param callback the callback function to execute after loading
+     * @return the boolean future returned from the user provided callback function
+     *
      * @throws NullPointerException if the passed uri is null
      */
-    Future<Boolean> open(URI uri, int timeout, @Nullable String pageLoadCheckScript);
+    Future<Boolean> openWithCallback(URI uri, int timeout, @Nullable String pageLoadCheckScript,
+                                     CallbackFunction<Boolean, Boolean> callback);
 
     /**
      * Opens a blank page.
      *
-     * @return true if page could be successfully loaded, false if an error occurred
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * @return a boolean future indicating whether the page could be loaded successfully
      */
     Future<Boolean> openBlank();
 
     /**
-     * Set a runnable to the executed just before the
-     * URI is set internally.
-     *
-     * @param runnable the runnable to be executed
-     * @throws NullPointerException if the runnable is null
-     */
-    void executeBeforeSettingURI(Runnable runnable);
-
-    /**
-     * Set a runnable to the executed just after the
-     * URI is set internally.
-     *
-     * @param runnable the runnable to be executed
-     * @throws NullPointerException if the runnable is null
-     */
-    void executeAfterSettingURI(Runnable runnable);
-
-    /**
      * Checks if the current URI has been successfully loaded.
+     * If the URI has been opened with a custom page check expression,
+     * this expression is considered here.
+     *
+     * May be called from whatever thread.
      *
      * @return true is it is fully loaded, false otherwise
      */
@@ -110,7 +181,7 @@ public interface IBrowser {
      *
      * May be called from whatever thread.
      *
-     * @return the current URL or an empty <code>String</code> if there is no current URL
+     * @return the current URL or an empty string if there is no current URL
      */
     String getUrl();
 
@@ -118,307 +189,385 @@ public interface IBrowser {
      * Blocks until the condition given by a Javascript string
      * evaluates to true.
      *
-     * @param javaScriptExpression the Javascript to be evaluation
+     * Must not be called from the UI thread as it is blocking.
+     *
+     * @param javaScriptExpression the Javascript expression to be evaluated
      * @throws NullPointerException if javaScriptExpression is null
      */
     void waitForCondition(String javaScriptExpression);
 
     /**
+     * Continuously checks the given Javascript expression until it evaluates to true.
+     * The returned future should be used to see when the condition is fulfilled.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * @param javaScriptExpression the Javascript expression to be evaluated
+     * @return a future that is done when the condition is met
+     *
+     * @throws NullPointerException  if javaScriptExpression is null
+     * @throws IllegalStateException if called from the UI thread
+     */
+    Future<Void> checkCondition(String javaScriptExpression);
+
+    /**
+     * Continuously checks the given Javascript expression until it evaluates to true.
+     * The supplied callback function is callback when the condition is fulfilled.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * @param javaScriptExpression the Javascript expression to be evaluated
+     * @param callback             the function to be executed when the condition is fulfilled
+     * @return a future of the return value of the callback function
+     *
+     * @throws NullPointerException if javaScriptExpression or callback is null
+     */
+    <DEST> Future<DEST> executeWhenConditionIsMet(String javaScriptExpression, CallbackFunction<Void, DEST> callback);
+
+    /**
      * Set a runnable to be executed after the browser completed
      * loading the page. This takes place after the URI has been
-     * set and all additional initializing has been done. Using
-     * {@link #open(String, int, String)} allows to supply a
-     * custom Javascript to check the completion.
+     * set and all additional initializing has been done.
+     * If the URI has been opened with a custom page check expression,
+     * this expression is considered here.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
      * @param runnable the runnable to be executed
      * @throws NullPointerException if the runnable is null1
      */
-    void executeBeforeCompletion(Runnable runnable);
+    void executeAfterCompletion(Runnable runnable);
 
     /**
      * Adds the content of the Javascript contained in the given file
      * to the current website after loading has been completed.
-     * For that a new script tag is added to HTML head linking to
+     * For that, a new script tag is added to HTML head linking to
      * the given file.
      *
-     * The difference to {@link #injectJavascriptFileImmediately(java.io.File)} is
-     * that this method delays injection until after the page is loaded.
+     * The execution of this method may be delayed.
      * The returned {@link java.util.concurrent.Future} can be used to check
-     * if this has happened.
+     * if it has been executed.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
      * @param javascriptFile the file containing the Javascript to be injected
      * @return a future to check whether the delayed execution has happened
      *
      * @throws NullPointerException if javascriptFile is null
      */
-    Future<Void> injectJavascriptFile(File javascriptFile);
+    Future<Boolean> injectJavascript(File javascriptFile);
 
     /**
      * Injects the Javascript addressed by the given URI and returns
-     * a {@link java.util.concurrent.Future} that blocks until
-     * the script is completely loaded.
+     * to the current website after loading has been completed.
+     * For that, a new script tag is added to HTML head linking to
+     * the given URI.
      * In contrast to {@link #run(java.net.URI)} the script tag is kept after the execution.
      *
-     * @param scriptURI an URI to the Javascript code to be injected
+     * The execution of this method may be delayed.
+     * The returned {@link java.util.concurrent.Future} can be used to check
+     * if it has been executed.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * @param scriptURI the URI to the Javascript code to be injected
      * @return a boolean future that blocks until script is loaded completely
      *
      * @throws NullPointerException if scriptURI is null
-     * @ArbitraryThread may be called from whatever thread.
      */
-    Future<Boolean> injectJavascriptURI(URI scriptURI);
+    Future<Boolean> injectJavascript(URI scriptURI);
 
     /**
-     * Deprecated as it does not work reliably. Depending on how much of the
-     * page is already loaded it may have no effect.
+     * Injects the Javascript addressed by the given URI and returns
+     * to the current website after loading has been completed.
+     * For that, a new script tag is added to HTML head linking to
+     * the given URI.
+     * In contrast to {@link #run(java.net.URI)} the script tag is kept after the execution.
      *
-     * Adds the content of the Javascript contained in the given file
-     * to the current website immediately.
-     * For that a new script tag is added to HTML head linking to
-     * the given file.
+     * The execution of this method may be delayed when the loading of the page is not complete.
+     * This method blocks until the injection has been done.
      *
-     * The difference to {@link #injectJavascriptFile(java.io.File)} is
-     * that this method injects the script immediately.
+     * It may only be called from the UI thread if loading is completed.
+     * Use {@link #isLoadingCompleted()} to check.
      *
-     * @param javascriptFile the file containing the Javascript to be injected
-     * @throws NullPointerException if javascriptFile is null
+     * @param scriptURI the URI to the Javascript code to be injected
+     * @return a boolean indicating whether the injection was successful
+     *
+     * @throws NullPointerException  if scriptURI is null
+     * @throws IllegalStateException if called from the UI thread and the browser is still loading
      */
-    @Deprecated
-    void injectJavascriptFileImmediately(File javascriptFile);
+    boolean syncInjectJavascript(URI scriptURI);
 
     /**
      * Includes the given URI as a cascading style sheet.
-     *
      * The injection is delayed until after the page is loaded completely.
      * The returned {@link java.util.concurrent.Future} can be used to check
      * if this has happened.
      *
-     * @param uri the URI to the CSS file to be injected
-     * @return a future to check whether the delayed execution has happened
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
-     * @throws NullPointerException if uri is null
+     * @param cssURI the URI to the CSS to be injected
+     * @return a boolean future to check whether the delayed execution was successful
+     *
+     * @throws NullPointerException if cssURI is null
      */
-    Future<Void> injectCssFile(URI uri);
+    Future<Boolean> injectCssURI(URI cssURI);
 
     /**
-     * Deprecated as it does not work reliably. Depending on how much of the
-     * page is already loaded it may have no effect.
+     * Includes the given URI as a cascading style sheet.
+     * The injection is delayed until after the page is loaded completely.
+     * This method blocks until the injection has been done.
      *
-     * Includes the given URI as a cascading style sheet immediately.
+     * It may only be called from the UI thread if loading is completed.
+     * Use {@link #isLoadingCompleted()} to check.
      *
-     * @param uri the URI to the CSS file to be injected
-     * @throws NullPointerException if uri is null
+     * @param cssURI the URI to the CSS to be injected
+     * @return a boolean indicating whether the injection was successful
+     *
+     * @throws NullPointerException  if cssURI is null
+     * @throws IllegalStateException if called from the UI thread and the browser is still loading
      */
-    @Deprecated
-    void injectCssFileImmediately(URI uri);
+    boolean syncInjectCssURI(URI cssURI);
 
     /**
      * Adds the given CSS code to current website.
      * For that a new style tag is added inside the HTML head.
-     *
      * The injection is delayed until after the page is loaded completely.
      * The returned {@link java.util.concurrent.Future} can be used to check
      * if this has happened.
      *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
      * @param css the CSS to be injected as string
-     * @return a future to check whether the delayed execution has happened
+     * @return a boolean future to check whether the delayed execution was successful
      *
      * @throws NullPointerException if css is null
      */
-    Future<Void> injectCss(String css);
+    Future<Boolean> injectCss(String css);
 
     /**
-     * Deprecated as it does not work reliably. Depending on how much of the
-     * page is already loaded it may have no effect.
-     *
-     * Adds the given CSS code to the current website immediately.
+     * Adds the given CSS code to current website.
      * For that a new style tag is added inside the HTML head.
+     * The injection is delayed until after the page is loaded completely.
+     * This method blocks until the injection has been done.
      *
-     * In contrast to the other injection methods this does not wait
-     * for the browser to have finished loading.
+     * It may only be called from the UI thread if loading is completed.
+     * Use {@link #isLoadingCompleted()} to check.
      *
      * @param css the CSS to be injected as string
-     * @throws NullPointerException if css is null
+     * @return a boolean indicating whether the injection was successful
+     *
+     * @throws NullPointerException  if css is null
+     * @throws IllegalStateException if called from the UI thread and the browser is still loading
      */
-    @Deprecated
-    void injectCssImmediately(String css);
+    boolean syncInjectCss(String css);
+
+    /**
+     * Adds the given CSS code to current website and executes the given callback function after that.
+     * For that a new style tag is added inside the HTML head.
+     * The injection is delayed until after the page is loaded completely.
+     * When this has happened, the given callback function will be executed.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * @param css      the CSS to be injected as string
+     * @param callback the callback function to be executed after the injection
+     * @return a future containing the return value of the callback function
+     *
+     * @throws NullPointerException if css or callback is null
+     */
+    <DEST> Future<DEST> injectCss(String css, CallbackFunction<Boolean, DEST> callback);
 
     /**
      * Runs the Javascript contained in the given file in the browser as soon as
      * loading is completed.
+     * This means the file is not linked but its content is read and directly executed.
+     * The execution is delayed until after the page is loaded completely.
+     * The returned {@link java.util.concurrent.Future} can be used to check
+     * if it has been executed.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
      * @param scriptFile file object pointing to the script to be executed
-     * @return a boolean future that blocks until script is loaded completely
+     * @return a boolean future that blocks until script is has been executed
      *
      * @throws NullPointerException if scriptFile is null
-     * @ArbitraryThread may be called from whatever thread.
      */
     Future<Boolean> run(File scriptFile);
 
     /**
+     * Runs the script contained in the given {@link java.io.File} in the browser.
+     * This means the file is not linked but its content is directly put into a script tag.
+     * The execution is delayed until after the page is loaded completely.
+     * The returned {@link java.util.concurrent.Future} can be used to check
+     * if it has been executed.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * @param scriptFile a file object pointing to the Javascript code
+     * @return a boolean future that blocks until script is has been executed
+     *
+     * @throws NullPointerException if scriptFile is null
+     * @throws IOException if a exception is thrown while accessing the file
+     */
+    Future<Boolean> runContentAsScriptTag(File scriptFile) throws IOException;
+
+    /**
      * Runs the Javascript addressed by the given URI in the browser as soon as
      * loading is completed.
+     * The execution is delayed until after the page is loaded completely.
+     * The returned {@link java.util.concurrent.Future} can be used to check
+     * if it has been executed.
      *
-     * In contrast to {@link #injectJavascriptURI(java.net.URI)} functionality made available
+     * In contrast to {@link #injectJavascript(java.net.URI)} functionality made available
      * through the script does not persist.
      * Exception: If the resource is an actual file on the local file system, its
      * content will be run and therefore persisted to circumvent security restrictions.
-     * To inject script libraries like jQuery {@link #injectJavascriptURI(java.net.URI)} is recommended.
+     * To inject script libraries like jQuery {@link #injectJavascript(java.net.URI)} is recommended.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
      * @param scriptURI URI to the Javascript code to be executed
-     * @return a boolean future that blocks until script is loaded completely
+     * @return a boolean future that blocks until script is has been executed
      *
      * @throws NullPointerException if scriptURI is null
-     * @ArbitraryThread may be called from whatever thread.
      */
     Future<Boolean> run(URI scriptURI);
 
     /**
      * Runs the given Javascript in the browser as soon as loading is completed
      * and returns the evaluation's return value.
+     * The returned {@link java.util.concurrent.Future} can be used to check
+     * if it has been executed.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
      * @param script the Javascript code to be executed as string
-     * @return an object future that blocks until script is loaded completely
+     * @return an object future that blocks until script is has been executed
      *
      * @throws NullPointerException if script is null
-     * @ArbitraryThread may be called from whatever thread.
      */
     Future<Object> run(String script);
 
     /**
-     * This method is blocking as it waits for the result of the evaluation.
-     * It must not be called from the SWT UI thread.
-     * May return null.
+     * Runs the given Javascript in the browser as soon as loading is completed.
+     * The execution is delayed until after the page is loaded completely.
+     * This method blocks until it has been executed.
+     *
+     * It may only be called from the UI thread if loading is completed.
+     * Use {@link #isLoadingCompleted()} to check.
      *
      * @param script Javascript to be evaluated as string
-     * @return the result of the evaluation as Java object or null if an error occurred
+     * @return the result of the evaluation as Java object or null if cancelled
      *
      * @throws NullPointerException     if script is null
-     * @throws IllegalStateException    if this method is called from the UI thread
+     * @throws IllegalStateException    if called from the UI thread and the browse is still loading
      * @throws ScriptExecutionException if an exception occurs while executing the script
      */
     Object syncRun(String script);
 
     /**
-     * This methods runs the given Javascript asynchronously and registers a callback
-     * that gets executed after the completion.
+     * Runs the given Javascript in the browser as soon as loading is completed
+     * and executes the callback that gets executed after the completion.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
      * @param script   the Javascript to be executed
-     * @param callback the callback function to execute after script completion
+     * @param callback the callback function to execute after completion
+     * @return a future containing the return value of the callback function
+     *
      * @throws NullPointerException if script or callback is null
      */
-    <T> Future<T> run(String script, CallbackFunction<Object, T> callback);
+    <DEST> Future<DEST> run(String script, CallbackFunction<Object, DEST> callback);
 
     /**
      * Runs the given script in the browser as soon as loading is completed
      * and returns the evaluation's converted return value.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
      * @param script    the Javascript code to be executed as string
      * @param converter a converter for the return value
      * @return a future of the converted return value
      *
      * @throws NullPointerException if script or converter is null
-     * @ArbitraryThread may be called from whatever thread.
      */
     <DEST> Future<DEST> run(String script, IConverter<Object, DEST> converter);
 
     /**
+     * Runs the given Javascript in the browser as soon as loading is completed
+     * and returns the evaluation's converted return value.
+     * The execution is delayed until after the page is loaded completely.
+     * This method blocks until it has been executed.
      *
-     * @param script
-     * @param converter
-     * @param callback
-     * @param <T>
-     * @param <DEST>
-     * @return
+     * It may only be called from the UI thread if loading is completed.
+     * Use {@link #isLoadingCompleted()} to check.
+     *
+     * @param script    the Javascript code to be executed as string
+     * @param converter a converter for the return value
+     * @return a future of the converted return value
+     *
+     * @throws NullPointerException  if script or converter is null
+     * @throws IllegalStateException if called from the UI thread and the browser is still loading
+     */
+    <DEST> DEST syncRun(String script, IConverter<Object, DEST> converter);
+
+    /**
+     * Runs the given script in the browser as soon as loading is completed
+     * and then executes the callback function with the converted return value.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * @param script    the Javascript code to be executed as string
+     * @param converter a converter for the return value
+     * @param callback  the callback function to execution
+     * @return a future containing the return value of the callback function
+     *
+     * @throws NullPointerException if script, converter, or callback is null
      */
     <T, DEST> Future<T> run(String script, IConverter<Object, DEST> converter, CallbackFunction<DEST, T> callback);
 
     /**
-     * Deprecated as it does not work reliably. Depending on how much of the
-     * page is already loaded it may have no effect.
-     * Runs the script contained in the given {@link java.io.File} in the browser immediately.
-     * This means the file is not linked but its content is read and directly executed.
+     * Sets a {@link Function} that is executed when a script is about to be executed by the browser.
      *
-     * In contrast to non-immediately run methods, it does not wait for the current URL to be loaded.
+     * May be called from whatever thread.
      *
-     * @param scriptFile a file object pointing to the Javascript code
-     * @throws IOException          if an error occurred while accessing the given file
-     * @throws NullPointerException if scriptFile is null
-     * @ArbitraryThread may be called from whatever thread.
+     * @param function the function to be executed with the script as parameter
+     * @throws NullPointerException if function is null
      */
-    Future<Void> runContent(File scriptFile) throws IOException;
+    void executeBeforeScript(Function<String> function);
 
     /**
-     * Runs the script contained in the given {@link java.io.File} in the browser.
-     * This means the file is not linked but its content is directly put into a script tag.
+     * Sets a {@link Function} that is executed when a script finishes execution.
      *
-     * In contrast to immediately run methods, it does not wait for the current URL to be loaded
-     * completely.
+     * May be called from whatever thread.
      *
-     * @param scriptFile a file object pointing to the Javascript code
-     * @throws IOException          if an error occurred while accessing the given file
-     * @throws NullPointerException if scriptFile is null
-     * @ArbitraryThread may be called from whatever thread.
+     * @param function the function to be executed with the return value of the last script execution
+     * @throws NullPointerException if function is null
      */
-    Future<Void> runContentAsScriptTag(File scriptFile) throws IOException;
-
-    /**
-     * Deprecated as it does not work reliably. Depending on how much of the
-     * page is already loaded it may have no effect.
-     *
-     * Runs the given script in the browser immediately and
-     * returns the evaluation's converted return value.
-     *
-     * In contrast to non-immediately run methods, it does not wait for the current URL to be loaded.
-     *
-     * @param script    the Javascript code as string
-     * @param converter a converter for the return value
-     * @return a future of the converted return value
-     *
-     * @throws NullPointerException if script or converter is null
-     * @ArbitraryThread may be called from whatever thread.
-     */
-    @Deprecated
-    <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter);
-
-    /**
-     * Deprecated as it does not work reliably. Depending on how much of the
-     * page is already loaded it may have no effect.
-     *
-     * Runs the given script in the browser immediately and
-     * returns the evaluation's converted return value.
-     *
-     * In contrast to non-immediately run methods, it does not wait for the current URL to be loaded.
-     *
-     * @param script    the Javascript code as string
-     * @return a future of the converted return value
-     *
-     * @throws NullPointerException if script or converter is null
-     * @ArbitraryThread may be called from whatever thread.
-     */
-    @Deprecated
-    Object runImmediately(String script);
-
-    /**
-     * Sets a {@link ParametrizedRunnable}
-     * that is executed if when a script is about to be executed by the browser.
-     *
-     * @param runnable the runnable to be executed with the script as parameter
-     * @throws NullPointerException if runnable is null
-     */
-    void executeBeforeScript(Function<String> runnable);
-
-    /**
-     * Sets a {@link ParametrizedRunnable}
-     * to get executed when a script finishes execution.
-     *
-     * @param runnable the runnable to be executed with the return value of the last script execution
-     * @throws NullPointerException if runnable is null
-     */
-    void executeAfterScript(Function<Object> runnable);
+    void executeAfterScript(Function<Object> function);
 
     /**
      * Returns a {@link java.util.concurrent.Future} indicating
      * if an element with the given id exists in the current website.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
      * @param id the element ID to look for
      * @return a boolean future containing the result of the search
@@ -431,6 +580,9 @@ public interface IBrowser {
      * Returns a {@link java.util.concurrent.Future} indicating
      * if at least one element with the given name exists in
      * the current website.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
      * @param name the element name to look for
      * @return a boolean future containing the result of the search
@@ -446,17 +598,23 @@ public interface IBrowser {
      * The returned {@link java.util.concurrent.Future} can be used to check
      * if it has happened.
      *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
      * @param html a string representing the HTML body's new content
-     * @return a future to check whether the delayed execution has happened
+     * @return a future to check whether the delayed execution has successful
      *
      * @throws NullPointerException if html is null
      */
-    Future<Void> setBodyHtml(String html);
+    Future<Boolean> setBodyHtml(String html);
 
     /**
      * Returns the body's inner HTML after
      * the page has been loaded.
      * The execution of this method may be delayed.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
      *
      * @return a string future containing the body's inner HTML
      */
@@ -467,11 +625,26 @@ public interface IBrowser {
      * the page has been loaded.
      * The execution of this method may be delayed.
      *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
      * @return a string future containing the document's inner HTML
      */
     Future<String> getHtml();
 
-    <T> Future<T> getHtml(CallbackFunction<String, T> callbackFunction);
+    /**
+     * Executes the given callback function with the obtained HTML
+     * The execution of this method may be delayed.
+     *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
+     * @param callback the callback function to be executed
+     * @return a future containing the return value of the callback function
+     *
+     * @throws NullPointerException if callback is null
+     */
+    <T> Future<T> getHtml(CallbackFunction<String, T> callback);
 
     /**
      * Inserts the given html at the current caret / cursor position
@@ -480,37 +653,22 @@ public interface IBrowser {
      * The returned {@link java.util.concurrent.Future} can be used to check
      * if it has happened.
      *
+     * May be called from whatever thread. Note, however, that {@link Future#get()} may not
+     * be called from the UI thread unless {@link Future#isDone()} returns true.
+     *
      * @param html the HTML to paste as string
      * @return a future to check whether the delayed execution has happened
      *
      * @throws NullPointerException if html is null
      */
-    Future<Void> pasteHtmlAtCaret(String html);
-
-    /**
-     * Adds a border that signifies the {@link org.eclipse.swt.widgets.Control}'s focus.
-     * The execution of this method may be delayed.
-     * The returned {@link java.util.concurrent.Future} can be used to check
-     * if it has happened.
-     *
-     * @return a future to check whether the delayed execution has happened
-     */
-    Future<Void> addFocusBorder();
-
-    /**
-     * Removes the border that signifies the {@link org.eclipse.swt.widgets.Control}'s focus.
-     * The execution of this method may be delayed.
-     * The returned {@link java.util.concurrent.Future} can be used to check
-     * if it has happened.
-     *
-     * @return a future to check whether the delayed execution has happened
-     */
-    Future<Void> removeFocusBorder();
+    Future<Boolean> pasteHtmlAtCaret(String html);
 
     /**
      * Sets whether the browser may change its location.
      * If set to false the initially loaded URI may not be
      * changed.
+     *
+     * May be called from whatever thread.
      *
      * @param allowed true or false
      */
@@ -518,12 +676,16 @@ public interface IBrowser {
 
     /**
      * Deactivates the selection of text inside the browser.
+     *
+     * May be called from whatever thread.
      */
     void deactivateTextSelections();
 
     /**
      * Creates a Javascript function that can call Java code.
      * At each call the given body gets executed.
+     *
+     * May be called from whatever thread.
      *
      * @param functionName the of the function in Javascript
      * @param function     the Java code to be executed
@@ -539,6 +701,8 @@ public interface IBrowser {
      * to the browser.
      * This can be used to react to the hovering of anchor tags
      *
+     * May be called from whatever thread.
+     *
      * @param anchorListener the listener to be added
      * @throws NullPointerException if anchorListener is null
      */
@@ -546,6 +710,8 @@ public interface IBrowser {
 
     /**
      * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener}.
+     *
+     * May be called from whatever thread.
      *
      * @param anchorListener the listener to be removed
      * @throws NullPointerException if anchorListener is null
@@ -557,6 +723,8 @@ public interface IBrowser {
      * to the browser.
      * This can be used to react to mouse events inside the browser
      *
+     * May be called from whatever thread.
+     *
      * @param mouseListener the listener to be added
      * @throws NullPointerException if mouseListener is null
      */
@@ -564,6 +732,8 @@ public interface IBrowser {
 
     /**
      * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener}.
+     *
+     * May be called from whatever thread.
      *
      * @param mouseListener the listener to be removed
      * @throws NullPointerException if mouseListener is null
@@ -575,6 +745,8 @@ public interface IBrowser {
      * to the browser.
      * This can be used to react to focus gaining and focus losing of HTML elements.
      *
+     * May be called from whatever thread.
+     *
      * @param focusListener the listener to be added
      * @throws NullPointerException if focusListener is null
      */
@@ -582,6 +754,8 @@ public interface IBrowser {
 
     /**
      * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener}.
+     *
+     * May be called from whatever thread.
      *
      * @param focusListener the listener to be removed
      * @throws NullPointerException if focusListener is null
@@ -593,6 +767,8 @@ public interface IBrowser {
      * to the browser.
      * This can be used to react to drag and drop events.
      *
+     * May be called from whatever thread.
+     *
      * @param dNDListener the listener to be added
      * @throws NullPointerException if dNDListener is null
      */
@@ -600,6 +776,8 @@ public interface IBrowser {
 
     /**
      * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener}.
+     *
+     * May be called from whatever thread.
      *
      * @param dNDListener the listener to be removed
      * @throws NullPointerException if dNDListener is null
@@ -611,6 +789,8 @@ public interface IBrowser {
      * exception is thrown in the browser by code that was not invoked from the Java but the JavaScript
      * world (e.g. a click on a button invoking erroneous code).
      *
+     * May be called from whatever thread.
+     *
      * @param exceptionListener the listener to be added
      * @throws NullPointerException if exceptionListener is null
      */
@@ -619,6 +799,8 @@ public interface IBrowser {
     /**
      * Removes the given {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener}
      * from the browser.
+     *
+     * May be called from whatever thread.
      *
      * @param exceptionListener the listener to be removed
      * @throws NullPointerException if exceptionListener is null

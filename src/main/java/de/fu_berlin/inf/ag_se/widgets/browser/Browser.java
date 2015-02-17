@@ -26,6 +26,7 @@ import java.net.URI;
 import java.util.concurrent.Future;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor.checkNotUIThread;
 
 /**
  * This class is a {@link org.eclipse.swt.widgets.Composite} that provides extended functionality to
@@ -64,7 +65,7 @@ public class Browser extends Composite implements IBrowser {
 
         eventCatchFunctionality = new EventCatchFunctionality(internalBrowser);
 
-        executeBeforeCompletion(new Runnable() {
+        executeAfterCompletion(new Runnable() {
             @Override
             public void run() {
                 if (initWithSystemBackgroundColor) {
@@ -72,7 +73,7 @@ public class Browser extends Composite implements IBrowser {
                 }
                 if (textSelectionsDisabled) {
                     try {
-                        injectCssImmediately(JavascriptString.createCssToDisableTextSelection());
+                        injectCss(JavascriptString.createCssToDisableTextSelection());
                     } catch (RuntimeException e) {
                         LOGGER.error(e);
                     }
@@ -101,26 +102,43 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
+    public boolean syncOpen(URI uri, int timeout) {
+        checkNotNull(uri);
+        checkNotUIThread();
+        return syncOpen(uri, timeout, null);
+    }
+
+    @Override
+    public Future<Boolean> open(URI uri, int timeout, CallbackFunction<Boolean, Boolean> callback) {
+        checkNotNull(uri);
+        checkNotNull(callback);
+        return openWithCallback(uri, timeout, null, callback);
+    }
+
+    @Override
     public Future<Boolean> open(URI uri, int timeout, @Nullable String pageLoadCheckExpression) {
         checkNotNull(uri);
         return open(uri.toString(), timeout, pageLoadCheckExpression);
     }
 
     @Override
+    public boolean syncOpen(URI uri, int timeout, @Nullable String pageLoadCheckScript) {
+        checkNotNull(uri);
+        checkNotUIThread();
+        return internalBrowser.syncOpen(uri, timeout, pageLoadCheckScript);
+    }
+
+    @Override
+    public Future<Boolean> openWithCallback(URI uri, int timeout, @Nullable String pageLoadCheckScript,
+                                            CallbackFunction<Boolean, Boolean> callback) {
+        checkNotNull(uri);
+        checkNotNull(callback);
+        return internalBrowser.openWithCallback(uri, timeout, pageLoadCheckScript, callback);
+    }
+
+    @Override
     public Future<Boolean> openBlank() {
         return open(BrowserUtils.createBlankHTMLFile(), 3000);
-    }
-
-    @Override
-    public void executeBeforeSettingURI(Runnable runnable) {
-        checkNotNull(runnable);
-        internalBrowser.executeBeforeLoading(runnable);
-    }
-
-    @Override
-    public void executeAfterSettingURI(Runnable runnable) {
-        checkNotNull(runnable);
-        internalBrowser.executeAfterLoading(runnable);
     }
 
     @Override
@@ -136,62 +154,97 @@ public class Browser extends Composite implements IBrowser {
     @Override
     public void waitForCondition(String javaScriptExpression) {
         checkNotNull(javaScriptExpression);
+        checkNotUIThread();
         internalBrowser.waitForCondition(javaScriptExpression);
     }
 
     @Override
-    public void executeBeforeCompletion(Runnable runnable) {
+    public Future<Void> checkCondition(String javaScriptExpression) {
+        checkNotNull(javaScriptExpression);
+        return internalBrowser.checkCondition(javaScriptExpression);
+    }
+
+    @Override
+    public <DEST> Future<DEST> executeWhenConditionIsMet(String javaScriptExpression, CallbackFunction<Void, DEST> callback) {
+        checkNotNull(javaScriptExpression);
+        checkNotNull(callback);
+        return internalBrowser.executeWhenConditionIsMet(javaScriptExpression, callback);
+    }
+
+    @Override
+    public void executeAfterCompletion(Runnable runnable) {
         checkNotNull(runnable);
         internalBrowser.executeBeforeCompletion(runnable);
     }
 
     @Override
-    public Future<Void> injectJavascriptFile(File javascriptFile) {
+    public Future<Boolean> injectJavascript(File javascriptFile) {
         checkNotNull(javascriptFile);
-        return internalBrowser.injectJsFile(javascriptFile);
-    }
-
-    @Deprecated
-    @Override
-    public void injectJavascriptFileImmediately(File javascriptFile) {
-        checkNotNull(javascriptFile);
-        internalBrowser.injectJsFileImmediately(javascriptFile);
+        return internalBrowser.injectJavascript(javascriptFile);
     }
 
     @Override
-    public Future<Void> injectCssFile(URI uri) {
-        checkNotNull(uri);
-        return internalBrowser.injectCssFile(uri);
+    public Future<Boolean> injectJavascript(URI scriptURI) {
+        checkNotNull(scriptURI);
+        return internalBrowser.injectJavascript(scriptURI);
     }
 
     @Override
-    public void injectCssFileImmediately(URI uri) {
-        checkNotNull(uri);
-        internalBrowser.injectCssFileImmediately(uri);
+    public boolean syncInjectJavascript(URI scriptURI) {
+        checkNotNull(scriptURI);
+        if (!isLoadingCompleted()) {
+            checkNotUIThread();
+        }
+        return internalBrowser.syncInjectJavascript(scriptURI);
     }
 
     @Override
-    public Future<Void> injectCss(String css) {
+    public Future<Boolean> injectCssURI(URI cssURI) {
+        checkNotNull(cssURI);
+        return internalBrowser.injectCss(cssURI);
+    }
+
+    @Override
+    public boolean syncInjectCssURI(URI cssURI) {
+        checkNotNull(cssURI);
+        if (!isLoadingCompleted()) {
+            checkNotUIThread();
+        }
+        return internalBrowser.syncInjectCssURI(cssURI);
+    }
+
+    @Override
+    public Future<Boolean> injectCss(String css) {
         checkNotNull(css);
         return internalBrowser.injectCss(css);
     }
 
     @Override
-    public void injectCssImmediately(String css) {
+    public boolean syncInjectCss(String css) {
         checkNotNull(css);
-        internalBrowser.injectCssImmediately(css);
+        if (!isLoadingCompleted()) {
+            checkNotUIThread();
+        }
+        return internalBrowser.syncInjectCss(css);
     }
 
     @Override
-    public Future<Boolean> injectJavascriptURI(URI scriptURI) {
-        checkNotNull(scriptURI);
-        return internalBrowser.inject(scriptURI);
+    public <DEST> Future<DEST> injectCss(String css, CallbackFunction<Boolean, DEST> callback) {
+        checkNotNull(css);
+        checkNotNull(callback);
+        return internalBrowser.injectCss(css, callback);
     }
 
     @Override
     public Future<Boolean> run(File scriptFile) {
         checkNotNull(scriptFile);
         return internalBrowser.run(scriptFile);
+    }
+
+    @Override
+    public Future<Boolean> runContentAsScriptTag(File scriptFile) throws IOException{
+        checkNotNull(scriptFile);
+        return internalBrowser.runContentAsScriptTag(scriptFile);
     }
 
     @Override
@@ -209,14 +262,17 @@ public class Browser extends Composite implements IBrowser {
     @Override
     public Object syncRun(String script) {
         checkNotNull(script);
+        if (!isLoadingCompleted()) {
+            checkNotUIThread();
+        }
         return internalBrowser.syncRun(script);
     }
 
     @Override
-    public <T> Future<T> run(String script, CallbackFunction<Object, T> callback) {
+    public <DEST> Future<DEST> run(String script, CallbackFunction<Object, DEST> callback) {
         checkNotNull(script);
         checkNotNull(callback);
-        return internalBrowser.runWithCallback(run(script), callback);
+        return internalBrowser.run(script, callback);
     }
 
     @Override
@@ -224,6 +280,16 @@ public class Browser extends Composite implements IBrowser {
         checkNotNull(script);
         checkNotNull(converter);
         return internalBrowser.run(script, converter);
+    }
+
+    @Override
+    public <DEST> DEST syncRun(String script, IConverter<Object, DEST> converter) {
+        checkNotNull(script);
+        checkNotNull(converter);
+        if (!isLoadingCompleted()) {
+            checkNotUIThread();
+        }
+        return internalBrowser.syncRun(script, converter);
     }
 
     @Override
@@ -235,40 +301,14 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public Future<Void> runContent(File scriptFile) throws IOException {
-        checkNotNull(scriptFile);
-        return internalBrowser.runContent(scriptFile);
+    public void executeBeforeScript(Function<String> function) {
+        checkNotNull(function);
+        internalBrowser.executeBeforeScript(function);
     }
 
     @Override
-    public Future<Void> runContentAsScriptTag(File scriptFile) throws IOException {
-        checkNotNull(scriptFile);
-        return internalBrowser.runContentsAsScriptTag(scriptFile);
-    }
-
-    @Override
-    public <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter) {
-        checkNotNull(script);
-        checkNotNull(converter);
-        return internalBrowser.runImmediately(script, converter);
-    }
-
-    @Override
-    public Object runImmediately(String script) {
-        checkNotNull(script);
-        return internalBrowser.runImmediately(script);
-    }
-
-    @Override
-    public void executeBeforeScript(Function<String> runnable) {
-        checkNotNull(runnable);
-        internalBrowser.executeBeforeScript(runnable);
-    }
-
-    @Override
-    public void executeAfterScript(Function<Object> runnable) {
-        checkNotNull(runnable);
-        internalBrowser.executeAfterScript(runnable);
+    public void executeAfterScript(Function<Object> function) {
+        internalBrowser.executeAfterScript(function);
     }
 
     @Override
@@ -284,9 +324,9 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public Future<Void> setBodyHtml(String html) {
+    public Future<Boolean> setBodyHtml(String html) {
         checkNotNull(html);
-        return run("document.body.innerHTML = ('" + JavascriptString.escape(html) + "');", IConverter.CONVERTER_VOID);
+        return run("document.body.innerHTML = ('" + JavascriptString.escape(html) + "');", IConverter.CONVERTER_BOOLEAN);
     }
 
     @Override
@@ -300,30 +340,21 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public <T> Future<T> getHtml(CallbackFunction<String, T> callbackFunction) {
-        return internalBrowser.runWithCallback(getHtml(), callbackFunction);
+    public <T> Future<T> getHtml(CallbackFunction<String, T> callback) {
+        checkNotNull(callback);
+        return internalBrowser.runWithCallback(getHtml(), callback);
     }
 
     @Override
-    public Future<Void> pasteHtmlAtCaret(String html) {
+    public Future<Boolean> pasteHtmlAtCaret(String html) {
         checkNotNull(html);
         try {
             File js = File.createTempFile("paste", ".js");
             FileUtils.write(js, JavascriptString.createJavascriptForInsertingHTML(html));
-            return injectJavascriptFile(js);
+            return injectJavascript(js);
         } catch (IOException e) {
-            return new CompletedFuture<Void>(null, e);
+            return new CompletedFuture<Boolean>(null, e);
         }
-    }
-
-    @Override
-    public Future<Void> addFocusBorder() {
-        return internalBrowser.run("window.__addFocusBorder();", IConverter.CONVERTER_VOID);
-    }
-
-    @Override
-    public Future<Void> removeFocusBorder() {
-        return internalBrowser.run("window.__removeFocusBorder();", IConverter.CONVERTER_VOID);
     }
 
     @Override
@@ -333,7 +364,7 @@ public class Browser extends Composite implements IBrowser {
 
     @Override
     public void deactivateTextSelections() {
-        this.textSelectionsDisabled = true;
+        textSelectionsDisabled = true;
     }
 
     @Override
@@ -406,6 +437,30 @@ public class Browser extends Composite implements IBrowser {
         internalBrowser.removeJavaScriptExceptionListener(exceptionListener);
     }
 
+    /**
+     * Adds a border that signifies the {@link org.eclipse.swt.widgets.Control}'s focus.
+     * The execution of this method may be delayed.
+     * The returned {@link Future} can be used to check
+     * if it has happened.
+     *
+     * @return a future to check whether the delayed execution has happened
+     */
+    public Future<Void> addFocusBorder() {
+        return internalBrowser.run("window.__addFocusBorder();", IConverter.CONVERTER_VOID);
+    }
+
+    /**
+     * Removes the border that signifies the {@link org.eclipse.swt.widgets.Control}'s focus.
+     * The execution of this method may be delayed.
+     * The returned {@link Future} can be used to check
+     * if it has happened.
+     *
+     * @return a future to check whether the delayed execution has happened
+     */
+    public Future<Void> removeFocusBorder() {
+        return internalBrowser.run("window.__removeFocusBorder();", IConverter.CONVERTER_VOID);
+    }
+
     @Override
     public Point computeSize(int wHint, int hHint, boolean changed) {
         Rectangle bounds = internalBrowser.getCachedContentBounds();
@@ -422,11 +477,10 @@ public class Browser extends Composite implements IBrowser {
 
     @Override
     public void setBackground(Color color) {
-        checkNotNull(color);
         super.setBackground(color);
         String hex = color != null ? new RGB(color.getRGB()).toDecString() : "transparent";
         try {
-            injectCssImmediately("html, body { background-color: " + hex + "; }");
+            injectCss("html, body { background-color: " + hex + "; }");
         } catch (RuntimeException e) {
             LOGGER.error("Error setting background color to " + color, e);
         }
@@ -445,6 +499,7 @@ public class Browser extends Composite implements IBrowser {
     /**
      * Deactivate browser's native context/popup menu. Doing so allows the definition of menus in an inheriting composite via setMenu.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public void deactivateNativeMenu() {
         internalBrowser.addListener(SWT.MenuDetect, new Listener() {
             @Override

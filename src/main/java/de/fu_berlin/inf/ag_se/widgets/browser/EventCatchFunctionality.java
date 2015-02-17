@@ -248,7 +248,7 @@ public class EventCatchFunctionality {
         File dndCss = ClasspathFileUtils.getFile("/dnd.css");
         try {
             browser.runContent(dnd);
-            browser.injectCssFile(dndCss.toURI());
+            browser.injectCss(dndCss.toURI());
         } catch (RuntimeException e) {
             if (e.getCause() instanceof SWTException) {
                 // disposed

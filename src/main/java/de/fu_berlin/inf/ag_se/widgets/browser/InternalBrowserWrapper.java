@@ -11,6 +11,7 @@ import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.ParametrizedRunnable;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
@@ -291,36 +292,127 @@ public class InternalBrowserWrapper {
         }
     }
 
+    Future<Boolean> openWithCallback(URI uri, int timeout, String pageLoadCheckScript, CallbackFunction<Boolean, Boolean> callback) {
+        return runWithCallback(open(uri.toString(), timeout, pageLoadCheckScript), callback);
+    }
+
+    boolean syncOpen(URI uri, int timeout, String pageLoadCheckScript) {
+        if (SwtUiThreadExecutor.isUIThread()) {
+            throw new IllegalStateException("This method must not be called from the UI thread.");
+        }
+        Future<Boolean> opened = open(uri.toString(), timeout, pageLoadCheckScript);
+        try {
+            return opened.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        } catch (ExecutionException e) {
+            throw (RuntimeException) e.getCause();
+        }
+    }
+
     /**
      * @throws BrowserDisposedException if the browser is disposed
      */
-    void waitForCondition(String condition) {
-        if (browser == null || browser.isDisposed()) {
-            throw new BrowserDisposedException();
+    void waitForCondition(String javaScriptExpression) {
+        try {
+            checkCondition(javaScriptExpression).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            throw (RuntimeException) e.getCause();
         }
+    }
 
-        //TODO Maybe we don't need the callback
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
-        String randomFunctionName = BrowserUtils.createRandomFunctionName();
-        IBrowserFunction browserFunction = createBrowserFunction(randomFunctionName, new IBrowserFunction() {
-            public Object function(Object[] arguments) {
-                countDownLatch.countDown();
+    Future<Void> checkCondition(final String javaScriptExpression) {
+        return executor.submit(new NoCheckedExceptionCallable<Void>() {
+            @Override
+            public Void call() {
+                if (browser == null || browser.isDisposed()) {
+                    throw new BrowserDisposedException();
+                }
+
+                //TODO Maybe we don't need the callback
+                final CountDownLatch countDownLatch = new CountDownLatch(1);
+                String randomFunctionName = BrowserUtils.createRandomFunctionName();
+                IBrowserFunction browserFunction = createBrowserFunction(randomFunctionName, new IBrowserFunction() {
+                    public Object function(Object[] arguments) {
+                        countDownLatch.countDown();
+                        return null;
+                    }
+                });
+                String checkScript = JavascriptString.createWaitForConditionJavascript(javaScriptExpression, randomFunctionName);
+
+                InternalBrowserWrapper.this.run(checkScript, IConverter.CONVERTER_VOID);
+                try {
+                    countDownLatch.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                browserFunction.dispose();
                 return null;
             }
         });
-        String checkScript = JavascriptString.createWaitForConditionJavascript(condition, randomFunctionName);
-
-        run(checkScript, IConverter.CONVERTER_VOID);
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        browserFunction.dispose();
     }
 
-    Future<Boolean> inject(URI scriptURI) {
+    <DEST> Future<DEST> executeWhenConditionIsMet(String javaScriptExpression, CallbackFunction<Void, DEST> callback) {
+        return runWithCallback(checkCondition(javaScriptExpression), callback);
+    }
+
+    Future<Boolean> injectJavascript(URI scriptURI) {
         return run(scriptURI, false);
+    }
+
+    Future<Boolean> injectJavascript(File file) {
+        return run(JavascriptString.createJsFileInjectionScript(file),
+                IConverter.CONVERTER_BOOLEAN);
+    }
+
+    boolean syncInjectJavascript(URI scriptURI) {
+        try {
+            return injectJavascript(scriptURI).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        } catch (ExecutionException e) {
+            throw (RuntimeException) e.getCause();
+        }
+    }
+
+
+    Future<Boolean> injectCss(URI uri) {
+        return run(JavascriptString.createCssFileInjectionScript(uri),
+                IConverter.CONVERTER_BOOLEAN);
+    }
+
+    boolean syncInjectCssURI(URI uri) {
+        try {
+            return injectCss(uri).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        } catch (ExecutionException e) {
+            throw (RuntimeException) e.getCause();
+        }
+    }
+
+    Future<Boolean> injectCss(String css) {
+        return run(JavascriptString.createCssInjectionScript(css), IConverter.CONVERTER_BOOLEAN);
+    }
+
+    <DEST> Future<DEST> injectCss(String css, CallbackFunction<Boolean, DEST> callback) {
+        return runWithCallback(injectCss(css), callback);
+    }
+
+    boolean syncInjectCss(String css) {
+        try {
+            return injectCss(css).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        } catch (ExecutionException e) {
+            throw (RuntimeException) e.getCause();
+        }
     }
 
     Future<Boolean> run(File scriptFile) {
@@ -357,6 +449,21 @@ public class InternalBrowserWrapper {
         return run(script, IConverter.CONVERTER_IDENT);
     }
 
+    <T> Future<T> run(final String script, final CallbackFunction<Object, T> callback) {
+        return runWithCallback(InternalBrowserWrapper.this.run(script), callback);
+    }
+
+
+    /**
+     * This method must not be called from the UI thread, as it is blocking.
+     *
+     * @throws IllegalStateException    if this method is called from the UI thread
+     * @throws ScriptExecutionException if an exception occurs while executing the script
+     */
+    Object syncRun(String script) {
+        return syncRun(script, IConverter.CONVERTER_IDENT);
+    }
+
     <DEST> Future<DEST> run(final String script,
                             final IConverter<Object, DEST> converter) {
         if (isLoadingCompleted()) {
@@ -370,6 +477,17 @@ public class InternalBrowserWrapper {
         return browserStatusManager.createFuture(new ScriptExecutingCallable<DEST>(this, converter, script));
     }
 
+    <DEST> DEST syncRun(String script, IConverter<Object, DEST> converter) {
+        try {
+            return run(script, converter).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        } catch (ExecutionException e) {
+            throw (RuntimeException) e.getCause();
+        }
+    }
+
     /**
      * @throws ScriptExecutionException if an exception occurs while executing the script
      */
@@ -378,91 +496,20 @@ public class InternalBrowserWrapper {
         return SwtUiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(this, converter, script));
     }
 
-    Object runImmediately(String script) {
-        return runImmediately(script, IConverter.CONVERTER_IDENT);
+    /**
+     * @throws ScriptExecutionException if an exception occurs while executing the script
+     * @throws IOException              if an exception occurs while reading the passed file
+     */
+    Future<Boolean> runContent(File scriptFile) throws IOException {
+        return run(FileUtils.readFileToString(scriptFile), IConverter.CONVERTER_BOOLEAN);
     }
 
     /**
      * @throws ScriptExecutionException if an exception occurs while executing the script
      * @throws IOException              if an exception occurs while reading the passed file
      */
-    Future<Void> runContent(File scriptFile) throws IOException {
-        return run(FileUtils.readFileToString(scriptFile), IConverter.CONVERTER_VOID);
-    }
-
-    /**
-     * @throws ScriptExecutionException if an exception occurs while executing the script
-     * @throws IOException              if an exception occurs while reading the passed file
-     */
-    Future<Void> runContentsAsScriptTag(File scriptFile) throws IOException {
-        return run(JavascriptString.embedContentsIntoScriptTag(scriptFile), IConverter.CONVERTER_VOID);
-    }
-
-    void executeBeforeScript(Function<String> runnable) {
-        beforeScripts.add(runnable);
-    }
-
-    void executeAfterScript(Function<Object> runnable) {
-        afterScripts.add(runnable);
-    }
-
-    Future<Void> injectJsFile(File file) {
-        return run(JavascriptString.createJsFileInjectionScript(file),
-                IConverter.CONVERTER_VOID);
-    }
-
-    /**
-     * @throws ScriptExecutionException if an exception occurs while executing the script
-     */
-    void injectJsFileImmediately(File file) {
-        runImmediately(JavascriptString.createJsFileInjectionScript(file),
-                IConverter.CONVERTER_VOID);
-    }
-
-    Future<Void> injectCssFile(URI uri) {
-        return run(JavascriptString.createCssFileInjectionScript(uri),
-                IConverter.CONVERTER_VOID);
-    }
-
-    /**
-     * @throws ScriptExecutionException if an exception occurs while executing the script
-     */
-    void injectCssFileImmediately(URI uri) {
-        runImmediately(JavascriptString.createCssFileInjectionScript(uri),
-                IConverter.CONVERTER_VOID);
-    }
-
-    Future<Void> injectCss(String css) {
-        return run(JavascriptString.createCssInjectionScript(css), IConverter.CONVERTER_VOID);
-    }
-
-    /**
-     * @throws ScriptExecutionException if an exception occurs while executing the script
-     */
-    void injectCssImmediately(String css) {
-        runImmediately(JavascriptString.createCssInjectionScript(css),
-                IConverter.CONVERTER_VOID);
-    }
-
-    /**
-     * Returns the state of the browser.
-     *
-     * @return a status enum value
-     */
-    private BrowserStatus getBrowserStatus() {
-        return browserStatusManager.getBrowserStatus();
-    }
-
-    void setAllowLocationChange(boolean allowed) {
-        this.allowLocationChange = allowed;
-    }
-
-    boolean isLoadingCompleted() {
-        return browserStatusManager.isLoadingCompleted();
-    }
-
-    boolean isDisposed() {
-        return browser.isDisposed();
+    Future<Boolean> runContentAsScriptTag(File scriptFile) throws IOException {
+        return run(JavascriptString.embedContentsIntoScriptTag(scriptFile), IConverter.CONVERTER_BOOLEAN);
     }
 
     /**
@@ -503,6 +550,49 @@ public class InternalBrowserWrapper {
                 return browser.getUrl();
             }
         });
+    }
+
+    /**
+     * Sets a {@link ParametrizedRunnable}
+     * that is executed if when a script is about to be executed by the browser.
+     *
+     * @param function the runnable to be executed with the script as parameter
+     * @throws NullPointerException if runnable is null
+     */
+    void executeBeforeScript(Function<String> function) {
+        beforeScripts.add(function);
+    }
+
+    /**
+     * Sets a {@link ParametrizedRunnable}
+     * to get executed when a script finishes execution.
+     *
+     * @param function the runnable to be executed with the return value of the last script execution
+     * @throws NullPointerException if runnable is null
+     */
+    void executeAfterScript(Function<Object> function) {
+        afterScripts.add(function);
+    }
+
+    /**
+     * Returns the state of the browser.
+     *
+     * @return a status enum value
+     */
+    private BrowserStatus getBrowserStatus() {
+        return browserStatusManager.getBrowserStatus();
+    }
+
+    void setAllowLocationChange(boolean allowed) {
+        this.allowLocationChange = allowed;
+    }
+
+    boolean isLoadingCompleted() {
+        return browserStatusManager.isLoadingCompleted();
+    }
+
+    boolean isDisposed() {
+        return browser.isDisposed();
     }
 
     void addListener(int eventType, Listener listener) {
@@ -551,11 +641,29 @@ public class InternalBrowserWrapper {
         javaScriptExceptionListeners.remove(javaScriptExceptionListener);
     }
 
-    void executeBeforeLoading(final Runnable runnable) {
+    /**
+     * Set a runnable to the executed just before the
+     * URI is set internally. This methods may be called
+     * multiple times to queue more runnables to be executed.
+     *
+     * @param runnable the runnable to be executed
+     * @throws NullPointerException if the runnable is null
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    void executeBeforeSettingURI(final Runnable runnable) {
         beforeLoading.add(Executors.callable(runnable));
     }
 
-    void executeAfterLoading(Runnable runnable) {
+    /**
+     * Set a runnable to the executed just after the
+     * URI is set internally. This methods may be called
+     * multiple times to queue more runnables to be executed.
+     *
+     * @param runnable the runnable to be executed
+     * @throws NullPointerException if the runnable is null
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    void executeAfterSettingURI(Runnable runnable) {
         afterLoading.add(Executors.callable(runnable));
     }
 
@@ -615,32 +723,6 @@ public class InternalBrowserWrapper {
             Thread.currentThread().interrupt();
         }
 
-    }
-
-    /**
-     * This method must not be called from the UI thread, as it is blocking.
-     *
-     * @throws IllegalStateException    if this method is called from the UI thread
-     * @throws ScriptExecutionException if an exception occurs while executing the script
-     */
-    Object syncRun(String script) {
-        if (SwtUiThreadExecutor.isUIThread())
-            throw new IllegalStateException("This method must not be called from the UI thread.");
-
-        Future<Object> res = run(script);
-        try {
-            return res.get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOGGER.debug("Interrupted while waiting for the result. Returning null.");
-            return null;
-        } catch (ExecutionException e) {
-            throw new ScriptExecutionException(script, e);
-        }
-    }
-
-    <T> Future<T> syncRun(final String script, final CallbackFunction<Object, T> callback) {
-        return runWithCallback(InternalBrowserWrapper.this.run(script), callback);
     }
 
     public <V, T> Future<T> runWithCallback(final Future<V> future, final CallbackFunction<V, T> callback) {

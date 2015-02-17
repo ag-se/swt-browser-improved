@@ -92,4 +92,9 @@ public class SwtUiThreadExecutor {
         }
     }
 
+    public static void checkNotUIThread() {
+        if (isUIThread()) {
+            throw new IllegalStateException("This method must not be called from the UI thread.");
+        }
+    }
 }

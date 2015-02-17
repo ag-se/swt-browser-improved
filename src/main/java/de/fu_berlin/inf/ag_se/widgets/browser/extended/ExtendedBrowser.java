@@ -17,7 +17,7 @@ import java.net.URI;
  *
  * @author bkahlert
  */
-public class ExtendedBrowser extends Browser implements IBrowser {
+public class ExtendedBrowser extends Browser {
 
     private static final Logger LOGGER = Logger
             .getLogger(ExtendedBrowser.class);
@@ -33,7 +33,7 @@ public class ExtendedBrowser extends Browser implements IBrowser {
          * TODO FIX BUG: afterCompletion is called after the DOMReady scripts.
          * PageLoad might need to access something loaded through extensions.
          */
-        executeBeforeCompletion(new Runnable() {
+        executeAfterCompletion(new Runnable() {
             @Override
             public void run() {
                 for (IBrowserExtension extension : ExtendedBrowser.this.extensions) {
@@ -46,7 +46,7 @@ public class ExtendedBrowser extends Browser implements IBrowser {
     }
 
     private Boolean hasExtension(IBrowserExtension extension) {
-        return this.runImmediately(extension.getVerificationScript(),
+        return syncRun(extension.getVerificationScript(),
                 IConverter.CONVERTER_BOOLEAN);
     }
 
@@ -95,7 +95,7 @@ public class ExtendedBrowser extends Browser implements IBrowser {
         }
         for (URI cssExtension : extension.getCssExtensions()) {
             try {
-                injectCssFileImmediately(cssExtension);
+                injectCssURI(cssExtension);
             } catch (RuntimeException e) {
                 LOGGER.error(
                         "Could not load the JS extension \""
