@@ -1,12 +1,13 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 
+import com.google.common.collect.Iterables;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.utils.Point;
+import de.fu_berlin.inf.ag_se.widgets.browser.EventCatchBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.ISelector.IdSelector;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.ISelector.NameSelector;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.IBrowserExtension;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.jquery.JQueryBrowserExtension;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.BrowserExtension;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Element;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
@@ -17,28 +18,22 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Composite;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public class JQueryBrowser extends ExtendedBrowser implements IJQueryBrowser {
+public class JQueryBrowser extends EventCatchBrowser implements IJQueryBrowser {
     private static final Logger LOGGER = Logger.getLogger(JQueryBrowser.class);
 
     private Point disposedScrollPosition = null;
 
     public JQueryBrowser(Composite parent, int style) {
-        this(parent, style, new IBrowserExtension[]{});
+        this(parent, style, Collections.<BrowserExtension>emptyList());
     }
 
-    public JQueryBrowser(Composite parent, int style,
-                         final IBrowserExtension[] extensions) {
-        super(parent, style, new ArrayList<IBrowserExtension>() {
-            {
-                this.add(new JQueryBrowserExtension());
-                this.addAll(Arrays.asList(extensions));
-            }
-        }.toArray(new IBrowserExtension[0]));
+    public JQueryBrowser(Composite parent, int style, Iterable<BrowserExtension> extensions) {
+        super(parent, style, Iterables.concat(extensions, Arrays.asList(BrowserExtension.JQUERY_EXTENSION)));
 
         this.addDisposeListener(new DisposeListener() {
             @Override

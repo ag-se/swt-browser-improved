@@ -2,6 +2,7 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
+import de.fu_berlin.inf.ag_se.widgets.browser.EventCatchBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import org.apache.commons.io.FileUtils;
@@ -21,7 +22,7 @@ import java.util.concurrent.Future;
 
 public class MultipleBrowsersDemo extends AbstractDemo {
 
-    private Browser[] browsers;
+    private EventCatchBrowser[] browsers;
     private String alertString = "Hello World!";
     private static String timeoutString = "10000";
     private static String[] URLS = new String[]{"http://www.google.de",
@@ -95,10 +96,10 @@ public class MultipleBrowsersDemo extends AbstractDemo {
     }
 
     public void createDemo(Composite parent) {
-        browsers = new Browser[URLS.length];
+        browsers = new EventCatchBrowser[URLS.length];
         for (int i = 0; i < browsers.length; i++) {
             final int num = i;
-            browsers[i] = new Browser(parent, SWT.BORDER);
+            browsers[i] = new EventCatchBrowser(parent, SWT.BORDER);
             browsers[i].addAnchorListener(new IAnchorListener() {
                 @Override
                 public void anchorHovered(IAnchor anchor, boolean entered) {

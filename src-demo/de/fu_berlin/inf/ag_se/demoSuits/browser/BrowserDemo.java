@@ -2,7 +2,7 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
+import de.fu_berlin.inf.ag_se.widgets.browser.EventCatchBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
@@ -25,7 +25,7 @@ import java.util.concurrent.Future;
 
 public class BrowserDemo extends AbstractDemo {
 
-    private Browser browser;
+    private EventCatchBrowser browser;
     private String alertString = "Hello World!";
     private static String timeoutString = "15000";
 
@@ -197,7 +197,7 @@ public class BrowserDemo extends AbstractDemo {
 
     @Override
     public void createDemo(Composite parent) {
-        browser = new Browser(parent, SWT.BORDER);
+        browser = new EventCatchBrowser(parent, SWT.BORDER);
         browser.setAllowLocationChange(true);
         browser.addAnchorListener(new IAnchorListener() {
             @Override

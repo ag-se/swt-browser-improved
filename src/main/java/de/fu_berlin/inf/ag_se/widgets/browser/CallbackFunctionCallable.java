@@ -31,8 +31,7 @@ public class CallbackFunctionCallable implements NoCheckedExceptionCallable<Bool
             @Override
             public void run() {
                 final AtomicReference<IBrowserFunction> callback = new AtomicReference<IBrowserFunction>();
-                callback.set(browser.createBrowserFunction(
-                        callbackFunctionName, new IBrowserFunction() {
+                callback.set(browser.createBrowserFunction(new IBrowserFunction(callbackFunctionName) {
                             public Object function(Object[] arguments) {
                                 callback.get().dispose();
                                 mutex.release();

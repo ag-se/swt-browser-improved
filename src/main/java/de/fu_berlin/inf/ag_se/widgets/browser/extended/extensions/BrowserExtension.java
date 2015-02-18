@@ -1,86 +1,84 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions;
 
-import de.fu_berlin.inf.ag_se.utils.Assert;
-import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
+import de.fu_berlin.inf.ag_se.utils.ClasspathFileUtils;
 
 import java.io.File;
-import java.net.URI;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
- * This standard implementation of the {@link IBrowserExtension} can extend
- * {@link IBrowser}s with JavaScript.
- * <p>
- * The loading process depends on where the jsExtensions (.js) is located. If
- * the file is on the local machine it is loaded inline. Otherwise a
- * <code>script</code> tag is generated.
- * <p>
  * TODO Currently the loading of external resources does not work reliably.
  * This can lead to waiting threads which are never notified.
- * 
- * @author bkahlert
- * 
  */
-public class BrowserExtension implements IBrowserExtension {
+public enum BrowserExtension {
 
-	private final String name;
-	private final String verificationScript;
-	private final List<File> jsExtensions;
-	private final List<URI> cssExtensions;
+    JQUERY_EXTENSION("jQuery 1.9.0", "return typeof jQuery !== 'undefined';",
+            Arrays.asList(ClasspathFileUtils.getFile("/jquery/jquery-1.9.0.js")),
+            Collections.<File>emptyList(),
+            Collections.<BrowserExtension>emptyList()),
 
-	private final List<Class<? extends IBrowserExtension>> dependencies;
+    BOOTSTRAP_EXTENSION("Bootstrap 3.0.0",
+            "return (typeof window.jQuery !== 'undefined') && (typeof $().modal == 'function');",
+            Arrays.asList(ClasspathFileUtils.getFile("/bootstrap/js/bootstrap.min.js")),
+            Arrays.asList(ClasspathFileUtils.getFile("/bootstrap/css/bootstrap.min.css")),
+            Arrays.asList(JQUERY_EXTENSION)),
 
-	/**
-	 * This constructor allows adding a multiple JS and CSS files.
-	 * 
-	 * @param name
-	 * @param verificationScript
-	 * @param jsExtensions
-	 * @param arrayList
-	 */
-	public BrowserExtension(String name, String verificationScript,
-			List<File> jsExtensions, List<URI> cssExtensions,
-			ArrayList<Class<? extends IBrowserExtension>> dependencies) {
-		Assert.isLegal(name != null && verificationScript != null);
-		this.name = name;
-		this.verificationScript = verificationScript;
-		this.jsExtensions = Collections
-				.unmodifiableList(jsExtensions != null ? new ArrayList<File>(
-						jsExtensions) : new ArrayList<File>(0));
-		this.cssExtensions = Collections
-				.unmodifiableList(cssExtensions != null ? new ArrayList<URI>(
-						cssExtensions) : new ArrayList<URI>(0));
-		this.dependencies = Collections
-				.unmodifiableList(dependencies != null ? new ArrayList<Class<? extends IBrowserExtension>>(
-						dependencies)
-						: new ArrayList<Class<? extends IBrowserExtension>>(0));
-	}
+    EVENT_CATCH_EXTENSION("Event Catch Functionality", "return window[\"__eventsCatchInjected\"];",
+            Arrays.asList(ClasspathFileUtils.getFile("/events.js"), ClasspathFileUtils.getFile("/dnd.js")),
+            Arrays.asList(ClasspathFileUtils.getFile("/dnd.css")),
+            Collections.<BrowserExtension>emptyList()
+            );
 
-	@Override
-	public String getName() {
-		return this.name;
-	}
+    private final String name;
+    private final String verificationScript;
+    private final List<File> jsExtensions;
+    private final List<File> cssExtensions;
+    private final List<BrowserExtension> dependencies;
 
-	@Override
-	public String getVerificationScript() {
-		return this.verificationScript;
-	}
+    /**
+     * This constructor allows adding a multiple JS and CSS files.
+     *
+     * @param name
+     * @param verificationScript
+     * @param jsExtensions
+     * @param cssExtensions
+     * @param dependencies
+     */
+    private BrowserExtension(String name, String verificationScript,
+                             List<File> jsExtensions, List<File> cssExtensions,
+                             List<BrowserExtension> dependencies) {
+        checkNotNull(name);
+        checkNotNull(verificationScript);
+        checkNotNull(jsExtensions);
+        checkNotNull(cssExtensions);
+        checkNotNull(dependencies);
+        this.name = name;
+        this.verificationScript = verificationScript;
+        this.jsExtensions = Collections.unmodifiableList(jsExtensions);
+        this.cssExtensions = Collections.unmodifiableList(cssExtensions);
+        this.dependencies = Collections.unmodifiableList(dependencies);
+    }
 
-	@Override
-	public List<File> getJsExtensions() {
-		return this.jsExtensions;
-	}
+    public String getName() {
+        return this.name;
+    }
 
-	@Override
-	public List<URI> getCssExtensions() {
-		return this.cssExtensions;
-	}
+    public String getVerificationScript() {
+        return this.verificationScript;
+    }
 
-	@Override
-	public List<Class<? extends IBrowserExtension>> getDependencies() {
-		return this.dependencies;
-	}
+    public List<File> getJsExtensions() {
+        return this.jsExtensions;
+    }
 
+    public List<File> getCssExtensions() {
+        return this.cssExtensions;
+    }
+
+    public List<BrowserExtension> getDependencies() {
+        return this.dependencies;
+    }
 }

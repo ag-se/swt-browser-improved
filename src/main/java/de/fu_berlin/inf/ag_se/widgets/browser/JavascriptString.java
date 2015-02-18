@@ -17,7 +17,6 @@ public class JavascriptString {
                 + "\"; document.getElementsByTagName(\"head\")[0].appendChild(script);";
     }
 
-
     public static String createJSForInjection(String callbackFunctionName, URI script, boolean removeAfterExecution) {
         String js = "var h = document.getElementsByTagName(\"head\")[0]; var s = document.createElement(\"script\");s.type = \"text/javascript\";s.src = \""
                 + script.toString()
@@ -51,6 +50,10 @@ public class JavascriptString {
                 + "\")}else{var link=document.createElement(\"link\"); link.rel=\"stylesheet\"; link.type=\"text/css\"; link.href=\""
                 + uri.toString()
                 + "\"; document.getElementsByTagName(\"head\")[0].appendChild(link); }";
+    }
+
+    public static String createCssFileInjectionScript(File cssFile) throws IOException{
+        return createCssInjectionScript(FileUtils.readFileToString(cssFile));
     }
 
     static String createCssInjectionScript(String css) {

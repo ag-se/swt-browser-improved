@@ -81,7 +81,7 @@ public class InternalBrowserWrapper {
 
         // throws exception that arise from calls within the browser,
         // meaning code that has not been invoked by Java but by JavaScript
-        createBrowserFunction("__error_callback", new IBrowserFunction() {
+        createBrowserFunction(new IBrowserFunction("__error_callback") {
             @Override
             public Object function(Object[] arguments) {
                 JavaScriptException javaScriptException = JavaScriptException
@@ -234,7 +234,7 @@ public class InternalBrowserWrapper {
                 " && (" + pageLoadCheckExpression + ")" :
                 "");
         String randomFunctionName = BrowserUtils.createRandomFunctionName();
-        createBrowserFunction(randomFunctionName, new IBrowserFunction() {
+        createBrowserFunction(new IBrowserFunction(randomFunctionName) {
             @Override
             public Object function(Object[] arguments) {
                 executor.submit(new Runnable() {
@@ -335,7 +335,7 @@ public class InternalBrowserWrapper {
                 //TODO Maybe we don't need the callback
                 final CountDownLatch countDownLatch = new CountDownLatch(1);
                 String randomFunctionName = BrowserUtils.createRandomFunctionName();
-                IBrowserFunction browserFunction = createBrowserFunction(randomFunctionName, new IBrowserFunction() {
+                IBrowserFunction browserFunction = createBrowserFunction(new IBrowserFunction(randomFunctionName) {
                     public Object function(Object[] arguments) {
                         countDownLatch.countDown();
                         return null;
@@ -674,12 +674,11 @@ public class InternalBrowserWrapper {
     /**
      * May be called from whatever thread.
      */
-    IBrowserFunction createBrowserFunction(final String functionName,
-                                           final IBrowserFunction function) {
+    IBrowserFunction createBrowserFunction(final IBrowserFunction function) {
         return SwtUiThreadExecutor.syncExec(new NoCheckedExceptionCallable<IBrowserFunction>() {
             @Override
             public IBrowserFunction call() {
-                new BrowserFunction(browser, functionName) {
+                new BrowserFunction(browser, function.getName()) {
                     @Override
                     public Object function(Object[] arguments) {
                         return function.function(arguments);

@@ -7,7 +7,7 @@ import de.fu_berlin.inf.ag_se.utils.SWTUtils;
 import de.fu_berlin.inf.ag_se.utils.colors.RGB;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.*;
+import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -47,8 +47,6 @@ public class Browser extends Composite implements IBrowser {
 
     private boolean textSelectionsDisabled = false;
 
-    private EventCatchFunctionality eventCatchFunctionality;
-
     /**
      * Constructs a new browser composite with the given styles.
      *
@@ -63,8 +61,6 @@ public class Browser extends Composite implements IBrowser {
 
         internalBrowser = new InternalBrowserWrapper(this);
 
-        eventCatchFunctionality = new EventCatchFunctionality(internalBrowser);
-
         executeAfterCompletion(new Runnable() {
             @Override
             public void run() {
@@ -78,7 +74,6 @@ public class Browser extends Composite implements IBrowser {
                         LOGGER.error(e);
                     }
                 }
-                eventCatchFunctionality.injectEventCatchScript();
             }
         });
     }
@@ -298,7 +293,7 @@ public class Browser extends Composite implements IBrowser {
      * the status
      * is set to loaded, but the browser status is fairly defined.
      *
-     * @param script the script to be executed
+     * @param script    the script to be executed
      * @param converter the converter for the return value
      * @return the converted return value
      */
@@ -382,59 +377,9 @@ public class Browser extends Composite implements IBrowser {
     }
 
     @Override
-    public IBrowserFunction createBrowserFunction(final String functionName,
-                                                  final IBrowserFunction function) {
-        checkNotNull(functionName);
+    public IBrowserFunction createBrowserFunction(final IBrowserFunction function) {
         checkNotNull(function);
-        return internalBrowser.createBrowserFunction(functionName, function);
-    }
-
-    @Override
-    public void addAnchorListener(IAnchorListener anchorListener) {
-        checkNotNull(anchorListener);
-        eventCatchFunctionality.addAnchorListener(anchorListener);
-    }
-
-    @Override
-    public void removeAnchorListener(IAnchorListener anchorListener) {
-        checkNotNull(anchorListener);
-        eventCatchFunctionality.removeAnchorListener(anchorListener);
-    }
-
-    @Override
-    public void addMouseListener(IMouseListener mouseListener) {
-        checkNotNull(mouseListener);
-        eventCatchFunctionality.addMouseListener(mouseListener);
-    }
-
-    @Override
-    public void removeMouseListener(IMouseListener mouseListener) {
-        checkNotNull(mouseListener);
-        eventCatchFunctionality.removeMouseListener(mouseListener);
-    }
-
-    @Override
-    public void addFocusListener(IFocusListener focusListener) {
-        checkNotNull(focusListener);
-        eventCatchFunctionality.addFocusListener(focusListener);
-    }
-
-    @Override
-    public void removeFocusListener(IFocusListener focusListener) {
-        checkNotNull(focusListener);
-        eventCatchFunctionality.removeFocusListener(focusListener);
-    }
-
-    @Override
-    public void addDNDListener(IDNDListener dndListener) {
-        checkNotNull(dndListener);
-        eventCatchFunctionality.addDNDListener(dndListener);
-    }
-
-    @Override
-    public void removeDNDListener(IDNDListener dndListener) {
-        checkNotNull(dndListener);
-        eventCatchFunctionality.removeDNDListener(dndListener);
+        return internalBrowser.createBrowserFunction(function);
     }
 
     @Override

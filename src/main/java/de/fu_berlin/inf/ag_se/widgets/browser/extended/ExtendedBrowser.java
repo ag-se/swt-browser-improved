@@ -4,13 +4,12 @@ import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.JavascriptString;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.IBrowserExtension;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.BrowserExtension;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.widgets.Composite;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 
 /**
  * This {@link IBrowser} behaves like the {@link Browser} but allows {@link de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.IBrowserExtension}s
@@ -23,10 +22,9 @@ public class ExtendedBrowser extends Browser {
     private static final Logger LOGGER = Logger
             .getLogger(ExtendedBrowser.class);
 
-    private final IBrowserExtension[] extensions;
+    private final Iterable<BrowserExtension> extensions;
 
-    public ExtendedBrowser(Composite parent, int style,
-                           IBrowserExtension[] extensions) {
+    public ExtendedBrowser(Composite parent, int style, Iterable<BrowserExtension> extensions) {
         super(parent, style);
         this.extensions = extensions;
 
@@ -37,7 +35,7 @@ public class ExtendedBrowser extends Browser {
         executeAfterCompletion(new Runnable() {
             @Override
             public void run() {
-                for (IBrowserExtension extension : ExtendedBrowser.this.extensions) {
+                for (BrowserExtension extension : ExtendedBrowser.this.extensions) {
                     if (!hasExtension(extension)) {
                         if (!addExtension(extension)) {
                             LOGGER.error("Error loading " + extension);
@@ -48,25 +46,16 @@ public class ExtendedBrowser extends Browser {
         });
     }
 
-    private Boolean hasExtension(IBrowserExtension extension) {
+    private Boolean hasExtension(BrowserExtension extension) {
         return runImmediately(extension.getVerificationScript(), IConverter.CONVERTER_BOOLEAN);
     }
 
-    private Boolean addExtension(IBrowserExtension extension) {
-        for (Class<? extends IBrowserExtension> dependencyClass : extension.getDependencies()) {
-            try {
-                IBrowserExtension dependency = dependencyClass.newInstance();
-                if (!this.addExtension(dependency)) {
-                    LOGGER.error("Dependency "
-                            + dependency.getName()
-                            + " could not be loaded. Still trying to add extension "
-                            + extension.getName());
-                }
-            } catch (IllegalAccessException e) {
-                LOGGER.error("Cannot instantiate dependency " + dependencyClass.getSimpleName(), e);
-                return false;
-            } catch (InstantiationException e) {
-                LOGGER.error("Cannot instantiate dependency " + dependencyClass.getSimpleName(), e);
+    private Boolean addExtension(BrowserExtension extension) {
+        for (BrowserExtension dependency : extension.getDependencies()) {
+            if (!this.addExtension(dependency)) {
+                LOGGER.error("Dependency "
+                        + dependency.getName()
+                        + " could not be loaded.");
                 return false;
             }
         }
@@ -76,7 +65,7 @@ public class ExtendedBrowser extends Browser {
             // otherwise a loader library would be necessary to satisfy the
             // loading dependencies
             try {
-                if (runImmediately(JavascriptString.embedContentsIntoScriptTag(jsExtension), IConverter.CONVERTER_BOOLEAN)) {
+                if (!runImmediately(JavascriptString.embedContentsIntoScriptTag(jsExtension), IConverter.CONVERTER_BOOLEAN)) {
                     LOGGER.error("Could not load the JS extension \"" + extension.getName() + "\".");
                     return false;
                 }
@@ -89,13 +78,16 @@ public class ExtendedBrowser extends Browser {
             LOGGER.info("Loaded \"" + jsExtension + " successfully.");
         }
 
-        for (URI cssExtension : extension.getCssExtensions()) {
+        for (File cssExtension : extension.getCssExtensions()) {
             try {
                 if (!runImmediately(JavascriptString.createCssFileInjectionScript(cssExtension), IConverter.CONVERTER_BOOLEAN)) {
                     LOGGER.error("Could not load the JS extension \"" + extension.getName() + "\".");
                     return false;
                 }
             } catch (RuntimeException e) {
+                LOGGER.error("Could not load the JS extension \"" + extension.getName() + "\".", e.getCause());
+                return false;
+            } catch (IOException e) {
                 LOGGER.error("Could not load the JS extension \"" + extension.getName() + "\".", e.getCause());
                 return false;
             }
