@@ -1,12 +1,11 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.listener;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import de.fu_berlin.inf.ag_se.utils.Assert;
+import de.fu_berlin.inf.ag_se.widgets.browser.html.IAnchor;
 import org.apache.log4j.Logger;
 
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * Instances of this class adapt {@link de.fu_berlin.inf.ag_se.widgets.browser.listener.IURIListener}s so they can be used as

@@ -1,4 +1,4 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions;
+package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 
 import de.fu_berlin.inf.ag_se.utils.ClasspathFileUtils;
 

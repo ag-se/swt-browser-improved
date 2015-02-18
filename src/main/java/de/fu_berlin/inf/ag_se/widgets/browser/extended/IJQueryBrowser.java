@@ -2,7 +2,8 @@ package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 
 import de.fu_berlin.inf.ag_se.utils.Point;
 import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
+import de.fu_berlin.inf.ag_se.widgets.browser.html.IElement;
+import de.fu_berlin.inf.ag_se.widgets.browser.html.ISelector;
 
 import java.util.concurrent.Future;
 
@@ -115,7 +116,7 @@ public interface IJQueryBrowser extends IBrowser {
 	 * Triggers a key press event on the elements specified by the given
 	 * selector. Typically only focused elements can be triggered.
 	 * <p>
-	 * In contrast to {@link #keyPress(de.fu_berlin.inf.ag_se.widgets.browser.extended.ISelector, String)} this method call also
+	 * In contrast to {@link #keyPress(ISelector, String)} this method call also
 	 * triggers similar events to increase the chance that the web application
 	 * reacts correctly. An example are input fields that trigger actions on key
 	 * presses-like events where the actually used trigger is unknown.

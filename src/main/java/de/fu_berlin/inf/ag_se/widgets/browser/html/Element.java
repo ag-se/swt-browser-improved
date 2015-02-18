@@ -1,12 +1,12 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.extended.html;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+package de.fu_berlin.inf.ag_se.widgets.browser.html;
 
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class Element implements IElement {
 

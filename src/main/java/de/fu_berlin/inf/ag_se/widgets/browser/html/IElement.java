@@ -1,4 +1,4 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.extended.html;
+package de.fu_berlin.inf.ag_se.widgets.browser.html;
 
 import java.util.Map;
 
@@ -31,14 +31,14 @@ public interface IElement {
 	String getData(String key);
 
 	/**
-	 * Returns the {@link de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement}'s css classes.
+	 * Returns the {@link de.fu_berlin.inf.ag_se.widgets.browser.html.IElement}'s css classes.
 	 * 
 	 * @return
 	 */
 	public String[] getClasses();
 
 	/**
-	 * Returns the {@link de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement}'s content, which is the portion between the
+	 * Returns the {@link de.fu_berlin.inf.ag_se.widgets.browser.html.IElement}'s content, which is the portion between the
 	 * opening and closing tag.
 	 * 
 	 * @return
@@ -46,7 +46,7 @@ public interface IElement {
 	public String getContent();
 
 	/**
-	 * Returns html that represents this {@link de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement}.
+	 * Returns html that represents this {@link de.fu_berlin.inf.ag_se.widgets.browser.html.IElement}.
 	 * 
 	 * @return
 	 */

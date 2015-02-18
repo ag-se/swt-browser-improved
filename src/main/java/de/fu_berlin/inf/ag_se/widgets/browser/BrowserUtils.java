@@ -2,7 +2,7 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.ImageUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
+import de.fu_berlin.inf.ag_se.widgets.browser.html.IElement;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.graphics.Image;
@@ -101,7 +101,7 @@ public class BrowserUtils {
         if (element.attr("href") == null) {
             element.attr("href", element.attr("data-cke-saved-href"));
         }
-        return new de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Element(
+        return new de.fu_berlin.inf.ag_se.widgets.browser.html.Element(
                 element);
     }
 

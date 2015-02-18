@@ -1,7 +1,7 @@
 package de.fu_berlin.inf.ag_se.utils;
 
 import de.fu_berlin.inf.ag_se.widgets.browser.BrowserUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
+import de.fu_berlin.inf.ag_se.widgets.browser.html.IElement;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

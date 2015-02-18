@@ -3,7 +3,7 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 import de.fu_berlin.inf.ag_se.widgets.browser.EventCatchBrowser;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
+import de.fu_berlin.inf.ag_se.widgets.browser.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;

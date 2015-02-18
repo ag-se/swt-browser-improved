@@ -1,11 +1,10 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions;
+package de.fu_berlin.inf.ag_se.widgets.browser.extended;
+
+import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
 
 import java.io.File;
 import java.net.URI;
 import java.util.List;
-
-import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.ExtendedBrowser;
 
 /**
  * Interface for extension that can be used with {@link ExtendedBrowser}s.
@@ -47,7 +46,7 @@ public interface IBrowserExtension {
 	public List<URI> getCssExtensions();
 
 	/**
-	 * Returns the {@link de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.IBrowserExtension}s this extension requires.
+	 * Returns the {@link IBrowserExtension}s this extension requires.
 	 * 
 	 * @return immutable list that is never <code>null</code>
 	 */

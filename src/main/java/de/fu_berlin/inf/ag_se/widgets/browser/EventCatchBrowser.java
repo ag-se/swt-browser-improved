@@ -1,13 +1,13 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import com.google.common.collect.Iterables;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.BrowserExtension;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.ExtendedBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.extended.IEventCatchBrowser;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.BrowserExtension;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Anchor;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.Element;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement;
+import de.fu_berlin.inf.ag_se.widgets.browser.html.Anchor;
+import de.fu_berlin.inf.ag_se.widgets.browser.html.Element;
+import de.fu_berlin.inf.ag_se.widgets.browser.html.IAnchor;
+import de.fu_berlin.inf.ag_se.widgets.browser.html.IElement;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;

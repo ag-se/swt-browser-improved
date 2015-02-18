@@ -1,6 +1,6 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.listener;
 
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
+import de.fu_berlin.inf.ag_se.widgets.browser.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import org.apache.log4j.Logger;
 
@@ -9,7 +9,7 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 /**
- * Instances of this class handle {@link de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IElement} based on their schema (e.g.
+ * Instances of this class handle {@link de.fu_berlin.inf.ag_se.widgets.browser.html.IElement} based on their schema (e.g.
  * http, file).
  * <p>
  * Furthermore independently of which thread calls the listener the provided

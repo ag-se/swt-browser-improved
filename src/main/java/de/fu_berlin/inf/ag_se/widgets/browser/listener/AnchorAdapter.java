@@ -1,6 +1,6 @@
 package de.fu_berlin.inf.ag_se.widgets.browser.listener;
 
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.html.IAnchor;
+import de.fu_berlin.inf.ag_se.widgets.browser.html.IAnchor;
 
 public class AnchorAdapter implements IAnchorListener {
 

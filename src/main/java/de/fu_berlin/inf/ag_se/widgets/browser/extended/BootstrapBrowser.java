@@ -3,7 +3,6 @@ package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 import com.google.common.collect.Iterables;
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
 import de.fu_berlin.inf.ag_se.utils.colors.RGB;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.BrowserExtension;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
@@ -13,8 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class BootstrapBrowser extends JQueryBrowser implements IBootstrapBrowser {
-    private static final Logger LOGGER = Logger
-            .getLogger(BootstrapBrowser.class);
+    private static final Logger LOGGER = Logger.getLogger(BootstrapBrowser.class);
 
 
     public BootstrapBrowser(Composite parent, int style) {

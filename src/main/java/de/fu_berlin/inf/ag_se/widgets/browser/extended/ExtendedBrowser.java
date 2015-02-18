@@ -4,7 +4,6 @@ import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.JavascriptString;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.BrowserExtension;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.widgets.Composite;
 
@@ -12,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * This {@link IBrowser} behaves like the {@link Browser} but allows {@link de.fu_berlin.inf.ag_se.widgets.browser.extended.extensions.IBrowserExtension}s
+ * This {@link IBrowser} behaves like the {@link Browser} but allows {@link IBrowserExtension}s
  * to be automatically loaded when the requested {@link java.net.URI} was loaded.
  *
  * @author bkahlert

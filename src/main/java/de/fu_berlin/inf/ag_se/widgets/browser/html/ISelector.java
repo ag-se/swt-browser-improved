@@ -1,4 +1,4 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.extended;
+package de.fu_berlin.inf.ag_se.widgets.browser.html;
 
 import de.fu_berlin.inf.ag_se.widgets.browser.JavascriptString;
 import org.apache.commons.lang.StringUtils;
@@ -68,7 +68,7 @@ public interface ISelector {
 	}
 
 	/**
-	 * Instances of this class match all the provided {@link de.fu_berlin.inf.ag_se.widgets.browser.extended.ISelector}s.
+	 * Instances of this class match all the provided {@link ISelector}s.
 	 *
 	 * @author bkahlert
 	 *
