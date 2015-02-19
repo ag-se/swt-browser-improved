@@ -13,10 +13,4 @@ public class Assert {
             throw new IllegalStateException("Assertion failed: null argument");
         }
     }
-
-    public static void isTrue(boolean b) {
-        if (!b) {
-            throw new IllegalStateException("Assertion failed: argument is false");
-        }
-    }
 }

@@ -1,10 +1,13 @@
-package de.fu_berlin.inf.ag_se.widgets.browser;
+package de.fu_berlin.inf.ag_se.widgets.browser.swt;
 
 import com.sun.istack.internal.Nullable;
 import de.fu_berlin.inf.ag_se.utils.Assert;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.utils.SWTUtils;
 import de.fu_berlin.inf.ag_se.utils.colors.RGB;
+import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
+import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
+import de.fu_berlin.inf.ag_se.widgets.browser.IBrowserFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
@@ -86,7 +89,7 @@ public class SwtBrowser<T extends Browser> extends AbstractSwtBrowser<T> impleme
     }
 
     public Point computeSize(int wHint, int hHint, boolean changed) {
-        Rectangle bounds = internalBrowser.getCachedContentBounds();
+        Rectangle bounds = getCachedContentBounds();
         if (bounds == null) {
             return super.computeSize(wHint, hHint, changed);
         }

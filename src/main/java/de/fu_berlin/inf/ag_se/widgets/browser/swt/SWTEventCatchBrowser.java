@@ -1,7 +1,9 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.extended;
+package de.fu_berlin.inf.ag_se.widgets.browser.swt;
 
 import de.fu_berlin.inf.ag_se.widgets.browser.IBrowserFunction;
-import de.fu_berlin.inf.ag_se.widgets.browser.SwtInternalBrowserWrapper;
+import de.fu_berlin.inf.ag_se.widgets.browser.extensions.BrowserExtension;
+import de.fu_berlin.inf.ag_se.widgets.browser.extensions.EventCatchBrowser;
+import de.fu_berlin.inf.ag_se.widgets.browser.extensions.IEventCatchBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;

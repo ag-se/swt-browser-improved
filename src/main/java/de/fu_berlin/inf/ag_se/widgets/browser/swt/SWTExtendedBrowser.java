@@ -1,7 +1,7 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.extended;
+package de.fu_berlin.inf.ag_se.widgets.browser.swt;
 
-import de.fu_berlin.inf.ag_se.widgets.browser.SwtBrowser;
-import de.fu_berlin.inf.ag_se.widgets.browser.SwtInternalBrowserWrapper;
+import de.fu_berlin.inf.ag_se.widgets.browser.extensions.BrowserExtension;
+import de.fu_berlin.inf.ag_se.widgets.browser.extensions.ExtendedBrowser;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 

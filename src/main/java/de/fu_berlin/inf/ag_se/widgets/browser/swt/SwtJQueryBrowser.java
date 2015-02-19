@@ -1,7 +1,9 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.extended;
+package de.fu_berlin.inf.ag_se.widgets.browser.swt;
 
 import de.fu_berlin.inf.ag_se.utils.Point;
-import de.fu_berlin.inf.ag_se.widgets.browser.SwtInternalBrowserWrapper;
+import de.fu_berlin.inf.ag_se.widgets.browser.extensions.BrowserExtension;
+import de.fu_berlin.inf.ag_se.widgets.browser.extensions.IJQueryBrowser;
+import de.fu_berlin.inf.ag_se.widgets.browser.extensions.JQueryBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.IElement;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.ISelector;
 import org.eclipse.swt.SWT;

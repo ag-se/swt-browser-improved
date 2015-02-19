@@ -2,23 +2,23 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.OffWorker;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.*;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.CompletedFuture;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
-public class BrowserStatusManager {
+class BrowserStatusManager {
 
     private static Logger LOGGER = Logger.getLogger(BrowserStatusManager.class);
 
     /**
      * Relevant statuses a browser can have in terms of script execution.
      */
-    public static enum BrowserStatus {
+    static enum BrowserStatus {
         /**
          * The browser is initializing, meaning no resource had been loaded, yet.
          */
@@ -49,7 +49,7 @@ public class BrowserStatusManager {
 
     private final OffWorker delayedScriptsWorker = new OffWorker(this.getClass(), "Script Runner");
 
-    public BrowserStatusManager() {
+    BrowserStatusManager() {
         this.browserStatus = BrowserStatus.INITIALIZING;
     }
 
@@ -60,7 +60,7 @@ public class BrowserStatusManager {
      * @throws UnexpectedBrowserStateException
      * @throws NullPointerException            if argument is null
      */
-    public synchronized void setBrowserStatus(BrowserStatus browserStatus) {
+    synchronized void setBrowserStatus(BrowserStatus browserStatus) {
         if (this.browserStatus == browserStatus) {
             return;
         }
@@ -140,11 +140,11 @@ public class BrowserStatusManager {
         }
     }
 
-    public synchronized BrowserStatus getBrowserStatus() {
+    synchronized BrowserStatus getBrowserStatus() {
         return browserStatus;
     }
 
-    public synchronized <DEST> Future<DEST> createFuture(final ScriptExecutingCallable<DEST> scriptRunner) {
+    synchronized <DEST> Future<DEST> createFuture(final ScriptExecutingCallable<DEST> scriptRunner) {
         final String script = scriptRunner.getScript();
         switch (browserStatus) {
             case INITIALIZING:
@@ -163,7 +163,7 @@ public class BrowserStatusManager {
         }
     }
 
-    protected Boolean wasLoadingSuccessful(String uri) {
+    Boolean wasLoadingSuccessful(String uri) {
         switch (getBrowserStatus()) {
             case LOADED:
                 LOGGER.debug("Successfully loaded " + uri);
@@ -191,7 +191,7 @@ public class BrowserStatusManager {
         private final ScriptExecutingCallable<DEST> scriptRunner;
         private final String script;
 
-        public ExecuteWhenLoaded(ScriptExecutingCallable<DEST> scriptRunner, String script) {
+        ExecuteWhenLoaded(ScriptExecutingCallable<DEST> scriptRunner, String script) {
             this.scriptRunner = scriptRunner;
             this.script = script;
         }

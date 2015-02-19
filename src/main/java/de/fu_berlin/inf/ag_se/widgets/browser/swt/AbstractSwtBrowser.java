@@ -1,5 +1,6 @@
-package de.fu_berlin.inf.ag_se.widgets.browser;
+package de.fu_berlin.inf.ag_se.widgets.browser.swt;
 
+import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
 import org.eclipse.swt.widgets.Composite;
 
 public abstract class AbstractSwtBrowser<T extends IBrowser> extends Composite {

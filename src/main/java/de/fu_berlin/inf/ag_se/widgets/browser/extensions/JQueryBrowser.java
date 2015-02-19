@@ -1,4 +1,4 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.extended;
+package de.fu_berlin.inf.ag_se.widgets.browser.extensions;
 
 import com.google.common.collect.Iterables;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
@@ -11,7 +11,7 @@ import de.fu_berlin.inf.ag_se.widgets.browser.html.IElement;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.ISelector;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.ISelector.IdSelector;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.ISelector.NameSelector;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.CompletedFuture;
 import org.apache.log4j.Logger;
 
 import java.util.Arrays;
@@ -156,7 +156,7 @@ public class JQueryBrowser extends EventCatchBrowser implements IJQueryBrowser {
 
     @Override
     public Future<Boolean> scrollTo(final ISelector selector) {
-        return internalBrowser.runWithCallback(getScrollPosition(selector), new CallbackFunction<Point, Boolean>() {
+        return runWithCallback(getScrollPosition(selector), new CallbackFunction<Point, Boolean>() {
             @Override
             public Boolean apply(Point input, Exception e) {
                 try {

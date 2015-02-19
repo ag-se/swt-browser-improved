@@ -1,5 +1,6 @@
-package de.fu_berlin.inf.ag_se.widgets.browser;
+package de.fu_berlin.inf.ag_se.widgets.browser.swt;
 
+import de.fu_berlin.inf.ag_se.widgets.browser.InternalBrowserWrapper;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.browser.LocationAdapter;
 import org.eclipse.swt.browser.LocationEvent;

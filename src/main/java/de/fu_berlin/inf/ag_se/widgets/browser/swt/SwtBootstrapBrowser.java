@@ -1,7 +1,9 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.extended;
+package de.fu_berlin.inf.ag_se.widgets.browser.swt;
 
 import de.fu_berlin.inf.ag_se.utils.colors.RGB;
-import de.fu_berlin.inf.ag_se.widgets.browser.SwtInternalBrowserWrapper;
+import de.fu_berlin.inf.ag_se.widgets.browser.extensions.BootstrapBrowser;
+import de.fu_berlin.inf.ag_se.widgets.browser.extensions.BrowserExtension;
+import de.fu_berlin.inf.ag_se.widgets.browser.extensions.IBootstrapBrowser;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;

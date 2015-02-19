@@ -1,4 +1,4 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.extended;
+package de.fu_berlin.inf.ag_se.widgets.browser.extensions;
 
 import de.fu_berlin.inf.ag_se.utils.Point;
 import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;

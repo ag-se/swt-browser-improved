@@ -1,4 +1,4 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.threading.futures;
+package de.fu_berlin.inf.ag_se.widgets.browser.threading;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;

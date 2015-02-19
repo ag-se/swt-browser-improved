@@ -9,11 +9,10 @@ import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.CompletedFuture;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.NoCheckedExceptionCallable;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.ParametrizedRunnable;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecutor;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
@@ -65,7 +64,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
 
     protected boolean settingUri = false;
 
-    InternalBrowserWrapper(T browser) {
+    protected InternalBrowserWrapper(T browser) {
         this.browser = browser;
         browser.setVisible(false);
         executor = new UIThreadAwareScheduledThreadPoolExecutor();
@@ -526,7 +525,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     }
 
     /**
-     * Sets a {@link ParametrizedRunnable}
+     * Sets a {@link Function}
      * that is executed if when a script is about to be executed by the browser.
      *
      * @param function the runnable to be executed with the script as parameter
@@ -537,7 +536,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     }
 
     /**
-     * Sets a {@link ParametrizedRunnable}
+     * Sets a {@link Function}
      * to get executed when a script finishes execution.
      *
      * @param function the runnable to be executed with the return value of the last script execution
@@ -560,11 +559,11 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
         return browserStatusManager.isLoadingCompleted();
     }
 
-    boolean isLoading() {
+    protected boolean isLoading() {
         return browserStatusManager.isLoading();
     }
 
-    void fireIsDisposed() {
+    protected void fireIsDisposed() {
         for (Runnable runnable : runOnDisposalList) {
             executor.submit(runnable);
         }
@@ -680,7 +679,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
 
     }
 
-    public <V, T> Future<T> runWithCallback(final Future<V> future, final CallbackFunction<V, T> callback) {
+    <V, T> Future<T> runWithCallback(final Future<V> future, final CallbackFunction<V, T> callback) {
         return executor.submit(new Callable<T>() {
             @Override
             public T call() throws InterruptedException {
@@ -700,11 +699,11 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
         runOnDisposalList.add(runnable);
     }
 
-    public void setAllowLocationChange(boolean allowed) {
+    void setAllowLocationChange(boolean allowed) {
             this.allowLocationChange = allowed;
         }
 
-    public boolean isDisposed() {
+    boolean isDisposed() {
         return browser.isDisposed();
     }
 }

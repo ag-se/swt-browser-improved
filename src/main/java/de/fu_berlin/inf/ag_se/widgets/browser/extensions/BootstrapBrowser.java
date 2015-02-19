@@ -1,4 +1,4 @@
-package de.fu_berlin.inf.ag_se.widgets.browser.extended;
+package de.fu_berlin.inf.ag_se.widgets.browser.extensions;
 
 import com.google.common.collect.Iterables;
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;

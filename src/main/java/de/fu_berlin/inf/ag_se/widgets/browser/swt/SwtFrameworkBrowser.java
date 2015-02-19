@@ -1,8 +1,9 @@
-package de.fu_berlin.inf.ag_se.widgets.browser;
+package de.fu_berlin.inf.ag_se.widgets.browser.swt;
 
 import de.fu_berlin.inf.ag_se.utils.SWTUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.widgets.browser.IFrameworkBrowser;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Composite;

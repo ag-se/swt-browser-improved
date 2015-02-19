@@ -3,6 +3,7 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 import de.fu_berlin.inf.ag_se.utils.ClasspathFileUtils;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
+import de.fu_berlin.inf.ag_se.widgets.browser.swt.SwtBrowser;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;

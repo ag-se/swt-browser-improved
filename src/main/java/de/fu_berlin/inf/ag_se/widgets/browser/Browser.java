@@ -5,7 +5,7 @@ import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
+import de.fu_berlin.inf.ag_se.widgets.browser.threading.CompletedFuture;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
@@ -366,6 +366,12 @@ public class Browser implements IBrowser {
             JavaScriptExceptionListener exceptionListener) {
         checkNotNull(exceptionListener);
         internalBrowser.removeJavaScriptExceptionListener(exceptionListener);
+    }
+
+    public <V, T> Future<T> runWithCallback(final Future<V> future, final CallbackFunction<V, T> callback) {
+        checkNotNull(future);
+        checkNotNull(callback);
+        return internalBrowser.runWithCallback(future, callback);
     }
 
     public void runOnDisposal(Runnable runnable) {

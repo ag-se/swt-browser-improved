@@ -1,6 +1,6 @@
 package de.fu_berlin.inf.ag_se.utils.colors;
 
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.BootstrapBrowser;
+import de.fu_berlin.inf.ag_se.widgets.browser.extensions.BootstrapBrowser;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
