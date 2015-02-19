@@ -3,7 +3,7 @@ package de.fu_berlin.inf.ag_se.browser;
 import de.fu_berlin.inf.ag_se.browser.exception.*;
 import de.fu_berlin.inf.ag_se.browser.threading.CompletedFuture;
 import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
-import de.fu_berlin.inf.ag_se.browser.threading.SwtUiThreadExecutor;
+import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.utils.OffWorker;
 import org.apache.log4j.Logger;
 
@@ -14,6 +14,7 @@ import java.util.concurrent.Future;
 class BrowserStatusManager {
 
     private static Logger LOGGER = Logger.getLogger(BrowserStatusManager.class);
+    private final UIThreadExecutor uiThreadExecutor;
 
     /**
      * Relevant statuses a browser can have in terms of script execution.
@@ -49,7 +50,8 @@ class BrowserStatusManager {
 
     private final OffWorker delayedScriptsWorker = new OffWorker(this.getClass(), "Script Runner");
 
-    BrowserStatusManager() {
+    BrowserStatusManager(UIThreadExecutor uiThreadExecutor) {
+        this.uiThreadExecutor = uiThreadExecutor;
         this.browserStatus = BrowserStatus.INITIALIZING;
     }
 
@@ -204,7 +206,7 @@ class BrowserStatusManager {
         public DEST call() {
             switch (browserStatus) {
                 case LOADED:
-                    return SwtUiThreadExecutor.syncExec(scriptRunner);
+                    return uiThreadExecutor.syncExec(scriptRunner);
                 case TIMEDOUT:
                     throw new ScriptExecutionException(script, new BrowserTimeoutException());
                 case DISPOSED:

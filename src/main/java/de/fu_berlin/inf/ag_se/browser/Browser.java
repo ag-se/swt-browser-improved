@@ -5,7 +5,6 @@ import de.fu_berlin.inf.ag_se.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.browser.threading.CompletedFuture;
-import de.fu_berlin.inf.ag_se.browser.threading.SwtUiThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.utils.IConverter;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -71,7 +70,7 @@ public class Browser implements IBrowser {
     @Override
     public boolean syncOpen(URI uri, int timeout) {
         checkNotNull(uri);
-        SwtUiThreadExecutor.checkNotUIThread();
+        checkNotUIThread();
         return syncOpen(uri, timeout, null);
     }
 
@@ -91,7 +90,7 @@ public class Browser implements IBrowser {
     @Override
     public boolean syncOpen(URI uri, int timeout, @Nullable String pageLoadCheckScript) {
         checkNotNull(uri);
-        SwtUiThreadExecutor.checkNotUIThread();
+        checkNotUIThread();
         return internalBrowser.syncOpen(uri, timeout, pageLoadCheckScript);
     }
 
@@ -121,7 +120,7 @@ public class Browser implements IBrowser {
     @Override
     public void waitForCondition(String javaScriptExpression) {
         checkNotNull(javaScriptExpression);
-        SwtUiThreadExecutor.checkNotUIThread();
+        checkNotUIThread();
         internalBrowser.waitForCondition(javaScriptExpression);
     }
 
@@ -160,7 +159,7 @@ public class Browser implements IBrowser {
     public boolean syncInjectJavascript(URI scriptURI) {
         checkNotNull(scriptURI);
         if (!isLoadingCompleted()) {
-            SwtUiThreadExecutor.checkNotUIThread();
+            checkNotUIThread();
         }
         return internalBrowser.syncInjectJavascript(scriptURI);
     }
@@ -175,7 +174,7 @@ public class Browser implements IBrowser {
     public boolean syncInjectCssURI(URI cssURI) {
         checkNotNull(cssURI);
         if (!isLoadingCompleted()) {
-            SwtUiThreadExecutor.checkNotUIThread();
+            checkNotUIThread();
         }
         return internalBrowser.syncInjectCssURI(cssURI);
     }
@@ -190,7 +189,7 @@ public class Browser implements IBrowser {
     public boolean syncInjectCss(String css) {
         checkNotNull(css);
         if (!isLoadingCompleted()) {
-            SwtUiThreadExecutor.checkNotUIThread();
+            checkNotUIThread();
         }
         return internalBrowser.syncInjectCss(css);
     }
@@ -230,7 +229,7 @@ public class Browser implements IBrowser {
     public Object syncRun(String script) {
         checkNotNull(script);
         if (!isLoadingCompleted()) {
-            SwtUiThreadExecutor.checkNotUIThread();
+            checkNotUIThread();
         }
         return internalBrowser.syncRun(script);
     }
@@ -254,7 +253,7 @@ public class Browser implements IBrowser {
         checkNotNull(script);
         checkNotNull(converter);
         if (!isLoadingCompleted()) {
-            SwtUiThreadExecutor.checkNotUIThread();
+            checkNotUIThread();
         }
         return (DEST) internalBrowser.syncRun(script, converter);
     }
@@ -384,5 +383,9 @@ public class Browser implements IBrowser {
 
     public Rectangle getCachedContentBounds() {
         return internalBrowser.getCachedContentBounds();
+    }
+
+    private void checkNotUIThread() {
+        internalBrowser.checkNotUIThread();
     }
 }

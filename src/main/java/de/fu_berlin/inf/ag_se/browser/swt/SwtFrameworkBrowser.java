@@ -2,6 +2,7 @@ package de.fu_berlin.inf.ag_se.browser.swt;
 
 import de.fu_berlin.inf.ag_se.browser.IBrowserFunction;
 import de.fu_berlin.inf.ag_se.browser.IFrameworkBrowser;
+import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.utils.SWTUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
@@ -12,6 +13,7 @@ import org.eclipse.swt.widgets.Listener;
 public class SwtFrameworkBrowser implements IFrameworkBrowser {
 
     private final Browser browser;
+    private final SwtUiThreadExecutor uiThreadExecutor = new SwtUiThreadExecutor();
 
     public SwtFrameworkBrowser(Composite parent) {
         browser = new Browser(parent, SWT.NONE);
@@ -44,6 +46,11 @@ public class SwtFrameworkBrowser implements IFrameworkBrowser {
     @Override
     public void setUrl(String url) {
         browser.setUrl(url);
+    }
+
+    @Override
+    public UIThreadExecutor getUIThreadExecutor() {
+        return uiThreadExecutor;
     }
 
     @Override

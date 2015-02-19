@@ -13,20 +13,26 @@ public class UIThreadAwareScheduledThreadPoolExecutor extends ScheduledThreadPoo
 
     private static final Logger LOGGER = Logger.getLogger(UIThreadAwareScheduledThreadPoolExecutor.class);
 
-    public UIThreadAwareScheduledThreadPoolExecutor() {
+    private final UIThreadExecutor uiThreadExecutor;
+
+    public UIThreadAwareScheduledThreadPoolExecutor(UIThreadExecutor uiThreadExecutor) {
         super(20, createThreadFactory(UIThreadAwareScheduledThreadPoolExecutor.class, ""));
+        this.uiThreadExecutor = uiThreadExecutor;
     }
 
     static class ThreadSafeUITask<V> implements RunnableScheduledFuture<V> {
 
         private final RunnableScheduledFuture<V> task;
+        private final UIThreadExecutor uiThreadExecutor;
 
-        public ThreadSafeUITask(Callable<V> callable, RunnableScheduledFuture<V> task) {
+        public ThreadSafeUITask(Callable<V> callable, RunnableScheduledFuture<V> task, UIThreadExecutor uiThreadExecutor) {
             this.task = task;
+            this.uiThreadExecutor = uiThreadExecutor;
         }
 
-        public ThreadSafeUITask(Runnable runnable, RunnableScheduledFuture<V> task) {
+        public ThreadSafeUITask(Runnable runnable, RunnableScheduledFuture<V> task, UIThreadExecutor uiThreadExecutor) {
             this.task = task;
+            this.uiThreadExecutor = uiThreadExecutor;
         }
 
         @Override
@@ -77,7 +83,7 @@ public class UIThreadAwareScheduledThreadPoolExecutor extends ScheduledThreadPoo
         }
 
         private void assertNoUIThread() {
-            if (SwtUiThreadExecutor.isUIThread() && !this.isDone()) {
+            if (uiThreadExecutor.isUIThread() && !this.isDone()) {
                 throw new RuntimeException(
                         "Waiting is not allowed from the UI thread. Should the calculation include UI thread code, this could lead to a deadlock.\nWait in another thread or check isDone() before calling get(...).",
                         null);
@@ -87,12 +93,12 @@ public class UIThreadAwareScheduledThreadPoolExecutor extends ScheduledThreadPoo
 
     @Override
     protected <V> RunnableScheduledFuture<V> decorateTask(Runnable runnable, RunnableScheduledFuture<V> task) {
-        return new ThreadSafeUITask<V>(runnable, task);
+        return new ThreadSafeUITask<V>(runnable, task, uiThreadExecutor);
     }
 
     @Override
     protected <V> RunnableScheduledFuture<V> decorateTask(Callable<V> callable, RunnableScheduledFuture<V> task) {
-        return new ThreadSafeUITask<V>(callable, task);
+        return new ThreadSafeUITask<V>(callable, task, uiThreadExecutor);
     }
 
 
@@ -145,7 +151,7 @@ public class UIThreadAwareScheduledThreadPoolExecutor extends ScheduledThreadPoo
         return submit(new NoCheckedExceptionCallable<V>() {
             @Override
             public V call() {
-                return SwtUiThreadExecutor.syncExec(callable);
+                return uiThreadExecutor.syncExec(callable);
             }
         });
     }
@@ -163,7 +169,7 @@ public class UIThreadAwareScheduledThreadPoolExecutor extends ScheduledThreadPoo
         return submit(new Runnable() {
             @Override
             public void run() {
-                SwtUiThreadExecutor.syncExec(runnable);
+                uiThreadExecutor.syncExec(runnable);
             }
         });
     }

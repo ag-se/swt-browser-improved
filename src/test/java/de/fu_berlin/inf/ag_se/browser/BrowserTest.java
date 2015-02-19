@@ -2,7 +2,6 @@ package de.fu_berlin.inf.ag_se.browser;
 
 import de.fu_berlin.inf.ag_se.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.browser.swt.SwtBrowser;
-import de.fu_berlin.inf.ag_se.browser.threading.SwtUiThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.utils.IConverter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -147,7 +146,7 @@ public class BrowserTest {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                SwtUiThreadExecutor.syncExec(new Runnable() {
+                Display.getDefault().syncExec(new Runnable() {
                     @Override
                     public void run() {
                         shell.close();

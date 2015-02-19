@@ -1,7 +1,6 @@
 package de.fu_berlin.inf.ag_se.browser;
 
 import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
-import de.fu_berlin.inf.ag_se.browser.threading.SwtUiThreadExecutor;
 import org.apache.log4j.Logger;
 
 import java.net.URI;
@@ -27,7 +26,7 @@ public class CallbackFunctionCallable implements NoCheckedExceptionCallable<Bool
         final Semaphore mutex = new Semaphore(0);
         final String callbackFunctionName = BrowserUtils.createRandomFunctionName();
 
-        SwtUiThreadExecutor.syncExec(new Runnable() {
+        browser.syncExec(new Runnable() {
             @Override
             public void run() {
                 final AtomicReference<IBrowserFunction> callback = new AtomicReference<IBrowserFunction>();

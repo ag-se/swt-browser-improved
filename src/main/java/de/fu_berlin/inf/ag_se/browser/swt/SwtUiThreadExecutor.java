@@ -1,5 +1,7 @@
-package de.fu_berlin.inf.ag_se.browser.threading;
+package de.fu_berlin.inf.ag_se.browser.swt;
 
+import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
+import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
@@ -9,23 +11,12 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * The methods in this class all execute stuff on the SWT UI thread
  */
-public class SwtUiThreadExecutor {
+public class SwtUiThreadExecutor implements UIThreadExecutor {
 
     private static final Logger LOGGER = Logger.getLogger(SwtUiThreadExecutor.class);
 
-    /**
-     * Synchronously executes the given {@link NoCheckedExceptionCallable} in the SWT UI thread. Checks if the caller is already in the
-     * SWT UI thread
-     * and if so runs the callable directly in order to avoid deadlocks. This method can be called from any thread.
-     *
-     * @param callable the callable to execute
-     * @return the value returned by the callable
-     *
-     * @throws RuntimeException if an exception occurs while executing the callable it is re-thrown
-     * @UIThread
-     * @NonUIThread
-     */
-    public static <V> V syncExec(final NoCheckedExceptionCallable<V> callable) {
+    @Override
+    public <V> V syncExec(final NoCheckedExceptionCallable<V> callable) {
         if (isUIThread()) {
             return callable.call();
         }
@@ -47,17 +38,8 @@ public class SwtUiThreadExecutor {
         return r.get();
     }
 
-    /**
-     * Synchronously executes the given {@link Runnable} in the SWT UI thread. Checks if the caller is already in the SWT UI thread and if
-     * so runs the
-     * runnable directly in order to avoid deadlocks. This method can be called from any thread.
-     *
-     * @param runnable the runnable to execute
-     * @throws java.lang.RuntimeException if a runtime exception occurs while executing the callable it is re-thrown
-     * @UIThread
-     * @NonUIThread
-     */
-    public static void syncExec(final Runnable runnable) {
+    @Override
+    public void syncExec(final Runnable runnable) {
         if (isUIThread()) {
             runnable.run();
         } else {
@@ -79,12 +61,8 @@ public class SwtUiThreadExecutor {
         }
     }
 
-    /**
-     * Checks if the current thread is an SWT UI thread.
-     *
-     * @return true if it is, false otherwise
-     */
-    public static boolean isUIThread() {
+    @Override
+    public boolean isUIThread() {
         try {
             return Display.getCurrent() != null;
         } catch (SWTException e) {
@@ -92,7 +70,8 @@ public class SwtUiThreadExecutor {
         }
     }
 
-    public static void checkNotUIThread() {
+    @Override
+    public void checkNotUIThread() {
         if (isUIThread()) {
             throw new IllegalStateException("This method must not be called from the UI thread.");
         }

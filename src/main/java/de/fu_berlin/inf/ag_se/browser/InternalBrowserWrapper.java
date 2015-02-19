@@ -9,8 +9,8 @@ import de.fu_berlin.inf.ag_se.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.browser.threading.CompletedFuture;
 import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
-import de.fu_berlin.inf.ag_se.browser.threading.SwtUiThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
+import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.utils.Assert;
 import de.fu_berlin.inf.ag_se.browser.utils.IConverter;
 import org.apache.commons.io.FileUtils;
@@ -60,6 +60,8 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
 
     protected final UIThreadAwareScheduledThreadPoolExecutor executor;
 
+    protected final UIThreadExecutor uiThreadExecutor;
+
     protected boolean allowLocationChange = false;
 
     protected boolean settingUri = false;
@@ -67,9 +69,9 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     protected InternalBrowserWrapper(T browser) {
         this.browser = browser;
         browser.setVisible(false);
-        executor = new UIThreadAwareScheduledThreadPoolExecutor();
-
-        browserStatusManager = new BrowserStatusManager();
+        uiThreadExecutor = browser.getUIThreadExecutor();
+        executor = new UIThreadAwareScheduledThreadPoolExecutor(uiThreadExecutor);
+        browserStatusManager = new BrowserStatusManager(uiThreadExecutor);
 
         // throws exception that arise from calls within the browser,
         // meaning code that has not been invoked by Java but by JavaScript
@@ -115,7 +117,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
                             Thread.currentThread().interrupt();
                         }
 
-                        SwtUiThreadExecutor.syncExec(new Runnable() {
+                        uiThreadExecutor.syncExec(new Runnable() {
                             @Override
                             public void run() {
                                 if (!browser.isDisposed()) {
@@ -269,9 +271,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     }
 
     boolean syncOpen(URI uri, int timeout, String pageLoadCheckScript) {
-        if (SwtUiThreadExecutor.isUIThread()) {
-            throw new IllegalStateException("This method must not be called from the UI thread.");
-        }
+        checkNotUIThread();
         Future<Boolean> opened = open(uri.toString(), timeout, pageLoadCheckScript);
         try {
             return opened.get();
@@ -440,7 +440,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
                             final IConverter<Object, DEST> converter) {
         if (isLoadingCompleted()) {
             try {
-                DEST dest = SwtUiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(this, converter, script));
+                DEST dest = uiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(this, converter, script));
                 return new CompletedFuture<DEST>(dest, null);
             } catch (RuntimeException e) {
                 return new CompletedFuture<DEST>(null, e);
@@ -465,7 +465,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
      */
     <DEST> DEST runImmediately(String script,
                                IConverter<Object, DEST> converter) {
-        return SwtUiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(this, converter, script));
+        return uiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(this, converter, script));
     }
 
     /**
@@ -516,7 +516,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
      * May be called from whatever thread.
      */
     String getUrl() {
-        return SwtUiThreadExecutor.syncExec(new NoCheckedExceptionCallable<String>() {
+        return uiThreadExecutor.syncExec(new NoCheckedExceptionCallable<String>() {
             @Override
             public String call() {
                 return browser.getUrl();
@@ -640,7 +640,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
      * May be called from whatever thread.
      */
     IBrowserFunction createBrowserFunction(final IBrowserFunction function) {
-        return SwtUiThreadExecutor.syncExec(new NoCheckedExceptionCallable<IBrowserFunction>() {
+        return uiThreadExecutor.syncExec(new NoCheckedExceptionCallable<IBrowserFunction>() {
             @Override
             public IBrowserFunction call() {
                 return browser.createBrowserFunction(function);
@@ -705,5 +705,13 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
 
     boolean isDisposed() {
         return browser.isDisposed();
+    }
+
+    void checkNotUIThread() {
+        uiThreadExecutor.checkNotUIThread();
+    }
+
+    void syncExec(Runnable runnable) {
+        uiThreadExecutor.syncExec(runnable);
     }
 }

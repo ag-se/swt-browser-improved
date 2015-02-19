@@ -1,7 +1,7 @@
 package de.fu_berlin.inf.ag_se.browser.utils;
 
+import de.fu_berlin.inf.ag_se.browser.swt.SwtUiThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
-import de.fu_berlin.inf.ag_se.browser.threading.SwtUiThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.utils.colors.ColorUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -26,7 +26,7 @@ public class SWTUtils {
     }
 
     public static Point getDisplaySize() {
-        return SwtUiThreadExecutor.syncExec(new NoCheckedExceptionCallable<Point>() {
+        return new SwtUiThreadExecutor().syncExec(new NoCheckedExceptionCallable<Point>() {
             @Override
             public Point call() {
                 Rectangle bounds = Display.getCurrent().getBounds();
