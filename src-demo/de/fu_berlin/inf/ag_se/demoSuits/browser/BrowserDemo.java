@@ -1,16 +1,16 @@
 package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
+import de.fu_berlin.inf.ag_se.browser.exception.JavaScriptException;
+import de.fu_berlin.inf.ag_se.browser.functions.CallbackFunction;
+import de.fu_berlin.inf.ag_se.browser.html.IAnchor;
+import de.fu_berlin.inf.ag_se.browser.html.IElement;
+import de.fu_berlin.inf.ag_se.browser.listener.IAnchorListener;
+import de.fu_berlin.inf.ag_se.browser.listener.IFocusListener;
+import de.fu_berlin.inf.ag_se.browser.listener.IMouseListener;
+import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
+import de.fu_berlin.inf.ag_se.browser.swt.SWTEventCatchBrowser;
+import de.fu_berlin.inf.ag_se.browser.utils.colors.ColorUtils;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
-import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
-import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
-import de.fu_berlin.inf.ag_se.widgets.browser.html.IAnchor;
-import de.fu_berlin.inf.ag_se.widgets.browser.html.IElement;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
-import de.fu_berlin.inf.ag_se.widgets.browser.swt.SWTEventCatchBrowser;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;

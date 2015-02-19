@@ -4,7 +4,7 @@
 	<appender class="org.apache.log4j.ConsoleAppender" name="de.fu_berlin.inf.ag_se.ConsoleAppender">
 		<layout class="org.apache.log4j.PatternLayout" />
 	</appender>
-	<logger name="de.fu_berlin.inf.ag_se.utils">
+	<logger name="de.fu_berlin.inf.ag_se.browser.utils">
 		<level value="debug" />
 	</logger>
 	<logger name="de.fu_berlin.inf.ag_se.widgets.browser">
