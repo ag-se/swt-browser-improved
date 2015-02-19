@@ -2,7 +2,7 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.StringUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.JQueryBrowser;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.SwtJQueryBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.IAnchor;
@@ -20,10 +20,11 @@ import org.eclipse.swt.widgets.Text;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.Future;
 
 public class JQueryBrowserDemo extends AbstractDemo {
 
-    private JQueryBrowser browser;
+    private SwtJQueryBrowser browser;
     private Integer x = 50;
     private Integer y = 200;
 
@@ -39,7 +40,8 @@ public class JQueryBrowserDemo extends AbstractDemo {
                     public void run() {
                         log("scrolling to " + x + ", " + y);
                         try {
-                            if (browser.scrollTo(x, y).get()) {
+                            Future<Boolean> future = browser.scrollTo(x, y);
+                            if (future.get()) {
                                 log("Scrolled");
                             } else {
                                 log("Already at desired position");
@@ -73,7 +75,7 @@ public class JQueryBrowserDemo extends AbstractDemo {
     }
 
     public void createDemo(Composite parent) {
-        browser = new JQueryBrowser(parent, SWT.BORDER);
+        browser = SwtJQueryBrowser.createSWTBrowser(parent, SWT.BORDER);
         browser.executeBeforeScript(new Function<String>() {
             @Override
             public void run(String input) {

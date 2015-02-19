@@ -38,7 +38,7 @@ public class BrowserTest {
         final List<String> scriptExecutionOrder = Collections.synchronizedList(new ArrayList<String>());
         final Map<String, String> scriptResults = Collections.synchronizedMap(new HashMap<String, String>());
         final List<String> resultFinishedOrder = Collections.synchronizedList(new ArrayList<String>());
-        final Browser browser = new Browser(shell, SWT.NONE);
+        final SwtBrowser browser = SwtBrowser.createSWTBrowser(shell, SWT.NONE);
 
         browser.executeBeforeScript(new Function<String>() {
             @Override

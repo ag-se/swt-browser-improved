@@ -3,7 +3,7 @@ package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 import com.google.common.collect.Iterables;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.utils.Point;
-import de.fu_berlin.inf.ag_se.widgets.browser.EventCatchBrowser;
+import de.fu_berlin.inf.ag_se.widgets.browser.InternalBrowserWrapper;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.ScriptExecutionException;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.Element;
@@ -13,10 +13,6 @@ import de.fu_berlin.inf.ag_se.widgets.browser.html.ISelector.IdSelector;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.ISelector.NameSelector;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.log4j.Logger;
-import org.eclipse.swt.SWTException;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.widgets.Composite;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,29 +24,20 @@ public class JQueryBrowser extends EventCatchBrowser implements IJQueryBrowser {
 
     private Point disposedScrollPosition = null;
 
-    public JQueryBrowser(Composite parent, int style) {
-        this(parent, style, Collections.<BrowserExtension>emptyList());
+    public JQueryBrowser(InternalBrowserWrapper internalBrowserWrapper) {
+        this(internalBrowserWrapper, Collections.<BrowserExtension>emptyList());
     }
 
-    public JQueryBrowser(Composite parent, int style, Iterable<BrowserExtension> extensions) {
-        super(parent, style, Iterables.concat(extensions, Arrays.asList(BrowserExtension.JQUERY_EXTENSION)));
+    public JQueryBrowser(InternalBrowserWrapper internalBrowserWrapper, Iterable<BrowserExtension> extensions) {
+        super(internalBrowserWrapper, Iterables.concat(extensions, Arrays.asList(BrowserExtension.JQUERY_EXTENSION)));
 
-        this.addDisposeListener(new DisposeListener() {
+        runOnDisposal(new Runnable() {
             @Override
-            public void widgetDisposed(DisposeEvent e) {
+            public void run() {
                 try {
                     disposedScrollPosition = getScrollPosition().get();
                 } catch (Exception e1) {
-                    Throwable ex = e1;
-                    while (ex.getCause() != null) {
-                        ex = ex.getCause();
-                    }
-                    if (ex instanceof SWTException) {
-                        // very propably widget disposed
-                    } else {
-                        LOGGER.error("Error saving state of "
-                                + JQueryBrowser.this, e1);
-                    }
+                    LOGGER.error("Error saving state of " + JQueryBrowser.this, e1);
                 }
             }
         });

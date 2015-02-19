@@ -1,9 +1,9 @@
-package de.fu_berlin.inf.ag_se.widgets.browser;
+package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 
 import com.google.common.collect.Iterables;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.BrowserExtension;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.ExtendedBrowser;
-import de.fu_berlin.inf.ag_se.widgets.browser.extended.IEventCatchBrowser;
+import de.fu_berlin.inf.ag_se.widgets.browser.BrowserUtils;
+import de.fu_berlin.inf.ag_se.widgets.browser.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.widgets.browser.InternalBrowserWrapper;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.Anchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.Element;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.IAnchor;
@@ -14,8 +14,6 @@ import de.fu_berlin.inf.ag_se.widgets.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IMouseListener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Composite;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,7 +23,6 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBrowser {
-
 
     private static Logger LOGGER = Logger.getLogger(EventCatchBrowser.class);
 
@@ -37,13 +34,13 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
 
     private final List<IDNDListener> dndListeners = new ArrayList<IDNDListener>();
 
-    public EventCatchBrowser(Composite parent, int style) {
-            super(parent, style, Collections.<BrowserExtension>emptyList());
+    public EventCatchBrowser(InternalBrowserWrapper internalBrowserWrapper) {
+            this(internalBrowserWrapper, Collections.<BrowserExtension>emptyList());
         }
 
-    public EventCatchBrowser(Composite parent, int style,
+    public EventCatchBrowser(InternalBrowserWrapper internalBrowserWrapper,
                              Iterable<BrowserExtension> extensions) {
-        super(parent, style, Iterables.concat(extensions, Arrays.asList(BrowserExtension.EVENT_CATCH_EXTENSION)));
+        super(internalBrowserWrapper, Iterables.concat(extensions, Arrays.asList(BrowserExtension.EVENT_CATCH_EXTENSION)));
 
         executeAfterCompletion(new Runnable() {
             @Override
@@ -255,31 +252,6 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
                             final IElement element = new Element((String) arguments[0]);
 
                             fireFocusLost(element);
-                        }
-                        return null;
-                    }
-                },
-                new IBrowserFunction("__resize") {
-                    @Override
-                    public Object function(Object[] arguments) {
-                        if (arguments.length == 4 && (arguments[0] == null
-                                || arguments[0] instanceof Double) && (arguments[1] == null
-                                || arguments[1] instanceof Double) && (arguments[2] == null
-                                || arguments[2] instanceof Double) && (arguments[3] == null
-                                || arguments[3] instanceof Double)) {
-
-                            internalBrowser.setCachedContentBounds(new Rectangle(
-                                    arguments[0] != null ?
-                                    (int) Math.round((Double) arguments[0]) :
-                                    0, arguments[1] != null ?
-                                       (int) Math.round((Double) arguments[1]) :
-                                       0, arguments[2] != null ?
-                                          (int) Math.round((Double) arguments[2]) :
-                                          Integer.MAX_VALUE, arguments[3] != null ?
-                                                             (int) Math.round((Double) arguments[3]) :
-                                                             Integer.MAX_VALUE));
-                            LOGGER.debug("browser content resized to " + internalBrowser.getCachedContentBounds());
-                            internalBrowser.layoutRoot();
                         }
                         return null;
                     }

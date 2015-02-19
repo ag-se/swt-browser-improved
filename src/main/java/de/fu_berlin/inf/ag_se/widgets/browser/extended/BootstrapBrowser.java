@@ -3,24 +3,22 @@ package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 import com.google.common.collect.Iterables;
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
 import de.fu_berlin.inf.ag_se.utils.colors.RGB;
+import de.fu_berlin.inf.ag_se.widgets.browser.InternalBrowserWrapper;
 import org.apache.log4j.Logger;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Composite;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 public class BootstrapBrowser extends JQueryBrowser implements IBootstrapBrowser {
     private static final Logger LOGGER = Logger.getLogger(BootstrapBrowser.class);
 
 
-    public BootstrapBrowser(Composite parent, int style) {
-        this(parent, style, Collections.<BrowserExtension>emptyList());
+    public BootstrapBrowser(InternalBrowserWrapper internalBrowserWrapper) {
+        this(internalBrowserWrapper, Collections.<BrowserExtension>emptyList());
     }
 
-    public BootstrapBrowser(Composite parent, int style, List<BrowserExtension> extensions) {
-        super(parent, style, Iterables.concat(extensions, Arrays.asList(BrowserExtension.BOOTSTRAP_EXTENSION)));
+    public BootstrapBrowser(InternalBrowserWrapper internalBrowserWrapper, Iterable<BrowserExtension> extensions) {
+        super(internalBrowserWrapper, Iterables.concat(extensions, Arrays.asList(BrowserExtension.BOOTSTRAP_EXTENSION)));
     }
 
     /**
@@ -124,18 +122,4 @@ public class BootstrapBrowser extends JQueryBrowser implements IBootstrapBrowser
     public static enum ButtonStyle {
         HORIZONTAL, DROPDOWN;
     }
-
-    @Override
-    public void setBackground(Color color) {
-        //TODO check the result or omit the call
-        super.setBackground(color);
-        String hex = color != null ? new RGB(color.getRGB()).toDecString()
-                                   : "transparent";
-        try {
-            injectCss("body { background-color: " + hex + " !important; }");
-        } catch (RuntimeException e) {
-            LOGGER.error("Error setting background color to " + color, e);
-        }
-    }
-
 }

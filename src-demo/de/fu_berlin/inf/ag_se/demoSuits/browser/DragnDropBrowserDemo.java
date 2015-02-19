@@ -2,7 +2,7 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.StringUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.EventCatchBrowser;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.SWTEventCatchBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.IElement;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IDNDListener;
@@ -17,7 +17,7 @@ import java.util.concurrent.Future;
 
 public class DragnDropBrowserDemo extends AbstractDemo {
 
-    private EventCatchBrowser browser;
+    private SWTEventCatchBrowser browser;
     private Label dropArea;
 
 
@@ -28,7 +28,7 @@ public class DragnDropBrowserDemo extends AbstractDemo {
 
     public void createDemo(Composite parent) {
         parent.setLayout(new FillLayout());
-        this.browser = new EventCatchBrowser(parent, SWT.BORDER);
+        this.browser = SWTEventCatchBrowser.createSWTBrowser(parent, SWT.BORDER);
         browser.executeBeforeScript(new Function<String>() {
             @Override
             public void run(String input) {

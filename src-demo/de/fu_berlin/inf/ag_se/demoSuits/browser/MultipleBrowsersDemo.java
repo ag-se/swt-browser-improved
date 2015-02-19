@@ -1,8 +1,8 @@
 package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
-import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
-import de.fu_berlin.inf.ag_se.widgets.browser.EventCatchBrowser;
+import de.fu_berlin.inf.ag_se.widgets.browser.SwtBrowser;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.SWTEventCatchBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.IAnchorListener;
 import org.apache.commons.io.FileUtils;
@@ -22,7 +22,7 @@ import java.util.concurrent.Future;
 
 public class MultipleBrowsersDemo extends AbstractDemo {
 
-    private EventCatchBrowser[] browsers;
+    private SWTEventCatchBrowser[] browsers;
     private String alertString = "Hello World!";
     private static String timeoutString = "10000";
     private static String[] URLS = new String[]{"http://www.google.de",
@@ -39,7 +39,7 @@ public class MultipleBrowsersDemo extends AbstractDemo {
                     @Override
                     public void run() {
                         log("alerting");
-                        for (Browser browser : browsers) {
+                        for (SwtBrowser browser : browsers) {
                             try {
                                 browser.run("alert(\"" + alertString + "\");").get();
                             } catch (Exception e) {
@@ -64,7 +64,7 @@ public class MultipleBrowsersDemo extends AbstractDemo {
                         try {
                             File jsFile = File.createTempFile(MultipleBrowsersDemo.class.getSimpleName(), ".js");
                             FileUtils.write(jsFile, "alert(\"" + alertString + "\");");
-                            for (Browser browser : browsers) {
+                            for (SwtBrowser browser : browsers) {
                                 browser.run(jsFile);
                             }
                         } catch (Exception e) {
@@ -96,10 +96,10 @@ public class MultipleBrowsersDemo extends AbstractDemo {
     }
 
     public void createDemo(Composite parent) {
-        browsers = new EventCatchBrowser[URLS.length];
+        browsers = new SWTEventCatchBrowser[URLS.length];
         for (int i = 0; i < browsers.length; i++) {
             final int num = i;
-            browsers[i] = new EventCatchBrowser(parent, SWT.BORDER);
+            browsers[i] = SWTEventCatchBrowser.createSWTBrowser(parent, SWT.BORDER);
             browsers[i].addAnchorListener(new IAnchorListener() {
                 @Override
                 public void anchorHovered(IAnchor anchor, boolean entered) {

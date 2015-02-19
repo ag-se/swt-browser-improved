@@ -1,25 +1,15 @@
 package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import com.sun.istack.internal.Nullable;
-import de.fu_berlin.inf.ag_se.utils.EventDelegator;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
-import de.fu_berlin.inf.ag_se.utils.SWTUtils;
-import de.fu_berlin.inf.ag_se.utils.colors.RGB;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.widgets.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -37,36 +27,18 @@ import static de.fu_berlin.inf.ag_se.widgets.browser.threading.SwtUiThreadExecut
  * delaying the execution of Javascript code based on the loading state,
  * and providing listener for different kinds of Javascript events.
  */
-public class Browser extends Composite implements IBrowser {
+public class Browser implements IBrowser {
 
-    private static final int STYLES = SWT.INHERIT_FORCE;
     private static Logger LOGGER = Logger.getLogger(Browser.class);
-    protected InternalBrowserWrapper internalBrowser;
-
-    private boolean initWithSystemBackgroundColor;
+    protected final InternalBrowserWrapper internalBrowser;
 
     private boolean textSelectionsDisabled = false;
 
-    /**
-     * Constructs a new browser composite with the given styles.
-     *
-     * @param parent a widget which will be the parent of the new instance (cannot be null)
-     * @param style  if {@link org.eclipse.swt.SWT#INHERIT_FORCE} is set the loaded page's
-     *               background is replaced by the inherited background color
-     */
-    public Browser(Composite parent, int style) {
-        super(parent, style | SWT.EMBEDDED & ~STYLES);
-        setLayout(new FillLayout());
-        initWithSystemBackgroundColor = (style & SWT.INHERIT_FORCE) != 0;
-
-        internalBrowser = new InternalBrowserWrapper(this);
-
+    public Browser(InternalBrowserWrapper internalBrowser) {
+        this.internalBrowser = internalBrowser;
         executeAfterCompletion(new Runnable() {
             @Override
             public void run() {
-                if (initWithSystemBackgroundColor) {
-                    setBackground(SWTUtils.getEffectiveBackground(Browser.this));
-                }
                 if (textSelectionsDisabled) {
                     try {
                         injectCss(JavascriptString.createCssToDisableTextSelection());
@@ -284,7 +256,7 @@ public class Browser extends Composite implements IBrowser {
         if (!isLoadingCompleted()) {
             checkNotUIThread();
         }
-        return internalBrowser.syncRun(script, converter);
+        return (DEST) internalBrowser.syncRun(script, converter);
     }
 
     /**
@@ -298,7 +270,7 @@ public class Browser extends Composite implements IBrowser {
      * @return the converted return value
      */
     protected <DEST> DEST runImmediately(String script, IConverter<Object, DEST> converter) {
-        return internalBrowser.runImmediately(script, converter);
+        return (DEST) internalBrowser.runImmediately(script, converter);
     }
 
     @Override
@@ -396,75 +368,15 @@ public class Browser extends Composite implements IBrowser {
         internalBrowser.removeJavaScriptExceptionListener(exceptionListener);
     }
 
-    /**
-     * Adds a border that signifies the {@link org.eclipse.swt.widgets.Control}'s focus.
-     * The execution of this method may be delayed.
-     * The returned {@link Future} can be used to check
-     * if it has happened.
-     *
-     * @return a future to check whether the delayed execution has happened
-     */
-    public Future<Void> addFocusBorder() {
-        return internalBrowser.run("window.__addFocusBorder();", IConverter.CONVERTER_VOID);
+    public void runOnDisposal(Runnable runnable) {
+        internalBrowser.runOnDisposal(runnable);
     }
 
-    /**
-     * Removes the border that signifies the {@link org.eclipse.swt.widgets.Control}'s focus.
-     * The execution of this method may be delayed.
-     * The returned {@link Future} can be used to check
-     * if it has happened.
-     *
-     * @return a future to check whether the delayed execution has happened
-     */
-    public Future<Void> removeFocusBorder() {
-        return internalBrowser.run("window.__removeFocusBorder();", IConverter.CONVERTER_VOID);
+    public void setCachedContentBounds(Rectangle rectangle) {
+        internalBrowser.setCachedContentBounds(rectangle);
     }
 
-    @Override
-    public Point computeSize(int wHint, int hHint, boolean changed) {
-        Rectangle bounds = internalBrowser.getCachedContentBounds();
-        if (bounds == null) {
-            return super.computeSize(wHint, hHint, changed);
-        }
-        Point size = new Point(bounds.x + bounds.width,
-                bounds.y + bounds.height);
-        LOGGER.debug(
-                Browser.class.getSimpleName() + ".computeSize(" + wHint + ", "
-                        + hHint + ", " + changed + ") -> " + size);
-        return size;
-    }
-
-    @Override
-    public void setBackground(Color color) {
-        super.setBackground(color);
-        String hex = color != null ? new RGB(color.getRGB()).toDecString() : "transparent";
-        try {
-            injectCss("html, body { background-color: " + hex + "; }");
-        } catch (RuntimeException e) {
-            LOGGER.error("Error setting background color to " + color, e);
-        }
-    }
-
-    @Override
-    public void addListener(int eventType, Listener listener) {
-        checkNotNull(listener);
-        if (EventDelegator.mustDelegate(eventType, this)) {
-            internalBrowser.addListener(eventType, listener);
-        } else {
-            super.addListener(eventType, listener);
-        }
-    }
-
-    /**
-     * Deactivate browser's native context/popup menu. Doing so allows the definition of menus in an inheriting composite via setMenu.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public void deactivateNativeMenu() {
-        internalBrowser.addListener(SWT.MenuDetect, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                event.doit = false;
-            }
-        });
+    public Rectangle getCachedContentBounds() {
+        return internalBrowser.getCachedContentBounds();
     }
 }

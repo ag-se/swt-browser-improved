@@ -3,9 +3,9 @@ package de.fu_berlin.inf.ag_se.widgets.browser.extended;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
 import de.fu_berlin.inf.ag_se.widgets.browser.Browser;
 import de.fu_berlin.inf.ag_se.widgets.browser.IBrowser;
+import de.fu_berlin.inf.ag_se.widgets.browser.InternalBrowserWrapper;
 import de.fu_berlin.inf.ag_se.widgets.browser.JavascriptString;
 import org.apache.log4j.Logger;
-import org.eclipse.swt.widgets.Composite;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,8 +23,8 @@ public class ExtendedBrowser extends Browser {
 
     private final Iterable<BrowserExtension> extensions;
 
-    public ExtendedBrowser(Composite parent, int style, Iterable<BrowserExtension> extensions) {
-        super(parent, style);
+    public ExtendedBrowser(InternalBrowserWrapper internalWrapper, Iterable<BrowserExtension> extensions) {
+        super(internalWrapper);
         this.extensions = extensions;
 
         /*

@@ -2,7 +2,6 @@ package de.fu_berlin.inf.ag_se.widgets.browser;
 
 import de.fu_berlin.inf.ag_se.utils.Assert;
 import de.fu_berlin.inf.ag_se.utils.IConverter;
-import de.fu_berlin.inf.ag_se.utils.SWTUtils;
 import de.fu_berlin.inf.ag_se.widgets.browser.BrowserStatusManager.BrowserStatus;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.BrowserDisposedException;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
@@ -17,20 +16,13 @@ import de.fu_berlin.inf.ag_se.widgets.browser.threading.UIThreadAwareScheduledTh
 import de.fu_berlin.inf.ag_se.widgets.browser.threading.futures.CompletedFuture;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.*;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Listener;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.*;
 
 /**
@@ -38,17 +30,13 @@ import java.util.concurrent.*;
  * It enhances its core functionality and is used by {@link de.fu_berlin.inf.ag_se.widgets.browser.Browser}
  * to provide more specific methods to the users.
  */
-public class InternalBrowserWrapper {
+public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
 
     private static Logger LOGGER = Logger.getLogger(InternalBrowserWrapper.class);
 
-    private Browser browser;
+    protected final T browser;
 
     private BrowserStatusManager browserStatusManager;
-
-    private boolean settingUri = false;
-
-    private boolean allowLocationChange = false;
 
     private final Object monitor = new Object();
 
@@ -64,17 +52,22 @@ public class InternalBrowserWrapper {
 
     private List<Function<Object>> afterScripts = new ArrayList<Function<Object>>();
 
+    private List<Runnable> runOnDisposalList = new ArrayList<Runnable>();
+
     private final List<JavaScriptExceptionListener> javaScriptExceptionListeners = Collections
             .synchronizedList(new ArrayList<JavaScriptExceptionListener>());
 
     private Future<?> timeoutMonitor;
 
-    private final UIThreadAwareScheduledThreadPoolExecutor executor;
+    protected final UIThreadAwareScheduledThreadPoolExecutor executor;
 
-    InternalBrowserWrapper(Composite parent) {
-        browser = new Browser(parent, SWT.NONE);
+    protected boolean allowLocationChange = false;
+
+    protected boolean settingUri = false;
+
+    InternalBrowserWrapper(T browser) {
+        this.browser = browser;
         browser.setVisible(false);
-
         executor = new UIThreadAwareScheduledThreadPoolExecutor();
 
         browserStatusManager = new BrowserStatusManager();
@@ -91,26 +84,6 @@ public class InternalBrowserWrapper {
                 return false;
             }
         });
-
-        browser.addLocationListener(new LocationAdapter() {
-            @Override
-            public void changing(LocationEvent event) {
-                if (!settingUri) {
-                    event.doit = allowLocationChange || browserStatusManager.isLoading();
-                }
-            }
-        });
-
-        browser.addDisposeListener(new DisposeListener() {
-            @Override
-            public void widgetDisposed(DisposeEvent e) {
-                synchronized (monitor) {
-                    browserStatusManager.setBrowserStatus(BrowserStatus.DISPOSED);
-                    monitor.notifyAll();
-                }
-                executor.shutdownNow();
-            }
-        });
     }
 
     /**
@@ -124,9 +97,9 @@ public class InternalBrowserWrapper {
 
         browserStatusManager.setBrowserStatus(BrowserStatus.LOADING);
 
-        browser.addProgressListener(new ProgressAdapter() {
+        browser.addProgressListener(new Runnable() {
             @Override
-            public void completed(ProgressEvent event) {
+            public void run() {
                 waitAndComplete(pageLoadCheckExpression);
             }
         });
@@ -146,11 +119,11 @@ public class InternalBrowserWrapper {
                         SwtUiThreadExecutor.syncExec(new Runnable() {
                             @Override
                             public void run() {
-                                settingUri = true;
                                 if (!browser.isDisposed()) {
+                                    settingUri = true;
                                     browser.setUrl(uri);
+                                    settingUri = false;
                                 }
-                                settingUri = false;
                             }
                         });
 
@@ -210,13 +183,13 @@ public class InternalBrowserWrapper {
 
     /**
      * This method waits for the {@link Browser} to complete loading.
-     * It has been observed that the {@link ProgressListener#completed(ProgressEvent)} fires to early.
+     * It has been observed that the ProgressListener#completed(ProgressEvent) fires to early.
      * This method uses JavaScript to reliably detect the completed state.
      *
      * @param pageLoadCheckExpression the Javascript expression to used for checking the loading state
      */
     private void waitAndComplete(String pageLoadCheckExpression) {
-        if (browser == null || browser.isDisposed()) {
+        if (browser.isDisposed()) {
             return;
         }
 
@@ -328,7 +301,7 @@ public class InternalBrowserWrapper {
         return executor.submit(new NoCheckedExceptionCallable<Void>() {
             @Override
             public Void call() {
-                if (browser == null || browser.isDisposed()) {
+                if (browser.isDisposed()) {
                     throw new BrowserDisposedException();
                 }
 
@@ -534,7 +507,7 @@ public class InternalBrowserWrapper {
             executeAfterScriptExecutionScripts(returnValue);
 
             return returnValue;
-        } catch (SWTException e) {
+        } catch (RuntimeException e) {
             //TODO perform SWT error conversion here
             throw new ScriptExecutionException(javaScript, e);
         }
@@ -583,47 +556,40 @@ public class InternalBrowserWrapper {
         return browserStatusManager.getBrowserStatus();
     }
 
-    void setAllowLocationChange(boolean allowed) {
-        this.allowLocationChange = allowed;
-    }
-
     boolean isLoadingCompleted() {
         return browserStatusManager.isLoadingCompleted();
     }
 
-    boolean isDisposed() {
-        return browser.isDisposed();
+    boolean isLoading() {
+        return browserStatusManager.isLoading();
     }
 
-    void addListener(int eventType, Listener listener) {
-        // TODO evtl. erst ausführen, wenn alles wirklich geladen wurde, um
-        // evtl. falsche Mauskoordinaten zu verhindern und so ein Fehlverhalten
-        // im InformationControl vorzeugen
-        browser.addListener(eventType, listener);
+    void fireIsDisposed() {
+        for (Runnable runnable : runOnDisposalList) {
+            executor.submit(runnable);
+        }
+
+        synchronized (monitor) {
+            browserStatusManager.setBrowserStatus(BrowserStatus.DISPOSED);
+            monitor.notifyAll();
+        }
+        executor.shutdownNow();
     }
 
     void setVisible(final boolean visible) {
         executor.asyncUIExec(new Runnable() {
             @Override
             public void run() {
-                if (!browser.isDisposed()) {
-                    browser.setVisible(visible);
-                }
+                browser.setVisible(visible);
             }
         });
     }
 
-    void layoutRoot() {
-        Composite root = SWTUtils.getRoot(browser);
-        LOGGER.debug("layout all");
-        root.layout(true, true);
-    }
-
-    void setCachedContentBounds(Rectangle rectangle) {
+    protected void setCachedContentBounds(Rectangle rectangle) {
         cachedContentBounds = rectangle;
     }
 
-    Rectangle getCachedContentBounds() {
+    protected Rectangle getCachedContentBounds() {
         return cachedContentBounds;
     }
 
@@ -678,13 +644,7 @@ public class InternalBrowserWrapper {
         return SwtUiThreadExecutor.syncExec(new NoCheckedExceptionCallable<IBrowserFunction>() {
             @Override
             public IBrowserFunction call() {
-                new BrowserFunction(browser, function.getName()) {
-                    @Override
-                    public Object function(Object[] arguments) {
-                        return function.function(arguments);
-                    }
-                };
-                return function;
+                return browser.createBrowserFunction(function);
             }
         });
     }
@@ -700,10 +660,6 @@ public class InternalBrowserWrapper {
     /**
      * Executes a list of Javascript scripts sequentially.
      * If an exceptions occurs the remaining scripts are executed nevertheless.
-     *
-     * @param scripts
-     * @param input
-     * @param <V>
      */
     private <V> void executeScriptList(List<Function<V>> scripts, final V input) {
         Collection<NoCheckedExceptionCallable<Object>> res = new ArrayList<NoCheckedExceptionCallable<Object>>();
@@ -738,5 +694,17 @@ public class InternalBrowserWrapper {
                 return callback.apply(returnValue, exception);
             }
         });
+    }
+
+    void runOnDisposal(Runnable runnable) {
+        runOnDisposalList.add(runnable);
+    }
+
+    public void setAllowLocationChange(boolean allowed) {
+            this.allowLocationChange = allowed;
+        }
+
+    public boolean isDisposed() {
+        return browser.isDisposed();
     }
 }

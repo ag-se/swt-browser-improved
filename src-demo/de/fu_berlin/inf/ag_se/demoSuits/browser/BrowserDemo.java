@@ -2,8 +2,8 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import de.fu_berlin.inf.ag_se.utils.colors.ColorUtils;
-import de.fu_berlin.inf.ag_se.widgets.browser.EventCatchBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.exception.JavaScriptException;
+import de.fu_berlin.inf.ag_se.widgets.browser.extended.SWTEventCatchBrowser;
 import de.fu_berlin.inf.ag_se.widgets.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.IAnchor;
 import de.fu_berlin.inf.ag_se.widgets.browser.html.IElement;
@@ -25,7 +25,7 @@ import java.util.concurrent.Future;
 
 public class BrowserDemo extends AbstractDemo {
 
-    private EventCatchBrowser browser;
+    private SWTEventCatchBrowser browser;
     private String alertString = "Hello World!";
     private static String timeoutString = "15000";
 
@@ -112,22 +112,6 @@ public class BrowserDemo extends AbstractDemo {
                     }
                 });
 
-        this.createControlButton("add focus border",
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        browser.addFocusBorder();
-                    }
-                });
-
-        this.createControlButton("remove focus border",
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        browser.removeFocusBorder();
-                    }
-                });
-
         new Label(composite, SWT.NONE).setText("Exception Handling:");
 
         this.createControlButton("raise runtime exception", new Runnable() {
@@ -197,7 +181,7 @@ public class BrowserDemo extends AbstractDemo {
 
     @Override
     public void createDemo(Composite parent) {
-        browser = new EventCatchBrowser(parent, SWT.BORDER);
+        browser = SWTEventCatchBrowser.createSWTBrowser(parent, SWT.BORDER);
         browser.setAllowLocationChange(true);
         browser.addAnchorListener(new IAnchorListener() {
             @Override
@@ -244,8 +228,8 @@ public class BrowserDemo extends AbstractDemo {
             }
         });
 
-        final Future<Boolean> success = browser.openBlank();
-//        final Future<Boolean> success = browser.open("https://google.de", Integer.parseInt(timeoutString));
+//        final Future<Boolean> success = browser.openBlank();
+        final Future<Boolean> success = browser.open("https://google.de", Integer.parseInt(timeoutString));
         executor.execute(new Runnable() {
             @Override
             public void run() {
