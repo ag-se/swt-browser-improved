@@ -79,10 +79,7 @@ public class ExtendedBrowser extends Browser {
 
         for (File cssExtension : extension.getCssExtensions()) {
             try {
-                if (!runImmediately(JavascriptString.createCssFileInjectionScript(cssExtension), IConverter.CONVERTER_BOOLEAN)) {
-                    LOGGER.error("Could not load the JS extension \"" + extension.getName() + "\".");
-                    return false;
-                }
+                runImmediately(JavascriptString.createCssFileInjectionScript(cssExtension), IConverter.CONVERTER_BOOLEAN);
             } catch (RuntimeException e) {
                 LOGGER.error("Could not load the JS extension \"" + extension.getName() + "\".", e.getCause());
                 return false;

@@ -496,20 +496,15 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
      * @throws ScriptExecutionException           if an exception occurs while executing the script
      */
     Object evaluate(String javaScript) {
-        try {
-            executeBeforeScriptExecutionScripts(javaScript);
+        executeBeforeScriptExecutionScripts(javaScript);
 
-            String script = JavascriptString.getExceptionReturningScript(javaScript);
-            Object returnValue = browser.evaluate(script);
-            BrowserUtils.rethrowJavascriptException(script, returnValue);
+        String script = JavascriptString.getExceptionReturningScript(javaScript);
+        Object returnValue = browser.evaluate(script);
+        BrowserUtils.rethrowJavascriptException(script, returnValue);
 
-            executeAfterScriptExecutionScripts(returnValue);
+        executeAfterScriptExecutionScripts(returnValue);
 
-            return returnValue;
-        } catch (RuntimeException e) {
-            //TODO perform SWT error conversion here
-            throw new ScriptExecutionException(javaScript, e);
-        }
+        return returnValue;
     }
 
     /**
@@ -700,8 +695,8 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     }
 
     void setAllowLocationChange(boolean allowed) {
-            this.allowLocationChange = allowed;
-        }
+        this.allowLocationChange = allowed;
+    }
 
     boolean isDisposed() {
         return browser.isDisposed();

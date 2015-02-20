@@ -1,4 +1,4 @@
-return (function(){
+(function(){
 
 if(window["__dndCatchInjected"]) return true;
 else window["__dndCatchInjected"] = true;

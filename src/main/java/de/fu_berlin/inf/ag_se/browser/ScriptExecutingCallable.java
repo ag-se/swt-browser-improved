@@ -29,7 +29,7 @@ class ScriptExecutingCallable<DEST> extends ThreadLabelingCallable<DEST> {
                 Object returnValue = browser.evaluate(script);
 
                 DEST rs = converter.convert(returnValue);
-                LOGGER.debug("Returned " + rs);
+                LOGGER.debug(StringUtils.shorten(script) + " returned " + rs);
                 return rs;
             }
         });

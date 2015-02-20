@@ -15,7 +15,7 @@ public class JavascriptString {
         String scriptContent = FileUtils.readFileToString(scriptFile);
         return "var script=document.createElement(\"script\"); script.type=\"text/javascript\"; script.text=\""
                 + StringEscapeUtils.escapeJavaScript(scriptContent)
-                + "\"; document.getElementsByTagName(\"head\")[0].appendChild(script);";
+                + "\"; document.getElementsByTagName(\"head\")[0].appendChild(script); return true;";
     }
 
     public static String createJSForInjection(String callbackFunctionName, URI script, boolean removeAfterExecution) {
@@ -53,15 +53,15 @@ public class JavascriptString {
                 + "\"; document.getElementsByTagName(\"head\")[0].appendChild(link); }";
     }
 
-    public static String createCssFileInjectionScript(File cssFile) throws IOException{
-        return createCssInjectionScript(FileUtils.readFileToString(cssFile));
+    public static String createCssFileInjectionScript(File cssFile) throws IOException {
+        return createCssInjectionScript(escape(FileUtils.readFileToString(cssFile)));
     }
 
     static String createCssInjectionScript(String css) {
         return
                 "(function(){var style=document.createElement(\"style\");style.appendChild(document.createTextNode(\""
                         + css
-                        + "\"));(document.getElementsByTagName(\"head\")[0]||document.documentElement).appendChild(style)})()";
+                        + "\"));(document.getElementsByTagName(\"head\")[0]||document.documentElement).appendChild(style); return true; })()";
     }
 
     static String createCssToDisableTextSelection() {
