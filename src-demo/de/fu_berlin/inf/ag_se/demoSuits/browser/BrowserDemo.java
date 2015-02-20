@@ -6,7 +6,6 @@ import de.fu_berlin.inf.ag_se.browser.html.IAnchor;
 import de.fu_berlin.inf.ag_se.browser.html.IElement;
 import de.fu_berlin.inf.ag_se.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.browser.listener.IFocusListener;
-import de.fu_berlin.inf.ag_se.browser.listener.IMouseListener;
 import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.browser.swt.SWTEventCatchBrowser;
 import de.fu_berlin.inf.ag_se.browser.utils.colors.ColorUtils;
@@ -206,27 +205,27 @@ public class BrowserDemo extends AbstractDemo {
 //                log("relative mouse pos " + e.x + "," + e.y);
 //            }
 //        });
-        browser.addMouseListener(new IMouseListener() {
-            @Override
-            public void mouseMove(double x, double y) {
-                log("absolute mouse pos " + x + "," + y);
-            }
-
-            @Override
-            public void mouseDown(double x, double y, IElement element) {
-                log("mouse down " + x + "," + y + " - " + element);
-            }
-
-            @Override
-            public void mouseUp(double x, double y, IElement element) {
-                log("mouse up " + x + "," + y + " - " + element);
-            }
-
-            @Override
-            public void clicked(double x, double y, IElement element) {
-                log("clicked " + x + "," + y + " - " + element);
-            }
-        });
+//        browser.addMouseListener(new IMouseListener() {
+//            @Override
+//            public void mouseMove(double x, double y) {
+//                log("absolute mouse pos " + x + "," + y);
+//            }
+//
+//            @Override
+//            public void mouseDown(double x, double y, IElement element) {
+//                log("mouse down " + x + "," + y + " - " + element);
+//            }
+//
+//            @Override
+//            public void mouseUp(double x, double y, IElement element) {
+//                log("mouse up " + x + "," + y + " - " + element);
+//            }
+//
+//            @Override
+//            public void clicked(double x, double y, IElement element) {
+//                log("clicked " + x + "," + y + " - " + element);
+//            }
+//        });
 
 //        final Future<Boolean> success = browser.openBlank();
         final Future<Boolean> success = browser.open("https://google.de", Integer.parseInt(timeoutString));

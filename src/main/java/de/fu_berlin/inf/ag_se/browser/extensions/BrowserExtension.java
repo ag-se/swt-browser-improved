@@ -27,7 +27,7 @@ public enum BrowserExtension {
             Arrays.asList(JQUERY_EXTENSION)),
 
     EVENT_CATCH_EXTENSION("Event Catch Functionality", "return window[\"__eventsCatchInjected\"];",
-            Arrays.asList(ClasspathFileUtils.getFile("/events.js"), ClasspathFileUtils.getFile("/dnd.js")),
+            Arrays.asList(ClasspathFileUtils.getFile("/events.js"), ClasspathFileUtils.getFile("/dnd.js"), ClasspathFileUtils.getFile("/resizing.js")),
             Arrays.asList(ClasspathFileUtils.getFile("/dnd.css")),
             Collections.<BrowserExtension>emptyList()
             );
