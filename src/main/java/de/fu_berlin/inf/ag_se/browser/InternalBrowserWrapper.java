@@ -709,4 +709,13 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     void syncExec(Runnable runnable) {
         uiThreadExecutor.syncExec(runnable);
     }
+
+    void setSize(final int width, final int height) {
+        executor.asyncUIExec(new Runnable() {
+            @Override
+            public void run() {
+                browser.setSize(width, height);
+            }
+        });
+    }
 }

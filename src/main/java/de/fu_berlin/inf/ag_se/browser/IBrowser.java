@@ -807,7 +807,7 @@ public interface IBrowser {
      *
      * May be called from whatever thread.
      *
-     * @param function     the Java code to be executed
+     * @param function the Java code to be executed
      * @return the created function
      *
      * @throws NullPointerException if functionName or function is null
@@ -836,4 +836,25 @@ public interface IBrowser {
      * @throws NullPointerException if exceptionListener is null
      */
     void removeJavaScriptExceptionListener(JavaScriptExceptionListener exceptionListener);
+
+    /**
+     * Registers a runnable to be called when the browser is disposed.
+     * This method may be called multiple times to register multiple runnables.
+     *
+     * It may be called from whatever thread.
+     *
+     * @param runnable the runnable to be executed on disposal
+     * @throws NullPointerException if runnable is null
+     */
+    void runOnDisposal(Runnable runnable);
+
+    /**
+     * Sets the dimensions of the browser
+     *
+     * This method may be called from whatever thread.
+     *
+     * @param width  the new width of the browser
+     * @param height the new height of the browser
+     */
+    void setSize(int width, int height);
 }

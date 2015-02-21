@@ -23,7 +23,7 @@ class ScriptExecutingCallable<DEST> extends ThreadLabelingCallable<DEST> {
             @Override
             public DEST call()  {
                 if (browser == null || browser.isDisposed()) {
-                    throw new BrowserDisposedException();
+                   LOGGER.debug("Did not execute " + script + " as the browser is disposed.");
                 }
 
                 Object returnValue = browser.evaluate(script);

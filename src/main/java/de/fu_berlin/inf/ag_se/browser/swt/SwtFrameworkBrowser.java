@@ -54,6 +54,11 @@ public class SwtFrameworkBrowser implements IFrameworkBrowser {
     }
 
     @Override
+    public void setSize(int width, int height) {
+        browser.setSize(width, height);
+    }
+
+    @Override
     public Object evaluate(String javaScript) {
         return browser.evaluate(javaScript);
     }

@@ -364,6 +364,11 @@ public class SwtBrowser<T extends Browser> extends AbstractSwtBrowser<T> impleme
         browser.removeJavaScriptExceptionListener(exceptionListener);
     }
 
+    @Override
+    public void runOnDisposal(Runnable runnable) {
+        browser.runOnDisposal(runnable);
+    }
+
     public void setCachedContentBounds(Rectangle rectangle) {
         browser.setCachedContentBounds(rectangle);
     }

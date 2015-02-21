@@ -28,17 +28,17 @@ public class JQueryBrowser extends EventCatchBrowser implements IJQueryBrowser {
 
     public JQueryBrowser(InternalBrowserWrapper internalBrowserWrapper, Iterable<BrowserExtension> extensions) {
         super(internalBrowserWrapper, Iterables.concat(extensions, Arrays.asList(BrowserExtension.JQUERY_EXTENSION)));
-
-        runOnDisposal(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    disposedScrollPosition = getScrollPosition().get();
-                } catch (Exception e1) {
-                    LOGGER.error("Error saving state of " + JQueryBrowser.this, e1);
-                }
-            }
-        });
+//TODO this is called too late as the browser is already disposed
+//        runOnDisposal(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    disposedScrollPosition = getScrollPosition().get();
+//                } catch (Exception e1) {
+//                    LOGGER.error("Error saving state of " + JQueryBrowser.this, e1);
+//                }
+//            }
+//        });
     }
 
     private String getFocusStmt(ISelector selector) {

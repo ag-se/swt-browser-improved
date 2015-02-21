@@ -374,7 +374,13 @@ public class Browser implements IBrowser {
     }
 
     public void runOnDisposal(Runnable runnable) {
+        checkNotNull(runnable);
         internalBrowser.runOnDisposal(runnable);
+    }
+
+    @Override
+    public void setSize(int width, int height) {
+        internalBrowser.setSize(width, height);
     }
 
     public void setCachedContentBounds(Rectangle rectangle) {

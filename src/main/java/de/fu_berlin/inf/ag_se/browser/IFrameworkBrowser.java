@@ -18,4 +18,6 @@ public interface IFrameworkBrowser {
     void setUrl(String uri);
 
     UIThreadExecutor getUIThreadExecutor();
+
+    void setSize(int width, int height);
 }
