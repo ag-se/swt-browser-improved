@@ -857,4 +857,21 @@ public interface IBrowser {
      * @param height the new height of the browser
      */
     void setSize(int width, int height);
+
+    /**
+     * Renders a string containing HTML.
+     * The rendering of the content occurs asynchronously.
+     * May be called from whatever thread.
+     *
+     * @param html the HTML string to be rendered
+     */
+    void setText(String html);
+
+    /**
+     * Gives the focus to the browser.
+     *
+     * May be called from whatever thread.
+     * @return true if successful, false otherwise
+     */
+    boolean setFocus();
 }

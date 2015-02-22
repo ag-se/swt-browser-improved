@@ -369,6 +369,11 @@ public class SwtBrowser<T extends Browser> extends AbstractSwtBrowser<T> impleme
         browser.runOnDisposal(runnable);
     }
 
+    @Override
+    public void setText(String html) {
+        browser.setText(html);
+    }
+
     public void setCachedContentBounds(Rectangle rectangle) {
         browser.setCachedContentBounds(rectangle);
     }

@@ -20,4 +20,8 @@ public interface IFrameworkBrowser {
     UIThreadExecutor getUIThreadExecutor();
 
     void setSize(int width, int height);
+
+    void setText(String html);
+
+    boolean setFocus();
 }

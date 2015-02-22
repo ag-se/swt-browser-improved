@@ -718,4 +718,22 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
             }
         });
     }
+
+    public void setText(final String html) {
+        executor.asyncUIExec(new Runnable() {
+            @Override
+            public void run() {
+                browser.setText(html);
+            }
+        });
+    }
+
+    public boolean setFocus() {
+        return uiThreadExecutor.syncExec(new NoCheckedExceptionCallable<Boolean>() {
+            @Override
+            public Boolean call() {
+                return browser.setFocus();
+            }
+        });
+    }
 }

@@ -383,6 +383,17 @@ public class Browser implements IBrowser {
         internalBrowser.setSize(width, height);
     }
 
+    @Override
+    public void setText(String html) {
+        checkNotNull(html);
+        internalBrowser.setText(html);
+    }
+
+    @Override
+    public boolean setFocus() {
+        return internalBrowser.setFocus();
+    }
+
     public void setCachedContentBounds(Rectangle rectangle) {
         internalBrowser.setCachedContentBounds(rectangle);
     }

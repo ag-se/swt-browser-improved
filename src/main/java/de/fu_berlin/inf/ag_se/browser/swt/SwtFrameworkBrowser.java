@@ -59,6 +59,16 @@ public class SwtFrameworkBrowser implements IFrameworkBrowser {
     }
 
     @Override
+    public void setText(String html) {
+        browser.setText(html);
+    }
+
+    @Override
+    public boolean setFocus() {
+        return browser.setFocus();
+    }
+
+    @Override
     public Object evaluate(String javaScript) {
         return browser.evaluate(javaScript);
     }
