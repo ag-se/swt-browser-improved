@@ -34,7 +34,7 @@ public class ClasspathFileUtils {
 
     public static File getFile(String relativePath) {
         URL resource = ClasspathFileUtils.class.getResource(relativePath);
-        if (resource.toString().contains("!/")) {
+        if (resource.toString().contains("!/") || resource.toString().contains("bundleresource")) {
             InputStream in = ClasspathFileUtils.class.getResourceAsStream(relativePath);
             File tempFile;
             try {
