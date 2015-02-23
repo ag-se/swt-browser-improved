@@ -11,9 +11,9 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * The methods in this class all execute stuff on the SWT UI thread
  */
-public class SwtUiThreadExecutor implements UIThreadExecutor {
+public class SWTThreadExecutor implements UIThreadExecutor {
 
-    private static final Logger LOGGER = Logger.getLogger(SwtUiThreadExecutor.class);
+    private static final Logger LOGGER = Logger.getLogger(SWTThreadExecutor.class);
 
     @Override
     public <V> V syncExec(final NoCheckedExceptionCallable<V> callable) {

@@ -1,7 +1,7 @@
 package de.fu_berlin.inf.ag_se.browser;
 
 import de.fu_berlin.inf.ag_se.browser.functions.Function;
-import de.fu_berlin.inf.ag_se.browser.swt.SwtBrowser;
+import de.fu_berlin.inf.ag_se.browser.swt.SWTBrowser;
 import de.fu_berlin.inf.ag_se.browser.utils.IConverter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -38,7 +38,7 @@ public class BrowserTest {
         final List<String> scriptExecutionOrder = Collections.synchronizedList(new ArrayList<String>());
         final Map<String, String> scriptResults = Collections.synchronizedMap(new HashMap<String, String>());
         final List<String> resultFinishedOrder = Collections.synchronizedList(new ArrayList<String>());
-        final SwtBrowser browser = SwtBrowser.createSWTBrowser(shell, SWT.NONE);
+        final SWTBrowser browser = SWTBrowser.createSWTBrowser(shell, SWT.NONE);
 
         browser.executeBeforeScript(new Function<String>() {
             @Override

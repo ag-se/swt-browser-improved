@@ -35,7 +35,7 @@ public class SWTEventCatchBrowser<T extends EventCatchBrowser> extends SWTExtend
 
     public static SWTEventCatchBrowser createSWTBrowser(Composite parent, int style, Iterable<BrowserExtension> extensions) {
         final SWTEventCatchBrowser swtEventCatchBrowser = new SWTEventCatchBrowser(parent, style);
-        SwtInternalBrowserWrapper internalSWTBrowserWrapper = new SwtInternalBrowserWrapper(swtEventCatchBrowser);
+        SWTInternalBrowserWrapper internalSWTBrowserWrapper = new SWTInternalBrowserWrapper(swtEventCatchBrowser);
         swtEventCatchBrowser.setInternalBrowser(internalSWTBrowserWrapper);
         swtEventCatchBrowser.setBrowser(new EventCatchBrowser(internalSWTBrowserWrapper, extensions));
         swtEventCatchBrowser.createBrowserFunction(new IBrowserFunction("__resize") {

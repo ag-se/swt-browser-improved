@@ -9,12 +9,12 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 
-public class SwtInternalBrowserWrapper extends InternalBrowserWrapper<SwtFrameworkBrowser> {
+public class SWTInternalBrowserWrapper extends InternalBrowserWrapper<SWTFrameworkBrowser> {
 
     private static Logger LOGGER = Logger.getLogger(InternalBrowserWrapper.class);
 
-    public SwtInternalBrowserWrapper(Composite parent) {
-        super(new SwtFrameworkBrowser(parent));
+    public SWTInternalBrowserWrapper(Composite parent) {
+        super(new SWTFrameworkBrowser(parent));
 
         browser.addLocationListener(new LocationAdapter() {
             @Override

@@ -2,8 +2,8 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
 import de.fu_berlin.inf.ag_se.browser.html.IAnchor;
 import de.fu_berlin.inf.ag_se.browser.listener.IAnchorListener;
+import de.fu_berlin.inf.ag_se.browser.swt.SWTBrowser;
 import de.fu_berlin.inf.ag_se.browser.swt.SWTEventCatchBrowser;
-import de.fu_berlin.inf.ag_se.browser.swt.SwtBrowser;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
@@ -39,7 +39,7 @@ public class MultipleBrowsersDemo extends AbstractDemo {
                     @Override
                     public void run() {
                         log("alerting");
-                        for (SwtBrowser browser : browsers) {
+                        for (SWTBrowser browser : browsers) {
                             try {
                                 browser.run("alert(\"" + alertString + "\");").get();
                             } catch (Exception e) {
@@ -64,7 +64,7 @@ public class MultipleBrowsersDemo extends AbstractDemo {
                         try {
                             File jsFile = File.createTempFile(MultipleBrowsersDemo.class.getSimpleName(), ".js");
                             FileUtils.write(jsFile, "alert(\"" + alertString + "\");");
-                            for (SwtBrowser browser : browsers) {
+                            for (SWTBrowser browser : browsers) {
                                 browser.run(jsFile);
                             }
                         } catch (Exception e) {

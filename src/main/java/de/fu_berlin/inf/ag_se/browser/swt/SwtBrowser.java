@@ -29,9 +29,9 @@ import java.util.concurrent.Future;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class SwtBrowser<T extends Browser> extends AbstractSwtBrowser<T> implements IBrowser {
+public class SWTBrowser<T extends Browser> extends AbstractSWTBrowser<T> implements IBrowser {
 
-    private static Logger LOGGER = Logger.getLogger(SwtBrowser.class);
+    private static Logger LOGGER = Logger.getLogger(SWTBrowser.class);
 
     private static final int STYLES = SWT.INHERIT_FORCE;
 
@@ -42,14 +42,14 @@ public class SwtBrowser<T extends Browser> extends AbstractSwtBrowser<T> impleme
      * @param style  if {@link org.eclipse.swt.SWT#INHERIT_FORCE} is set the loaded page's
      *               background is replaced by the inherited background color
      */
-    public SwtBrowser(final Composite parent, int style) {
+    public SWTBrowser(final Composite parent, int style) {
         super(parent, style);
         setLayout(new FillLayout());
     }
 
-    public static SwtBrowser createSWTBrowser(final Composite parent, final int style) {
-        final SwtBrowser swtBrowser = new SwtBrowser(parent, style);
-        SwtInternalBrowserWrapper internalBrowser = new SwtInternalBrowserWrapper(swtBrowser);
+    public static SWTBrowser createSWTBrowser(final Composite parent, final int style) {
+        final SWTBrowser swtBrowser = new SWTBrowser(parent, style);
+        SWTInternalBrowserWrapper internalBrowser = new SWTInternalBrowserWrapper(swtBrowser);
         swtBrowser.setInternalBrowser(internalBrowser);
         swtBrowser.setBrowser(new Browser(internalBrowser));
         swtBrowser.executeAfterCompletion(new Runnable() {

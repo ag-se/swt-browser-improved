@@ -12,7 +12,7 @@ import org.eclipse.swt.widgets.Composite;
 import java.util.Collections;
 import java.util.concurrent.Future;
 
-public class SwtJQueryBrowser<T extends JQueryBrowser> extends SWTEventCatchBrowser<T> implements IJQueryBrowser {
+public class SWTJQueryBrowser<T extends JQueryBrowser> extends SWTEventCatchBrowser<T> implements IJQueryBrowser {
 
     /**
      * Constructs a new browser composite with the given styles.
@@ -20,17 +20,17 @@ public class SwtJQueryBrowser<T extends JQueryBrowser> extends SWTEventCatchBrow
      * @param parent a widget which will be the parent of the new instance (cannot be null)
      * @param style  if {@link SWT#INHERIT_FORCE} is set the loaded page's
      */
-    protected SwtJQueryBrowser(Composite parent, int style) {
+    protected SWTJQueryBrowser(Composite parent, int style) {
         super(parent, style);
     }
 
-    public static SwtJQueryBrowser createSWTBrowser(Composite parent, int style) {
+    public static SWTJQueryBrowser createSWTBrowser(Composite parent, int style) {
         return createSWTBrowser(parent, style, Collections.<BrowserExtension>emptyList());
     }
 
-    public static SwtJQueryBrowser createSWTBrowser(Composite parent, int style, Iterable<BrowserExtension> extensions) {
-        SwtJQueryBrowser<JQueryBrowser> swtJQueryBrowser = new SwtJQueryBrowser<JQueryBrowser>(parent, style);
-        SwtInternalBrowserWrapper internalSWTBrowserWrapper = new SwtInternalBrowserWrapper(swtJQueryBrowser);
+    public static SWTJQueryBrowser createSWTBrowser(Composite parent, int style, Iterable<BrowserExtension> extensions) {
+        SWTJQueryBrowser<JQueryBrowser> swtJQueryBrowser = new SWTJQueryBrowser<JQueryBrowser>(parent, style);
+        SWTInternalBrowserWrapper internalSWTBrowserWrapper = new SWTInternalBrowserWrapper(swtJQueryBrowser);
         swtJQueryBrowser.setInternalBrowser(internalSWTBrowserWrapper);
         swtJQueryBrowser.setBrowser(new JQueryBrowser(internalSWTBrowserWrapper, extensions));
         return swtJQueryBrowser;

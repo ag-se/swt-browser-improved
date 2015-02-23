@@ -10,21 +10,21 @@ import org.eclipse.swt.widgets.Composite;
 
 import java.util.Collections;
 
-public class SwtBootstrapBrowser<T extends BootstrapBrowser> extends SwtJQueryBrowser<T> implements IBootstrapBrowser {
-    private static final Logger LOGGER = Logger.getLogger(SwtBootstrapBrowser.class);
+public class SWTBootstrapBrowser<T extends BootstrapBrowser> extends SWTJQueryBrowser<T> implements IBootstrapBrowser {
+    private static final Logger LOGGER = Logger.getLogger(SWTBootstrapBrowser.class);
 
-    protected SwtBootstrapBrowser(Composite parent, int style) {
+    protected SWTBootstrapBrowser(Composite parent, int style) {
         super(parent, style);
     }
 
-    public static SwtBootstrapBrowser createSWTBrowser(Composite parent, int style) {
+    public static SWTBootstrapBrowser createSWTBrowser(Composite parent, int style) {
         return createSWTBrowser(parent, style, Collections.<BrowserExtension>emptyList());
     }
 
-    public static SwtBootstrapBrowser createSWTBrowser(Composite parent, int style, Iterable<BrowserExtension> extensions) {
-        SwtBootstrapBrowser<BootstrapBrowser> swtBootstrapBrowser = new SwtBootstrapBrowser<BootstrapBrowser>(parent,
+    public static SWTBootstrapBrowser createSWTBrowser(Composite parent, int style, Iterable<BrowserExtension> extensions) {
+        SWTBootstrapBrowser<BootstrapBrowser> swtBootstrapBrowser = new SWTBootstrapBrowser<BootstrapBrowser>(parent,
                 style);
-        SwtInternalBrowserWrapper internalSWTBrowserWrapper = new SwtInternalBrowserWrapper(swtBootstrapBrowser);
+        SWTInternalBrowserWrapper internalSWTBrowserWrapper = new SWTInternalBrowserWrapper(swtBootstrapBrowser);
         swtBootstrapBrowser.setInternalBrowser(internalSWTBrowserWrapper);
         swtBootstrapBrowser.setBrowser(new BootstrapBrowser(internalSWTBrowserWrapper, extensions));
         return swtBootstrapBrowser;

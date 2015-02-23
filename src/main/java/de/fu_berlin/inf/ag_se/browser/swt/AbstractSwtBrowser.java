@@ -3,13 +3,13 @@ package de.fu_berlin.inf.ag_se.browser.swt;
 import de.fu_berlin.inf.ag_se.browser.IBrowser;
 import org.eclipse.swt.widgets.Composite;
 
-public abstract class AbstractSwtBrowser<T extends IBrowser> extends Composite {
+public abstract class AbstractSWTBrowser<T extends IBrowser> extends Composite {
 
     protected T browser;
 
-    protected SwtInternalBrowserWrapper internalBrowser;
+    protected SWTInternalBrowserWrapper internalBrowser;
 
-    protected AbstractSwtBrowser(Composite parent, int style) {
+    protected AbstractSWTBrowser(Composite parent, int style) {
         super(parent, style);
     }
 
@@ -17,7 +17,7 @@ public abstract class AbstractSwtBrowser<T extends IBrowser> extends Composite {
         this.browser = browser;
     }
 
-    protected void setInternalBrowser(SwtInternalBrowserWrapper internalBrowser) {
+    protected void setInternalBrowser(SWTInternalBrowserWrapper internalBrowser) {
         this.internalBrowser = internalBrowser;
     }
 }

@@ -1,7 +1,7 @@
 package de.fu_berlin.inf.ag_se.browser;
 
 import de.fu_berlin.inf.ag_se.browser.functions.CallbackFunction;
-import de.fu_berlin.inf.ag_se.browser.swt.SwtBrowser;
+import de.fu_berlin.inf.ag_se.browser.swt.SWTBrowser;
 import de.fu_berlin.inf.ag_se.browser.utils.ClasspathFileUtils;
 import de.fu_berlin.inf.ag_se.browser.utils.IConverter;
 import org.eclipse.swt.SWT;
@@ -35,7 +35,7 @@ public class CssInjectionTest {
     }
 
     private final AtomicReference<Shell> shellAtomicReference = new AtomicReference<Shell>();
-    private final AtomicReference<SwtBrowser> browserAtomicReference = new AtomicReference<SwtBrowser>();
+    private final AtomicReference<SWTBrowser> browserAtomicReference = new AtomicReference<SWTBrowser>();
 
     @Before
     public void before() {
@@ -45,7 +45,7 @@ public class CssInjectionTest {
                 final Shell shell = new Shell(Display.getCurrent());
                 shellAtomicReference.set(shell);
                 shell.setLayout(new FillLayout());
-                browserAtomicReference.set(SwtBrowser.createSWTBrowser(shell, SWT.NONE));
+                browserAtomicReference.set(SWTBrowser.createSWTBrowser(shell, SWT.NONE));
                 shell.open();
             }
         });
@@ -70,7 +70,7 @@ public class CssInjectionTest {
         Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
-                SwtBrowser browser = browserAtomicReference.get();
+                SWTBrowser browser = browserAtomicReference.get();
                 browser.open(ClasspathFileUtils.getFileUri("/empty_html5.html"), 5000);
                 browser.injectJavascript(ClasspathFileUtils.getFile("/returning42.js"));
                 browser.run("return newFunction();", IConverter.CONVERTER_INTEGER, new CallbackFunction<Integer, Void>() {
@@ -94,7 +94,7 @@ public class CssInjectionTest {
         Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
-                SwtBrowser browser = browserAtomicReference.get();
+                SWTBrowser browser = browserAtomicReference.get();
                 browser.open(ClasspathFileUtils.getFileUri("/empty_html5.html"), 5000);
                 browser.injectJavascript(ClasspathFileUtils.getFileUri("/returning42.js"));
                 browser.run("return newFunction();", IConverter.CONVERTER_INTEGER, new CallbackFunction<Integer, Void>() {
@@ -119,7 +119,7 @@ public class CssInjectionTest {
         Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
-                SwtBrowser browser = browserAtomicReference.get();
+                SWTBrowser browser = browserAtomicReference.get();
                 browser.open(ClasspathFileUtils.getFileUri("/empty_html5.html"), 5000);
                 browser.injectCssURI(ClasspathFileUtils.getFileUri("/redBackground.css"));
                 browser.run("return getComputedStyle(document.body, null).backgroundColor;", IConverter.CONVERTER_STRING,
@@ -145,7 +145,7 @@ public class CssInjectionTest {
         Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
-                SwtBrowser browser = browserAtomicReference.get();
+                SWTBrowser browser = browserAtomicReference.get();
                 browser.open(ClasspathFileUtils.getFileUri("/empty_html5.html"), 5000);
 
                 browser.injectCss(css);
@@ -170,7 +170,7 @@ public class CssInjectionTest {
         Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
-                SwtBrowser browser = browserAtomicReference.get();
+                SWTBrowser browser = browserAtomicReference.get();
                 browser.open(ClasspathFileUtils.getFileUri("/empty_html5.html"), 5000);
 
             }
@@ -179,7 +179,7 @@ public class CssInjectionTest {
         Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
-                SwtBrowser browser = browserAtomicReference.get();
+                SWTBrowser browser = browserAtomicReference.get();
                 try {
                     browser.runContentAsScriptTag(ClasspathFileUtils.getFile("/empty.js"));
                 } catch (IOException e) {
@@ -207,7 +207,7 @@ public class CssInjectionTest {
         Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
-                SwtBrowser browser = browserAtomicReference.get();
+                SWTBrowser browser = browserAtomicReference.get();
                 browser.open(ClasspathFileUtils.getFileUri("/empty_html5.html"), 5000);
 
                 browser.run(ClasspathFileUtils.getFile("/empty.js"));

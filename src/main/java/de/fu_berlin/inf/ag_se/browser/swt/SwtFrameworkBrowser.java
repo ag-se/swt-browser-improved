@@ -10,12 +10,12 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 
-public class SwtFrameworkBrowser implements IFrameworkBrowser {
+public class SWTFrameworkBrowser implements IFrameworkBrowser {
 
     private final Browser browser;
-    private final SwtUiThreadExecutor uiThreadExecutor = new SwtUiThreadExecutor();
+    private final SWTThreadExecutor uiThreadExecutor = new SWTThreadExecutor();
 
-    public SwtFrameworkBrowser(Composite parent) {
+    public SWTFrameworkBrowser(Composite parent) {
         browser = new Browser(parent, SWT.NONE);
     }
 

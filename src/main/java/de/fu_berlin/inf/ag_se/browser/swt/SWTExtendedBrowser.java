@@ -7,7 +7,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import java.util.Collections;
 
-public class SWTExtendedBrowser<T extends ExtendedBrowser> extends SwtBrowser<T> {
+public class SWTExtendedBrowser<T extends ExtendedBrowser> extends SWTBrowser<T> {
 
     /**
      * Constructs a new browser composite with the given styles.
@@ -25,7 +25,7 @@ public class SWTExtendedBrowser<T extends ExtendedBrowser> extends SwtBrowser<T>
 
     public static SWTExtendedBrowser createSWTBrowser(Composite parent, int style, Iterable<BrowserExtension> extensions) {
         SWTExtendedBrowser swtExtendedBrowser = new SWTExtendedBrowser(parent, style);
-        SwtInternalBrowserWrapper internalSWTBrowserWrapper = new SwtInternalBrowserWrapper(swtExtendedBrowser);
+        SWTInternalBrowserWrapper internalSWTBrowserWrapper = new SWTInternalBrowserWrapper(swtExtendedBrowser);
         swtExtendedBrowser.setInternalBrowser(internalSWTBrowserWrapper);
         swtExtendedBrowser.setBrowser(new ExtendedBrowser(internalSWTBrowserWrapper, extensions));
         return swtExtendedBrowser;

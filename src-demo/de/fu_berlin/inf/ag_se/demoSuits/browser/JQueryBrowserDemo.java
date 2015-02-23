@@ -6,7 +6,7 @@ import de.fu_berlin.inf.ag_se.browser.html.IAnchor;
 import de.fu_berlin.inf.ag_se.browser.html.IElement;
 import de.fu_berlin.inf.ag_se.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.browser.listener.IFocusListener;
-import de.fu_berlin.inf.ag_se.browser.swt.SwtJQueryBrowser;
+import de.fu_berlin.inf.ag_se.browser.swt.SWTJQueryBrowser;
 import de.fu_berlin.inf.ag_se.browser.utils.StringUtils;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import org.eclipse.swt.SWT;
@@ -24,7 +24,7 @@ import java.util.concurrent.Future;
 
 public class JQueryBrowserDemo extends AbstractDemo {
 
-    private SwtJQueryBrowser browser;
+    private SWTJQueryBrowser browser;
     private Integer x = 50;
     private Integer y = 200;
 
@@ -75,7 +75,7 @@ public class JQueryBrowserDemo extends AbstractDemo {
     }
 
     public void createDemo(Composite parent) {
-        browser = SwtJQueryBrowser.createSWTBrowser(parent, SWT.BORDER);
+        browser = SWTJQueryBrowser.createSWTBrowser(parent, SWT.BORDER);
         browser.executeBeforeScript(new Function<String>() {
             @Override
             public void run(String input) {

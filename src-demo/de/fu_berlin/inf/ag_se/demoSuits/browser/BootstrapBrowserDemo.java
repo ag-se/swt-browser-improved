@@ -5,7 +5,7 @@ import de.fu_berlin.inf.ag_se.browser.html.IAnchor;
 import de.fu_berlin.inf.ag_se.browser.html.IElement;
 import de.fu_berlin.inf.ag_se.browser.listener.IAnchorListener;
 import de.fu_berlin.inf.ag_se.browser.listener.IFocusListener;
-import de.fu_berlin.inf.ag_se.browser.swt.SwtBootstrapBrowser;
+import de.fu_berlin.inf.ag_se.browser.swt.SWTBootstrapBrowser;
 import de.fu_berlin.inf.ag_se.browser.utils.StringUtils;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
 import org.eclipse.swt.SWT;
@@ -21,7 +21,7 @@ import java.util.concurrent.Future;
 
 public class BootstrapBrowserDemo extends AbstractDemo {
 
-    private SwtBootstrapBrowser browser;
+    private SWTBootstrapBrowser browser;
     private String html = "<p>Hello <a href=\"#\">World</a>!</p>";
 
     @Override
@@ -82,7 +82,7 @@ public class BootstrapBrowserDemo extends AbstractDemo {
     }
 
     public void createDemo(Composite parent) {
-        this.browser = SwtBootstrapBrowser.createSWTBrowser(parent, SWT.BORDER);
+        this.browser = SWTBootstrapBrowser.createSWTBrowser(parent, SWT.BORDER);
         browser.executeBeforeScript(new Function<String>() {
             @Override
             public void run(String input) {
