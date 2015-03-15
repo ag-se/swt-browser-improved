@@ -5,7 +5,6 @@ import org.apache.log4j.Logger;
 
 import java.net.URI;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class CallbackFunctionCallable implements NoCheckedExceptionCallable<Boolean> {
 
@@ -26,17 +25,10 @@ public class CallbackFunctionCallable implements NoCheckedExceptionCallable<Bool
         final Semaphore mutex = new Semaphore(0);
         final String callbackFunctionName = BrowserUtils.createRandomFunctionName();
 
-        browser.syncExec(new Runnable() {
-            @Override
-            public void run() {
-                final AtomicReference<IBrowserFunction> callback = new AtomicReference<IBrowserFunction>();
-                callback.set(browser.createBrowserFunction(new IBrowserFunction(callbackFunctionName) {
-                    public Object function(Object[] arguments) {
-                        callback.get().dispose();
-                        mutex.release();
-                        return null;
-                    }
-                }));
+        IBrowserFunction browserFunction = browser.createBrowserFunction(new IBrowserFunction(callbackFunctionName) {
+            public Object function(Object[] arguments) {
+                mutex.release();
+                return null;
             }
         });
 
@@ -50,6 +42,7 @@ public class CallbackFunctionCallable implements NoCheckedExceptionCallable<Bool
             // ... which destroys itself and releases this
             // lock
             mutex.acquire();
+            browserFunction.dispose();
             return true;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

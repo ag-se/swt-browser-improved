@@ -5,8 +5,7 @@ import de.fu_berlin.inf.ag_se.browser.exception.BrowserTimeoutException;
 import de.fu_berlin.inf.ag_se.browser.exception.ScriptExecutionException;
 import de.fu_berlin.inf.ag_se.browser.exception.UnexpectedBrowserStateException;
 import de.fu_berlin.inf.ag_se.browser.threading.CompletedFuture;
-import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
-import de.fu_berlin.inf.ag_se.browser.utils.OffWorker;
+import de.fu_berlin.inf.ag_se.browser.utils.DelayedScriptRunner;
 import org.apache.log4j.Logger;
 
 import java.util.Arrays;
@@ -15,7 +14,6 @@ import java.util.concurrent.Future;
 class BrowserStatusManager {
 
     private static Logger LOGGER = Logger.getLogger(BrowserStatusManager.class);
-    private final UIThreadExecutor uiThreadExecutor;
 
     /**
      * Relevant statuses a browser can have in terms of script execution.
@@ -49,12 +47,11 @@ class BrowserStatusManager {
 
     private BrowserStatus browserStatus;
 
-    private final OffWorker delayedScriptsWorker;
+    private final DelayedScriptRunner delayedScriptsWorker;
 
-    BrowserStatusManager(UIThreadExecutor uiThreadExecutor) {
-        this.uiThreadExecutor = uiThreadExecutor;
+    BrowserStatusManager() {
         this.browserStatus = BrowserStatus.INITIALIZING;
-        delayedScriptsWorker = new OffWorker(uiThreadExecutor, this.getClass(), "Script Runner");
+        delayedScriptsWorker = new DelayedScriptRunner();
     }
 
     /**
@@ -125,6 +122,7 @@ class BrowserStatusManager {
                 delayedScriptsWorker.start();
                 break;
             case TIMEDOUT:
+                break;
             case DISPOSED:
                 delayedScriptsWorker.stop();
                 break;
@@ -144,12 +142,7 @@ class BrowserStatusManager {
             case LOADING:
                 return delayedScriptsWorker.submit(scriptRunner);
             case LOADED:
-                try {
-                    DEST dest = uiThreadExecutor.syncExec(scriptRunner);
-                    return new CompletedFuture<DEST>(dest, null);
-                } catch (RuntimeException e) {
-                    return new CompletedFuture<DEST>(null, e);
-                }
+                return delayedScriptsWorker.submit(scriptRunner);
             case TIMEDOUT:
                 return new CompletedFuture<DEST>(null,
                         new ScriptExecutionException(script, new BrowserTimeoutException()));

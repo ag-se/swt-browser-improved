@@ -2,6 +2,7 @@ package de.fu_berlin.inf.ag_se.browser.swt;
 
 import de.fu_berlin.inf.ag_se.browser.IBrowserFunction;
 import de.fu_berlin.inf.ag_se.browser.IFrameworkBrowser;
+import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.utils.SWTUtils;
 import org.eclipse.swt.SWT;
@@ -20,8 +21,13 @@ public class SWTFrameworkBrowser implements IFrameworkBrowser {
     }
 
     @Override
-    public void setVisible(boolean visible) {
-        browser.setVisible(visible);
+    public void setVisible(final boolean visible) {
+        uiThreadExecutor.syncExec(new Runnable() {
+            @Override
+            public void run() {
+                browser.setVisible(visible);
+            }
+        });
     }
 
     /**
@@ -29,23 +35,38 @@ public class SWTFrameworkBrowser implements IFrameworkBrowser {
      */
     @Override
     public IBrowserFunction createBrowserFunction(final IBrowserFunction function) {
-        new BrowserFunction(browser, function.getName()) {
+        return uiThreadExecutor.syncExec(new NoCheckedExceptionCallable<IBrowserFunction>() {
             @Override
-            public Object function(Object[] arguments) {
-                return function.function(arguments);
+            public IBrowserFunction call() {
+                new BrowserFunction(browser, function.getName()) {
+                    @Override
+                    public Object function(Object[] arguments) {
+                        return function.function(arguments);
+                    }
+                };
+                return function;
             }
-        };
-        return function;
+        });
     }
 
     @Override
     public String getUrl() {
-        return browser.getUrl();
+        return uiThreadExecutor.syncExec(new NoCheckedExceptionCallable<String>() {
+            @Override
+            public String call() {
+                return browser.getUrl();
+            }
+        });
     }
 
     @Override
-    public void setUrl(String url) {
-        browser.setUrl(url);
+    public void setUrl(final String url) {
+        uiThreadExecutor.syncExec(new Runnable() {
+            @Override
+            public void run() {
+                browser.setUrl(url);
+            }
+        });
     }
 
     @Override
@@ -54,31 +75,56 @@ public class SWTFrameworkBrowser implements IFrameworkBrowser {
     }
 
     @Override
-    public void setSize(int width, int height) {
-        browser.setSize(width, height);
+    public void setSize(final int width, final int height) {
+        uiThreadExecutor.syncExec(new Runnable() {
+            @Override
+            public void run() {
+                browser.setSize(width, height);
+            }
+        });
     }
 
     @Override
-    public void setText(String html) {
-        browser.setText(html);
+    public void setText(final String html) {
+        uiThreadExecutor.syncExec(new Runnable() {
+            @Override
+            public void run() {
+                browser.setText(html);
+            }
+        });
     }
 
     @Override
     public boolean setFocus() {
-        return browser.setFocus();
+        return uiThreadExecutor.syncExec(new NoCheckedExceptionCallable<Boolean>() {
+            @Override
+            public Boolean call() {
+                return browser.setFocus();
+            }
+        });
     }
 
     @Override
-    public Object evaluate(String javaScript) {
-        return browser.evaluate(javaScript);
+    public Object evaluate(final String javaScript) {
+        return uiThreadExecutor.syncExec(new NoCheckedExceptionCallable<Object>() {
+            @Override
+            public Object call() {
+                return browser.evaluate(javaScript);
+            }
+        });
     }
 
     @Override
     public void addProgressListener(final Runnable runnable) {
-        browser.addProgressListener(new ProgressAdapter() {
+        uiThreadExecutor.syncExec(new Runnable() {
             @Override
-            public void completed(ProgressEvent event) {
-                runnable.run();
+            public void run() {
+                browser.addProgressListener(new ProgressAdapter() {
+                    @Override
+                    public void completed(ProgressEvent event) {
+                        runnable.run();
+                    }
+                });
             }
         });
     }
@@ -88,20 +134,41 @@ public class SWTFrameworkBrowser implements IFrameworkBrowser {
         return browser.isDisposed();
     }
 
-    public void addLocationListener(LocationListener listener) {
-        browser.addLocationListener(listener);
+    public void addLocationListener(final LocationListener listener) {
+        uiThreadExecutor.syncExec(new Runnable() {
+            @Override
+            public void run() {
+                browser.addLocationListener(listener);
+            }
+        });
     }
 
-    public void addDisposeListener(DisposeListener disposeListener) {
-        browser.addDisposeListener(disposeListener);
+    public void addDisposeListener(final DisposeListener disposeListener) {
+        uiThreadExecutor.syncExec(new Runnable() {
+            @Override
+            public void run() {
+                browser.addDisposeListener(disposeListener);
+            }
+        });
+
     }
 
-    public void addListener(int eventType, Listener listener) {
-        browser.addListener(eventType, listener);
+    public void addListener(final int eventType, final Listener listener) {
+        uiThreadExecutor.syncExec(new Runnable() {
+            @Override
+            public void run() {
+                browser.addListener(eventType, listener);
+            }
+        });
     }
 
     protected void layoutRoot() {
-        Composite root = SWTUtils.getRoot(browser);
-        root.layout(true, true);
+        uiThreadExecutor.syncExec(new Runnable() {
+            @Override
+            public void run() {
+                Composite root = SWTUtils.getRoot(browser);
+                root.layout(true, true);
+            }
+        });
     }
 }

@@ -71,7 +71,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
         browser.setVisible(false);
         uiThreadExecutor = browser.getUIThreadExecutor();
         executor = new UIThreadAwareExecutor(uiThreadExecutor);
-        browserStatusManager = new BrowserStatusManager(uiThreadExecutor);
+        browserStatusManager = new BrowserStatusManager();
 
         // throws exception that arise from calls within the browser,
         // meaning code that has not been invoked by Java but by JavaScript
@@ -92,9 +92,6 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
      */
     Future<Boolean> open(final String uri, final Integer timeout,
                          final String pageLoadCheckExpression) {
-        if (browser.isDisposed()) {
-            throw new BrowserDisposedException();
-        }
 
         browserStatusManager.setBrowserStatus(BrowserStatus.LOADING);
 
@@ -118,16 +115,9 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
                             Thread.currentThread().interrupt();
                         }
 
-                        uiThreadExecutor.syncExec(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (!browser.isDisposed()) {
-                                    settingUri = true;
-                                    browser.setUrl(uri);
-                                    settingUri = false;
-                                }
-                            }
-                        });
+                        settingUri = true;
+                        browser.setUrl(uri);
+                        settingUri = false;
 
                         try {
                             //TODO maybe sync exec
@@ -161,7 +151,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
             timer = null;
             LOGGER.warn("timeout must be greater or equal 0. Ignoring timeout.");
         } else {
-            timer = new Timer();
+            timer = new Timer("Timer for " + uri);
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
@@ -192,10 +182,6 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
      * @param pageLoadCheckExpression the Javascript expression to used for checking the loading state
      */
     private void waitAndComplete(String pageLoadCheckExpression) {
-        if (browser.isDisposed()) {
-            return;
-        }
-
         if (!browserStatusManager.isLoading()) {
             if (!Arrays.asList(BrowserStatus.TIMEDOUT, BrowserStatus.DISPOSED)
                        .contains(getBrowserStatus())) {
@@ -453,7 +439,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
      */
     <DEST> DEST runImmediately(String script,
                                IConverter<Object, DEST> converter) {
-        return uiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(this, converter, script));
+        return new ScriptExecutingCallable<DEST>(this, converter, script).call();
     }
 
     /**
@@ -499,12 +485,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
      * May be called from whatever thread.
      */
     String getUrl() {
-        return uiThreadExecutor.syncExec(new NoCheckedExceptionCallable<String>() {
-            @Override
-            public String call() {
-                return browser.getUrl();
-            }
-        });
+        return browser.getUrl();
     }
 
     /**
@@ -559,12 +540,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     }
 
     void setVisible(final boolean visible) {
-        uiThreadExecutor.syncExec(new Runnable() {
-            @Override
-            public void run() {
-                browser.setVisible(visible);
-            }
-        });
+        browser.setVisible(visible);
     }
 
     protected void setCachedContentBounds(Rectangle rectangle) {
@@ -623,12 +599,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
      * May be called from whatever thread.
      */
     IBrowserFunction createBrowserFunction(final IBrowserFunction function) {
-        return uiThreadExecutor.syncExec(new NoCheckedExceptionCallable<IBrowserFunction>() {
-            @Override
-            public IBrowserFunction call() {
-                return browser.createBrowserFunction(function);
-            }
-        });
+        return browser.createBrowserFunction(function);
     }
 
     void executeBeforeScriptExecutionScripts(final String script) {
@@ -681,34 +652,15 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
         uiThreadExecutor.checkNotUIThread();
     }
 
-    void syncExec(Runnable runnable) {
-        uiThreadExecutor.syncExec(runnable);
-    }
-
     void setSize(final int width, final int height) {
-        uiThreadExecutor.syncExec(new Runnable() {
-            @Override
-            public void run() {
-                browser.setSize(width, height);
-            }
-        });
+        browser.setSize(width, height);
     }
 
-    public void setText(final String html) {
-        uiThreadExecutor.syncExec(new Runnable() {
-            @Override
-            public void run() {
-                browser.setText(html);
-            }
-        });
+    void setText(final String html) {
+        browser.setText(html);
     }
 
-    public boolean setFocus() {
-        return uiThreadExecutor.syncExec(new NoCheckedExceptionCallable<Boolean>() {
-            @Override
-            public Boolean call() {
-                return browser.setFocus();
-            }
-        });
+    boolean setFocus() {
+        return browser.setFocus();
     }
 }
