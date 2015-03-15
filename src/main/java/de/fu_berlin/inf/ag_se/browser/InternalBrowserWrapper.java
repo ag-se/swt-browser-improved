@@ -9,7 +9,7 @@ import de.fu_berlin.inf.ag_se.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.browser.threading.CompletedFuture;
 import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
-import de.fu_berlin.inf.ag_se.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
+import de.fu_berlin.inf.ag_se.browser.threading.UIThreadAwareExecutor;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.utils.Assert;
 import de.fu_berlin.inf.ag_se.browser.utils.IConverter;
@@ -41,11 +41,11 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
 
     private Rectangle cachedContentBounds = null;
 
+    private List<Runnable> afterCompletion = new ArrayList<Runnable>();
+
     private List<Callable<Object>> beforeLoading = new ArrayList<Callable<Object>>();
 
     private List<Callable<Object>> afterLoading = new ArrayList<Callable<Object>>();
-
-    private List<Callable<Object>> afterCompletion = new ArrayList<Callable<Object>>();
 
     private List<Function<String>> beforeScripts = new ArrayList<Function<String>>();
 
@@ -58,7 +58,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
 
     private Timer timer;
 
-    protected final UIThreadAwareScheduledThreadPoolExecutor executor;
+    protected final UIThreadAwareExecutor executor;
 
     protected final UIThreadExecutor uiThreadExecutor;
 
@@ -70,7 +70,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
         this.browser = browser;
         browser.setVisible(false);
         uiThreadExecutor = browser.getUIThreadExecutor();
-        executor = new UIThreadAwareScheduledThreadPoolExecutor(uiThreadExecutor);
+        executor = new UIThreadAwareExecutor(uiThreadExecutor);
         browserStatusManager = new BrowserStatusManager(uiThreadExecutor);
 
         // throws exception that arise from calls within the browser,
@@ -213,12 +213,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
         createBrowserFunction(new IBrowserFunction(randomFunctionName) {
             @Override
             public Object function(Object[] arguments) {
-                executor.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        complete();
-                    }
-                });
+                complete();
                 dispose();
                 return null;
             }
@@ -243,11 +238,8 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     private void complete() {
         activateExceptionHandling();
 
-        try {
-            // independent tasks
-            executor.invokeAll(afterCompletion);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        for (Runnable runnable : afterCompletion) {
+            runnable.run();
         }
 
         setVisible(true);
@@ -300,6 +292,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     }
 
     Future<Void> checkCondition(final String javaScriptExpression) {
+        //TODO check should stop after a certain amount of time
         return executor.submit(new NoCheckedExceptionCallable<Void>() {
             @Override
             public Void call() {
@@ -555,8 +548,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
 
     protected void fireIsDisposed() {
         for (Runnable runnable : runOnDisposalList) {
-            //TODO maybe sync exec
-            executor.submit(runnable);
+            runnable.run();
         }
 
         synchronized (monitor) {
@@ -624,7 +616,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     }
 
     void executeAfterCompletion(Runnable runnable) {
-        afterCompletion.add(Executors.callable(runnable));
+        afterCompletion.add(runnable);
     }
 
     /**
@@ -652,23 +644,9 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
      * If an exceptions occurs the remaining scripts are executed nevertheless.
      */
     private <V> void executeScriptList(List<Function<V>> scripts, final V input) {
-        Collection<NoCheckedExceptionCallable<Object>> res = new ArrayList<NoCheckedExceptionCallable<Object>>();
         for (final Function<V> script : scripts) {
-            res.add(new NoCheckedExceptionCallable<Object>() {
-                @Override
-                public Void call() {
-                    script.run(input);
-                    return null;
-                }
-            });
+            script.run(input);
         }
-        try {
-            // independent tasks
-            executor.invokeAll(res);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
     }
 
     <V, T> Future<T> runWithCallback(final Future<V> future, final CallbackFunction<V, T> callback) {
