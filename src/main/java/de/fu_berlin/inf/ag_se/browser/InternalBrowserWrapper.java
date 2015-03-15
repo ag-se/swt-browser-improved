@@ -56,7 +56,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     private final List<JavaScriptExceptionListener> javaScriptExceptionListeners = Collections
             .synchronizedList(new ArrayList<JavaScriptExceptionListener>());
 
-    private Future<?> timeoutMonitor;
+    private Timer timer;
 
     protected final UIThreadAwareScheduledThreadPoolExecutor executor;
 
@@ -112,6 +112,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
                         startTimeout(uri, timeout);
 
                         try {
+                            //TODO maybe sync exec
                             executor.invokeAll(beforeLoading);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
@@ -129,6 +130,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
                         });
 
                         try {
+                            //TODO maybe sync exec
                             executor.invokeAll(afterLoading);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
@@ -156,22 +158,22 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
 
     private void startTimeout(String uri, Integer timeout) {
         if (timeout == null || timeout <= 0) {
-            timeoutMonitor = null;
+            timer = null;
             LOGGER.warn("timeout must be greater or equal 0. Ignoring timeout.");
         } else {
-            timeoutMonitor = executor.nonUIAsyncExec(Browser.class,
-                    "Timeout Watcher for " + uri, new Runnable() {
-                        @Override
-                        public void run() {
-                            executeTimeoutCallback();
-                        }
-                    }, timeout);
+            timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    executeTimeoutCallback();
+                }
+            }, timeout);
         }
     }
 
     private void cancelTimeout() {
-        if (timeoutMonitor != null) {
-            timeoutMonitor.cancel(true);
+        if (timer != null) {
+            timer.cancel();
         }
     }
 
@@ -242,6 +244,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
         activateExceptionHandling();
 
         try {
+            // independent tasks
             executor.invokeAll(afterCompletion);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -552,6 +555,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
 
     protected void fireIsDisposed() {
         for (Runnable runnable : runOnDisposalList) {
+            //TODO maybe sync exec
             executor.submit(runnable);
         }
 
@@ -563,7 +567,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     }
 
     void setVisible(final boolean visible) {
-        executor.asyncUIExec(new Runnable() {
+        uiThreadExecutor.syncExec(new Runnable() {
             @Override
             public void run() {
                 browser.setVisible(visible);
@@ -659,6 +663,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
             });
         }
         try {
+            // independent tasks
             executor.invokeAll(res);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -703,7 +708,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     }
 
     void setSize(final int width, final int height) {
-        executor.asyncUIExec(new Runnable() {
+        uiThreadExecutor.syncExec(new Runnable() {
             @Override
             public void run() {
                 browser.setSize(width, height);
@@ -712,7 +717,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     }
 
     public void setText(final String html) {
-        executor.asyncUIExec(new Runnable() {
+        uiThreadExecutor.syncExec(new Runnable() {
             @Override
             public void run() {
                 browser.setText(html);

@@ -16,7 +16,7 @@ public class UIThreadAwareScheduledThreadPoolExecutor extends ScheduledThreadPoo
     private final UIThreadExecutor uiThreadExecutor;
 
     public UIThreadAwareScheduledThreadPoolExecutor(UIThreadExecutor uiThreadExecutor) {
-        super(5, createThreadFactory(UIThreadAwareScheduledThreadPoolExecutor.class, ""));
+        super(1, createThreadFactory(UIThreadAwareScheduledThreadPoolExecutor.class, ""));
         this.uiThreadExecutor = uiThreadExecutor;
     }
 

@@ -1,13 +1,15 @@
 package de.fu_berlin.inf.ag_se.browser;
 
-import de.fu_berlin.inf.ag_se.browser.exception.*;
+import de.fu_berlin.inf.ag_se.browser.exception.BrowserDisposedException;
+import de.fu_berlin.inf.ag_se.browser.exception.BrowserTimeoutException;
+import de.fu_berlin.inf.ag_se.browser.exception.ScriptExecutionException;
+import de.fu_berlin.inf.ag_se.browser.exception.UnexpectedBrowserStateException;
 import de.fu_berlin.inf.ag_se.browser.threading.CompletedFuture;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.utils.OffWorker;
 import org.apache.log4j.Logger;
 
 import java.util.Arrays;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 class BrowserStatusManager {
@@ -47,11 +49,12 @@ class BrowserStatusManager {
 
     private BrowserStatus browserStatus;
 
-    private final OffWorker delayedScriptsWorker = new OffWorker(this.getClass(), "Script Runner");
+    private final OffWorker delayedScriptsWorker;
 
     BrowserStatusManager(UIThreadExecutor uiThreadExecutor) {
         this.uiThreadExecutor = uiThreadExecutor;
         this.browserStatus = BrowserStatus.INITIALIZING;
+        delayedScriptsWorker = new OffWorker(uiThreadExecutor, this.getClass(), "Script Runner");
     }
 
     /**
@@ -123,7 +126,7 @@ class BrowserStatusManager {
                 break;
             case TIMEDOUT:
             case DISPOSED:
-                    delayedScriptsWorker.stop();
+                delayedScriptsWorker.stop();
                 break;
             default:
         }
@@ -137,9 +140,9 @@ class BrowserStatusManager {
         final String script = scriptRunner.getScript();
         switch (browserStatus) {
             case INITIALIZING:
-                return delayedScriptsWorker.submit(new ExecuteWhenLoaded<DEST>(scriptRunner, script));
+                return delayedScriptsWorker.submit(scriptRunner);
             case LOADING:
-                return delayedScriptsWorker.submit(new ExecuteWhenLoaded<DEST>(scriptRunner, script));
+                return delayedScriptsWorker.submit(scriptRunner);
             case LOADED:
                 try {
                     DEST dest = uiThreadExecutor.syncExec(scriptRunner);
@@ -181,33 +184,5 @@ class BrowserStatusManager {
 
     boolean isLoadingCompleted() {
         return getBrowserStatus() == BrowserStatus.LOADED;
-    }
-
-    private class ExecuteWhenLoaded<DEST> implements Callable<DEST> {
-        private final ScriptExecutingCallable<DEST> scriptRunner;
-        private final String script;
-
-        ExecuteWhenLoaded(ScriptExecutingCallable<DEST> scriptRunner, String script) {
-            this.scriptRunner = scriptRunner;
-            this.script = script;
-        }
-
-        /**
-         * @throws ScriptExecutionException
-         * @throws JavaScriptException
-         */
-        @Override
-        public DEST call() {
-            switch (browserStatus) {
-                case LOADED:
-                    return uiThreadExecutor.syncExec(scriptRunner);
-                case TIMEDOUT:
-                    throw new ScriptExecutionException(script, new BrowserTimeoutException());
-                case DISPOSED:
-                    throw new ScriptExecutionException(script, new BrowserDisposedException());
-                default:
-                    throw new ScriptExecutionException(script, new UnexpectedBrowserStateException(browserStatus.toString()));
-            }
-        }
     }
 }

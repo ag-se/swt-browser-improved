@@ -1,5 +1,7 @@
 package de.fu_berlin.inf.ag_se.browser.utils;
 
+import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
@@ -10,7 +12,7 @@ public class OffWorker {
     private final LinkedBlockingQueue<FutureTask<?>> queue;
     private final Thread runner;
 
-    public OffWorker(Class<?> owner, String purpose) {
+    public OffWorker(final UIThreadExecutor uiThreadExecutor, Class<?> owner, String purpose) {
         this.queue = new LinkedBlockingQueue<FutureTask<?>>();
         this.runner = new Thread(new Runnable() {
             @Override
@@ -18,7 +20,7 @@ public class OffWorker {
                 while (true) {
                     try {
                         FutureTask<?> task = queue.take();
-                        task.run();
+                        uiThreadExecutor.syncExec(task);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         break;

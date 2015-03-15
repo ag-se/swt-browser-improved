@@ -40,7 +40,7 @@ public class OffWorkerTest {
             ExecutionException, TimeoutException {
 		int numTasks = 1500;
 
-		final OffWorker offWorker = new OffWorker(OffWorkerTest.class, "Test");
+		final OffWorker offWorker = new OffWorker(uiThreadExecutor, OffWorkerTest.class, "Test");
 		List<Future<Long>> futures = new ArrayList<Future<Long>>();
 
 		for (int i = 0; i < numTasks; i++) {

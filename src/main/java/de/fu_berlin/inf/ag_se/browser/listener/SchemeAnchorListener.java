@@ -2,7 +2,6 @@ package de.fu_berlin.inf.ag_se.browser.listener;
 
 import de.fu_berlin.inf.ag_se.browser.html.IAnchor;
 import de.fu_berlin.inf.ag_se.browser.html.IElement;
-import de.fu_berlin.inf.ag_se.browser.threading.UIThreadAwareScheduledThreadPoolExecutor;
 import org.apache.log4j.Logger;
 
 import java.net.URI;
@@ -14,8 +13,7 @@ import java.util.Map;
  * http, file).
  * <p>
  * Furthermore independently of which thread calls the listener the provided
- * listeners are called from a non-UI thread. If you need to make changes to the
- * GUI you will have to use {@link UIThreadAwareScheduledThreadPoolExecutor}.
+ * listeners are called from a non-UI thread.
  * 
  * @author bkahlert
  * 
