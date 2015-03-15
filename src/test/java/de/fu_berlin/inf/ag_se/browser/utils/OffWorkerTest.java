@@ -71,7 +71,7 @@ public class OffWorkerTest {
 		System.out.println("Running task after all have finished");
 		assertTrue(offWorker.submit(new Task(numTasks)).get() > lastTimestamp);
 
-		offWorker.shutdown();
+		offWorker.stop();
 
 		assertTrue(offWorker.isShutdown());
 

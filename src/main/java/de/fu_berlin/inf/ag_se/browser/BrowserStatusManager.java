@@ -2,7 +2,6 @@ package de.fu_berlin.inf.ag_se.browser;
 
 import de.fu_berlin.inf.ag_se.browser.exception.*;
 import de.fu_berlin.inf.ag_se.browser.threading.CompletedFuture;
-import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.utils.OffWorker;
 import org.apache.log4j.Logger;
@@ -117,26 +116,14 @@ class BrowserStatusManager {
     private void callScriptWorker() {
         switch (this.browserStatus) {
             case LOADING:
-
+                delayedScriptsWorker.flush();
                 break;
             case LOADED:
                 delayedScriptsWorker.start();
-                delayedScriptsWorker.finish();
                 break;
             case TIMEDOUT:
             case DISPOSED:
-                if (!delayedScriptsWorker.isShutdown()) {
-                    delayedScriptsWorker.submit(new NoCheckedExceptionCallable<Void>() {
-                        @Override
-                        public Void call() {
-                            delayedScriptsWorker.shutdown();
-                            return null;
-                        }
-                    });
-
-                    delayedScriptsWorker.start();
-                    delayedScriptsWorker.finish();
-                }
+                    delayedScriptsWorker.stop();
                 break;
             default:
         }
@@ -153,6 +140,13 @@ class BrowserStatusManager {
                 return delayedScriptsWorker.submit(new ExecuteWhenLoaded<DEST>(scriptRunner, script));
             case LOADING:
                 return delayedScriptsWorker.submit(new ExecuteWhenLoaded<DEST>(scriptRunner, script));
+            case LOADED:
+                try {
+                    DEST dest = uiThreadExecutor.syncExec(scriptRunner);
+                    return new CompletedFuture<DEST>(dest, null);
+                } catch (RuntimeException e) {
+                    return new CompletedFuture<DEST>(null, e);
+                }
             case TIMEDOUT:
                 return new CompletedFuture<DEST>(null,
                         new ScriptExecutionException(script, new BrowserTimeoutException()));
@@ -172,7 +166,7 @@ class BrowserStatusManager {
                 return true;
             case TIMEDOUT:
                 LOGGER.warn("Aborted loading " + uri + " due to timeout");
-               return false;
+                return false;
             case DISPOSED:
                 LOGGER.info("Aborted loading " + uri + " due to disposal");
                 return false;

@@ -438,14 +438,6 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
 
     <DEST> Future<DEST> run(final String script,
                             final IConverter<Object, DEST> converter) {
-        if (isLoadingCompleted()) {
-            try {
-                DEST dest = uiThreadExecutor.syncExec(new ScriptExecutingCallable<DEST>(this, converter, script));
-                return new CompletedFuture<DEST>(dest, null);
-            } catch (RuntimeException e) {
-                return new CompletedFuture<DEST>(null, e);
-            }
-        }
         return browserStatusManager.createFuture(new ScriptExecutingCallable<DEST>(this, converter, script));
     }
 
