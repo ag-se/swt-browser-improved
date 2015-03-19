@@ -1,5 +1,7 @@
 package de.fu_berlin.inf.ag_se.browser;
 
+import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
 
 public interface IFrameworkBrowser {
@@ -13,7 +15,7 @@ public interface IFrameworkBrowser {
 
     boolean isDisposed();
 
-    IBrowserFunction createBrowserFunction(IBrowserFunction function);
+    IBrowserFunction createBrowserFunction(JavascriptFunction function);
 
     void setUrl(String uri);
 

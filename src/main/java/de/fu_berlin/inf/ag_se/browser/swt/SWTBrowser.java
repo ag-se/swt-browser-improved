@@ -2,8 +2,9 @@ package de.fu_berlin.inf.ag_se.browser.swt;
 
 import com.sun.istack.internal.Nullable;
 import de.fu_berlin.inf.ag_se.browser.Browser;
+import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
 import de.fu_berlin.inf.ag_se.browser.IBrowser;
-import de.fu_berlin.inf.ag_se.browser.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
@@ -350,7 +351,7 @@ public class SWTBrowser<T extends Browser> extends AbstractSWTBrowser<T> impleme
     }
 
     @Override
-    public IBrowserFunction createBrowserFunction(IBrowserFunction function) {
+    public IBrowserFunction createBrowserFunction(JavascriptFunction function) {
         return browser.createBrowserFunction(function);
     }
 

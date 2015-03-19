@@ -1,6 +1,6 @@
 package de.fu_berlin.inf.ag_se.browser.swt;
 
-import de.fu_berlin.inf.ag_se.browser.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.extensions.BrowserExtension;
 import de.fu_berlin.inf.ag_se.browser.extensions.EventCatchBrowser;
 import de.fu_berlin.inf.ag_se.browser.extensions.IEventCatchBrowser;
@@ -38,7 +38,7 @@ public class SWTEventCatchBrowser<T extends EventCatchBrowser> extends SWTExtend
         SWTInternalBrowserWrapper internalSWTBrowserWrapper = new SWTInternalBrowserWrapper(swtEventCatchBrowser);
         swtEventCatchBrowser.setInternalBrowser(internalSWTBrowserWrapper);
         swtEventCatchBrowser.setBrowser(new EventCatchBrowser(internalSWTBrowserWrapper, extensions));
-        swtEventCatchBrowser.createBrowserFunction(new IBrowserFunction("__resize") {
+        swtEventCatchBrowser.createBrowserFunction(new JavascriptFunction("__resize") {
             @Override
             public Object function(Object[] arguments) {
                 if (arguments.length == 4 && (arguments[0] == null

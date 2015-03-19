@@ -3,6 +3,8 @@ package de.fu_berlin.inf.ag_se.browser;
 import com.sun.istack.internal.Nullable;
 import de.fu_berlin.inf.ag_se.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.Function;
+import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.browser.threading.CompletedFuture;
 import de.fu_berlin.inf.ag_se.browser.utils.IConverter;
@@ -348,7 +350,7 @@ public class Browser implements IBrowser {
     }
 
     @Override
-    public IBrowserFunction createBrowserFunction(final IBrowserFunction function) {
+    public IBrowserFunction createBrowserFunction(final JavascriptFunction function) {
         checkNotNull(function);
         return internalBrowser.createBrowserFunction(function);
     }
@@ -404,5 +406,5 @@ public class Browser implements IBrowser {
 
     private void checkNotUIThread() {
         internalBrowser.checkNotUIThread();
-    }
+	}
 }

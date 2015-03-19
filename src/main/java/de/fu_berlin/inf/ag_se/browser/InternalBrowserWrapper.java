@@ -6,6 +6,8 @@ import de.fu_berlin.inf.ag_se.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.browser.exception.ScriptExecutionException;
 import de.fu_berlin.inf.ag_se.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.Function;
+import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.browser.threading.CompletedFuture;
 import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
@@ -65,8 +67,9 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     protected boolean allowLocationChange = false;
 
     protected boolean settingUri = false;
+	private IBrowserFunction completionCheck;
 
-    protected InternalBrowserWrapper(T browser) {
+	protected InternalBrowserWrapper(T browser) {
         this.browser = browser;
         browser.setVisible(false);
         uiThreadExecutor = browser.getUIThreadExecutor();
@@ -75,7 +78,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
 
         // throws exception that arise from calls within the browser,
         // meaning code that has not been invoked by Java but by JavaScript
-        createBrowserFunction(new IBrowserFunction("__error_callback") {
+        createBrowserFunction(new JavascriptFunction("__error_callback") {
             @Override
             public Object function(Object[] arguments) {
                 JavaScriptException javaScriptException = JavaScriptException
@@ -196,11 +199,10 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
                 " && (" + pageLoadCheckExpression + ")" :
                 "");
         String randomFunctionName = BrowserUtils.createRandomFunctionName();
-        createBrowserFunction(new IBrowserFunction(randomFunctionName) {
+        completionCheck = createBrowserFunction(new JavascriptFunction(randomFunctionName) {
             @Override
             public Object function(Object[] arguments) {
                 complete();
-                dispose();
                 return null;
             }
         });
@@ -222,6 +224,10 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
      * <li>injects necessary scripts</li> <li>runs the scheduled user scripts</li> </ol>
      */
     private void complete() {
+		if (completionCheck != null) {
+			completionCheck.dispose();
+		}
+
         activateExceptionHandling();
 
         for (Runnable runnable : afterCompletion) {
@@ -289,7 +295,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
                 //TODO Maybe we don't need the callback
                 final CountDownLatch countDownLatch = new CountDownLatch(1);
                 String randomFunctionName = BrowserUtils.createRandomFunctionName();
-                IBrowserFunction browserFunction = createBrowserFunction(new IBrowserFunction(randomFunctionName) {
+                IBrowserFunction browserFunction = createBrowserFunction(new JavascriptFunction(randomFunctionName) {
                     public Object function(Object[] arguments) {
                         countDownLatch.countDown();
                         return null;
@@ -598,7 +604,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
     /**
      * May be called from whatever thread.
      */
-    IBrowserFunction createBrowserFunction(final IBrowserFunction function) {
+    IBrowserFunction createBrowserFunction(final JavascriptFunction function) {
         return browser.createBrowserFunction(function);
     }
 

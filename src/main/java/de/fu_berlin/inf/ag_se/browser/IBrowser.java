@@ -4,6 +4,8 @@ import com.sun.istack.internal.Nullable;
 import de.fu_berlin.inf.ag_se.browser.exception.ScriptExecutionException;
 import de.fu_berlin.inf.ag_se.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.Function;
+import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.browser.utils.IConverter;
 
@@ -812,7 +814,7 @@ public interface IBrowser {
      *
      * @throws NullPointerException if functionName or function is null
      */
-    IBrowserFunction createBrowserFunction(IBrowserFunction function);
+    IBrowserFunction createBrowserFunction(JavascriptFunction function);
 
     /**
      * Adds a {@link JavaScriptExceptionListener} that is notified if a

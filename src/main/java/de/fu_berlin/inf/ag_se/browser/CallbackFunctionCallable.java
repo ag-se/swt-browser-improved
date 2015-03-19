@@ -1,5 +1,7 @@
 package de.fu_berlin.inf.ag_se.browser;
 
+import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
 import org.apache.log4j.Logger;
 
@@ -25,7 +27,7 @@ public class CallbackFunctionCallable implements NoCheckedExceptionCallable<Bool
         final Semaphore mutex = new Semaphore(0);
         final String callbackFunctionName = BrowserUtils.createRandomFunctionName();
 
-        IBrowserFunction browserFunction = browser.createBrowserFunction(new IBrowserFunction(callbackFunctionName) {
+        IBrowserFunction browserFunction = browser.createBrowserFunction(new JavascriptFunction(callbackFunctionName) {
             public Object function(Object[] arguments) {
                 mutex.release();
                 return null;

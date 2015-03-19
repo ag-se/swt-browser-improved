@@ -1,6 +1,7 @@
 package de.fu_berlin.inf.ag_se.browser.swt;
 
-import de.fu_berlin.inf.ag_se.browser.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.IFrameworkBrowser;
 import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
@@ -34,17 +35,17 @@ public class SWTFrameworkBrowser implements IFrameworkBrowser {
      * May be called from whatever thread.
      */
     @Override
-    public IBrowserFunction createBrowserFunction(final IBrowserFunction function) {
+    public IBrowserFunction createBrowserFunction(final JavascriptFunction function) {
         return uiThreadExecutor.syncExec(new NoCheckedExceptionCallable<IBrowserFunction>() {
             @Override
             public IBrowserFunction call() {
-                new BrowserFunction(browser, function.getName()) {
+                BrowserFunction swtFunction = new BrowserFunction(browser, function.getName()) {
                     @Override
                     public Object function(Object[] arguments) {
                         return function.function(arguments);
                     }
                 };
-                return function;
+                return new SWTBrowserFunction(swtFunction);
             }
         });
     }
@@ -162,7 +163,7 @@ public class SWTFrameworkBrowser implements IFrameworkBrowser {
         });
     }
 
-    protected void layoutRoot() {
+    public void layoutRoot() {
         uiThreadExecutor.syncExec(new Runnable() {
             @Override
             public void run() {

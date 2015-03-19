@@ -2,8 +2,8 @@ package de.fu_berlin.inf.ag_se.browser.extensions;
 
 import com.google.common.collect.Iterables;
 import de.fu_berlin.inf.ag_se.browser.BrowserUtils;
-import de.fu_berlin.inf.ag_se.browser.IBrowserFunction;
 import de.fu_berlin.inf.ag_se.browser.InternalBrowserWrapper;
+import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.html.Anchor;
 import de.fu_berlin.inf.ag_se.browser.html.IAnchor;
 import de.fu_berlin.inf.ag_se.browser.html.IElement;
@@ -44,7 +44,7 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
         executeAfterCompletion(new Runnable() {
             @Override
             public void run() {
-                for (IBrowserFunction browserFunction : getEventCatchBrowserFunctions()) {
+                for (JavascriptFunction browserFunction : getEventCatchBrowserFunctions()) {
                     createBrowserFunction(browserFunction);
                 }
             }
@@ -160,8 +160,8 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
         }
     }
 
-    protected List<IBrowserFunction> getEventCatchBrowserFunctions() {
-        return Arrays.asList(new IBrowserFunction("__mouseenter") {
+    protected List<JavascriptFunction> getEventCatchBrowserFunctions() {
+        return Arrays.asList(new JavascriptFunction("__mouseenter") {
                                  public Object function(Object[] arguments) {
                                      if (arguments.length == 1 && arguments[0] instanceof String) {
                                          fireAnchorHover((String) arguments[0], true);
@@ -169,7 +169,7 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
                                      return null;
                                  }
                              },
-                new IBrowserFunction("__mouseleave") {
+                new JavascriptFunction("__mouseleave") {
                     @Override
                     public Object function(Object[] arguments) {
                         if (arguments.length == 1 && arguments[0] instanceof String) {
@@ -178,7 +178,7 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
                         return null;
                     }
                 },
-                new IBrowserFunction("__mousemove") {
+                new JavascriptFunction("__mousemove") {
                     @Override
                     public Object function(Object[] arguments) {
                         if (arguments.length == 2 && (arguments[0] == null
@@ -191,7 +191,7 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
                         return null;
                     }
                 },
-                new IBrowserFunction("__mousedown") {
+                new JavascriptFunction("__mousedown") {
                     @Override
                     public Object function(Object[] arguments) {
                         if (arguments.length == 3 && (arguments[0] == null
@@ -205,7 +205,7 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
                         return null;
                     }
                 },
-                new IBrowserFunction("__mouseup") {
+                new JavascriptFunction("__mouseup") {
                     @Override
                     public Object function(Object[] arguments) {
                         if (arguments.length == 3 && (arguments[0] == null
@@ -219,7 +219,7 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
                         return null;
                     }
                 },
-                new IBrowserFunction("__click") {
+                new JavascriptFunction("__click") {
                     @Override
                     public Object function(Object[] arguments) {
                         if (arguments.length == 3 && (arguments[0] == null
@@ -233,7 +233,7 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
                         return null;
                     }
                 },
-//                new IBrowserFunction("__focusgained") {
+//                new JavascriptFunction("__focusgained") {
 //                    @Override
 //                    public Object function(Object[] arguments) {
 //                        if (arguments.length == 1 && arguments[0] instanceof String) {
@@ -244,7 +244,7 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
 //                        return null;
 //                    }
 //                },
-//                new IBrowserFunction("__focuslost") {
+//                new JavascriptFunction("__focuslost") {
 //                    @Override
 //                    public Object function(Object[] arguments) {
 //                        if (arguments.length == 1 && arguments[0] instanceof String) {
@@ -255,7 +255,7 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
 //                        return null;
 //                    }
 //                },
-                new IBrowserFunction("__dragStart") {
+                new JavascriptFunction("__dragStart") {
                     @Override
                     public Object function(Object[] arguments) {
                         if (arguments.length == 5 && arguments[0] instanceof Double
@@ -276,7 +276,7 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
                         return null;
                     }
                 },
-                new IBrowserFunction("__drop") {
+                new JavascriptFunction("__drop") {
                     @Override
                     public Object function(Object[] arguments) {
                         if (arguments.length == 5 && arguments[0] instanceof Double
@@ -296,14 +296,14 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
                         return null;
                     }
                 },
-                new IBrowserFunction("__consoleLog") {
+                new JavascriptFunction("__consoleLog") {
                     @Override
                     public Object function(Object[] arguments) {
                         LOGGER.debug(StringUtils.join(arguments, ", "));
                         return null;
                     }
                 },
-                new IBrowserFunction("__consoleError") {
+                new JavascriptFunction("__consoleError") {
                     @Override
                     public Object function(Object[] arguments) {
                         LOGGER.error(StringUtils.join(arguments, ", "));
