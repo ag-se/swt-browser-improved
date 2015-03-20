@@ -31,7 +31,7 @@ import java.util.concurrent.*;
  * It enhances its core functionality and is used by {@link Browser}
  * to provide more specific methods to the users.
  */
-public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
+public class InternalBrowserWrapper<T extends IWrappedBrowser> {
 
     private static Logger LOGGER = Logger.getLogger(InternalBrowserWrapper.class);
 
@@ -98,7 +98,7 @@ public class InternalBrowserWrapper<T extends IFrameworkBrowser> {
 
         browserStatusManager.setBrowserStatus(BrowserStatus.LOADING);
 
-        browser.addProgressListener(new Runnable() {
+        browser.addLoadedListener(new Runnable() {
             @Override
             public void run() {
                 waitAndComplete(pageLoadCheckExpression);

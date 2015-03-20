@@ -6,5 +6,10 @@ package de.fu_berlin.inf.ag_se.browser.functions;
  */
 public interface IBrowserFunction {
 
+    /**
+     * Disposes the browser function.
+     * This method must only be called if a browser function
+     * should be disposed before the enclosing browser.
+     */
     void dispose();
 }

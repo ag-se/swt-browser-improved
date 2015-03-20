@@ -2,6 +2,10 @@ package de.fu_berlin.inf.ag_se.browser.exception;
 
 import de.fu_berlin.inf.ag_se.browser.JavascriptString;
 
+/**
+ * In contract to {@link ScriptExecutionException} this exception is used for asynchronous exceptions,
+ * i.e. Javascript exceptions that occurred outside of a command executed from Java.
+ */
 public class JavaScriptException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;

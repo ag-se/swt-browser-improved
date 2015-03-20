@@ -1,8 +1,8 @@
 package de.fu_berlin.inf.ag_se.browser.swt;
 
+import de.fu_berlin.inf.ag_se.browser.IWrappedBrowser;
 import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
-import de.fu_berlin.inf.ag_se.browser.IFrameworkBrowser;
 import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.utils.SWTUtils;
@@ -12,7 +12,7 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 
-public class SWTFrameworkBrowser implements IFrameworkBrowser {
+public class SWTFrameworkBrowser implements IWrappedBrowser {
 
     private final Browser browser;
     private final SWTThreadExecutor uiThreadExecutor = new SWTThreadExecutor();
@@ -106,17 +106,17 @@ public class SWTFrameworkBrowser implements IFrameworkBrowser {
     }
 
     @Override
-    public Object evaluate(final String javaScript) {
+    public Object evaluate(final String javascript) {
         return uiThreadExecutor.syncExec(new NoCheckedExceptionCallable<Object>() {
             @Override
             public Object call() {
-                return browser.evaluate(javaScript);
+                return browser.evaluate(javascript);
             }
         });
     }
 
     @Override
-    public void addProgressListener(final Runnable runnable) {
+    public void addLoadedListener(final Runnable runnable) {
         uiThreadExecutor.syncExec(new Runnable() {
             @Override
             public void run() {

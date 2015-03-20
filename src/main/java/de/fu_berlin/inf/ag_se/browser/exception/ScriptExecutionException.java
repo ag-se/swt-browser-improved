@@ -2,6 +2,10 @@ package de.fu_berlin.inf.ag_se.browser.exception;
 
 import de.fu_berlin.inf.ag_se.browser.utils.StringUtils;
 
+/**
+ * In contract to {@link JavaScriptException} this exception is used for
+ * exception occurring while executing Javascript from Java.
+ */
 public class ScriptExecutionException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
