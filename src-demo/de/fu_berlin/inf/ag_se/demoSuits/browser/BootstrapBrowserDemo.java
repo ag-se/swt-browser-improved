@@ -2,9 +2,7 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 
 import de.fu_berlin.inf.ag_se.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.browser.html.IAnchor;
-import de.fu_berlin.inf.ag_se.browser.html.IElement;
 import de.fu_berlin.inf.ag_se.browser.listener.IAnchorListener;
-import de.fu_berlin.inf.ag_se.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.browser.swt.SWTBootstrapBrowser;
 import de.fu_berlin.inf.ag_se.browser.utils.StringUtils;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
@@ -106,17 +104,17 @@ public class BootstrapBrowserDemo extends AbstractDemo {
                 }
             }
         });
-        this.browser.addFocusListener(new IFocusListener() {
-            @Override
-            public void focusGained(IElement element) {
-                log("Focus gainedr: " + element);
-            }
-
-            @Override
-            public void focusLost(IElement element) {
-                log("Focus lost: " + element);
-            }
-        });
+//        this.browser.addFocusListener(new IFocusListener() {
+//            @Override
+//            public void focusGained(IElement element) {
+//                log("Focus gainedr: " + element);
+//            }
+//
+//            @Override
+//            public void focusLost(IElement element) {
+//                log("Focus lost: " + element);
+//            }
+//        });
         executor.execute(new Runnable() {
             @Override
             public void run() {

@@ -3,9 +3,7 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 import de.fu_berlin.inf.ag_se.browser.exception.JavaScriptException;
 import de.fu_berlin.inf.ag_se.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.browser.html.IAnchor;
-import de.fu_berlin.inf.ag_se.browser.html.IElement;
 import de.fu_berlin.inf.ag_se.browser.listener.IAnchorListener;
-import de.fu_berlin.inf.ag_se.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.browser.swt.SWTEventCatchBrowser;
 import de.fu_berlin.inf.ag_se.browser.utils.colors.ColorUtils;
@@ -188,17 +186,17 @@ public class BrowserDemo extends AbstractDemo {
                 log("hovered " + (entered ? "over" : "out") + " " + anchor);
             }
         });
-        browser.addFocusListener(new IFocusListener() {
-            @Override
-            public void focusLost(IElement element) {
-                log("focus lost " + element);
-            }
-
-            @Override
-            public void focusGained(IElement element) {
-                log("focus gained " + element);
-            }
-        });
+//        browser.addFocusListener(new IFocusListener() {
+//            @Override
+//            public void focusLost(IElement element) {
+//                log("focus lost " + element);
+//            }
+//
+//            @Override
+//            public void focusGained(IElement element) {
+//                log("focus gained " + element);
+//            }
+//        });
 //        this.browser.addMouseMoveListener(new MouseMoveListener() {
 //            @Override
 //            public void mouseMove(MouseEvent e) {

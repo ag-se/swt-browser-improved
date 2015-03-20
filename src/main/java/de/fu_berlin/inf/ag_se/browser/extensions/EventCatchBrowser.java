@@ -5,7 +5,6 @@ import de.fu_berlin.inf.ag_se.browser.BrowserUtils;
 import de.fu_berlin.inf.ag_se.browser.IBrowserFunction;
 import de.fu_berlin.inf.ag_se.browser.InternalBrowserWrapper;
 import de.fu_berlin.inf.ag_se.browser.html.Anchor;
-import de.fu_berlin.inf.ag_se.browser.html.Element;
 import de.fu_berlin.inf.ag_se.browser.html.IAnchor;
 import de.fu_berlin.inf.ag_se.browser.html.IElement;
 import de.fu_berlin.inf.ag_se.browser.listener.IAnchorListener;
@@ -234,28 +233,28 @@ public class EventCatchBrowser extends ExtendedBrowser implements IEventCatchBro
                         return null;
                     }
                 },
-                new IBrowserFunction("__focusgained") {
-                    @Override
-                    public Object function(Object[] arguments) {
-                        if (arguments.length == 1 && arguments[0] instanceof String) {
-                            final IElement element = new Element((String) arguments[0]);
-
-                            fireFocusGained(element);
-                        }
-                        return null;
-                    }
-                },
-                new IBrowserFunction("__focuslost") {
-                    @Override
-                    public Object function(Object[] arguments) {
-                        if (arguments.length == 1 && arguments[0] instanceof String) {
-                            final IElement element = new Element((String) arguments[0]);
-
-                            fireFocusLost(element);
-                        }
-                        return null;
-                    }
-                },
+//                new IBrowserFunction("__focusgained") {
+//                    @Override
+//                    public Object function(Object[] arguments) {
+//                        if (arguments.length == 1 && arguments[0] instanceof String) {
+//                            final IElement element = new Element((String) arguments[0]);
+//
+//                            fireFocusGained(element);
+//                        }
+//                        return null;
+//                    }
+//                },
+//                new IBrowserFunction("__focuslost") {
+//                    @Override
+//                    public Object function(Object[] arguments) {
+//                        if (arguments.length == 1 && arguments[0] instanceof String) {
+//                            final IElement element = new Element((String) arguments[0]);
+//
+//                            fireFocusLost(element);
+//                        }
+//                        return null;
+//                    }
+//                },
                 new IBrowserFunction("__dragStart") {
                     @Override
                     public Object function(Object[] arguments) {

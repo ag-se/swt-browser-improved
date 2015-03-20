@@ -3,9 +3,7 @@ package de.fu_berlin.inf.ag_se.demoSuits.browser;
 import de.fu_berlin.inf.ag_se.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.browser.html.IAnchor;
-import de.fu_berlin.inf.ag_se.browser.html.IElement;
 import de.fu_berlin.inf.ag_se.browser.listener.IAnchorListener;
-import de.fu_berlin.inf.ag_se.browser.listener.IFocusListener;
 import de.fu_berlin.inf.ag_se.browser.swt.SWTJQueryBrowser;
 import de.fu_berlin.inf.ag_se.browser.utils.StringUtils;
 import de.fu_berlin.inf.ag_se.demoSuits.AbstractDemo;
@@ -118,17 +116,17 @@ public class JQueryBrowserDemo extends AbstractDemo {
                 }
             }
         });
-        browser.addFocusListener(new IFocusListener() {
-            @Override
-            public void focusGained(IElement element) {
-                log("Focus gainedr: " + element);
-            }
-
-            @Override
-            public void focusLost(IElement element) {
-                log("Focus lost: " + element);
-            }
-        });
+//        browser.addFocusListener(new IFocusListener() {
+//            @Override
+//            public void focusGained(IElement element) {
+//                log("Focus gainedr: " + element);
+//            }
+//
+//            @Override
+//            public void focusLost(IElement element) {
+//                log("Focus lost: " + element);
+//            }
+//        });
         browser.scrollTo(this.x, this.y);
     }
 
