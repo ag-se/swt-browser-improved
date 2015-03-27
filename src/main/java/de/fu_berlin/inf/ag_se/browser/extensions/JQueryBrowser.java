@@ -1,13 +1,13 @@
 package de.fu_berlin.inf.ag_se.browser.extensions;
 
 import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.Futures;
 import de.fu_berlin.inf.ag_se.browser.InternalBrowserWrapper;
 import de.fu_berlin.inf.ag_se.browser.exception.ScriptExecutionException;
 import de.fu_berlin.inf.ag_se.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.browser.html.Element;
 import de.fu_berlin.inf.ag_se.browser.html.IElement;
 import de.fu_berlin.inf.ag_se.browser.html.ISelector;
-import de.fu_berlin.inf.ag_se.browser.threading.CompletedFuture;
 import de.fu_berlin.inf.ag_se.browser.utils.IConverter;
 import de.fu_berlin.inf.ag_se.browser.utils.Point;
 import org.apache.log4j.Logger;
@@ -103,7 +103,7 @@ public class JQueryBrowser extends EventCatchBrowser implements IJQueryBrowser {
     @Override
     public Future<Point> getScrollPosition() {
         if (this.disposedScrollPosition != null) {
-            return new CompletedFuture<Point>(this.disposedScrollPosition, null);
+            return Futures.immediateFuture(this.disposedScrollPosition);
         }
         return JQueryBrowser.this
                 .run("return [jQuery(document).scrollLeft(),jQuery(document).scrollTop()];",

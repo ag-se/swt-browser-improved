@@ -1,5 +1,6 @@
 package de.fu_berlin.inf.ag_se.browser;
 
+import com.google.common.util.concurrent.Futures;
 import de.fu_berlin.inf.ag_se.browser.BrowserStatusManager.BrowserStatus;
 import de.fu_berlin.inf.ag_se.browser.exception.BrowserDisposedException;
 import de.fu_berlin.inf.ag_se.browser.exception.JavaScriptException;
@@ -9,7 +10,6 @@ import de.fu_berlin.inf.ag_se.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
-import de.fu_berlin.inf.ag_se.browser.threading.CompletedFuture;
 import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadAwareExecutor;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
@@ -397,7 +397,7 @@ public class InternalBrowserWrapper<T extends IWrappedBrowser> {
             try {
                 return run(FileUtils.readFileToString(file), IConverter.CONVERTER_BOOLEAN);
             } catch (IOException e) {
-                return new CompletedFuture<Boolean>(null, e);
+                return Futures.immediateFailedFuture(e);
             }
         } else {
             return executor.nonUIAsyncExec(Browser.class, "Script Runner for: " + scriptURI,

@@ -1,10 +1,10 @@
 package de.fu_berlin.inf.ag_se.browser;
 
+import com.google.common.util.concurrent.Futures;
 import de.fu_berlin.inf.ag_se.browser.exception.BrowserDisposedException;
 import de.fu_berlin.inf.ag_se.browser.exception.BrowserTimeoutException;
 import de.fu_berlin.inf.ag_se.browser.exception.ScriptExecutionException;
 import de.fu_berlin.inf.ag_se.browser.exception.UnexpectedBrowserStateException;
-import de.fu_berlin.inf.ag_se.browser.threading.CompletedFuture;
 import de.fu_berlin.inf.ag_se.browser.utils.DelayedScriptRunner;
 import org.apache.log4j.Logger;
 
@@ -144,13 +144,11 @@ class BrowserStatusManager {
             case LOADED:
                 return delayedScriptsWorker.submit(scriptRunner);
             case TIMEDOUT:
-                return new CompletedFuture<DEST>(null,
-                        new ScriptExecutionException(script, new BrowserTimeoutException()));
+                return Futures.immediateFailedFuture(new ScriptExecutionException(script, new BrowserTimeoutException()));
             case DISPOSED:
-                return new CompletedFuture<DEST>(null, new BrowserDisposedException());
+                return Futures.immediateFailedFuture(new BrowserDisposedException());
             default:
-                return new CompletedFuture<DEST>(null,
-                        new ScriptExecutionException(script,
+                return Futures.immediateFailedFuture(new ScriptExecutionException(script,
                                 new UnexpectedBrowserStateException(browserStatus.toString())));
         }
     }

@@ -1,12 +1,12 @@
 package de.fu_berlin.inf.ag_se.browser;
 
+import com.google.common.util.concurrent.Futures;
 import com.sun.istack.internal.Nullable;
 import de.fu_berlin.inf.ag_se.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
-import de.fu_berlin.inf.ag_se.browser.threading.CompletedFuture;
 import de.fu_berlin.inf.ag_se.browser.utils.IConverter;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -335,7 +335,7 @@ public class Browser implements IBrowser {
             FileUtils.write(js, JavascriptString.createJavascriptForInsertingHTML(html));
             return injectJavascript(js);
         } catch (IOException e) {
-            return new CompletedFuture<Boolean>(null, e);
+            return Futures.immediateFailedFuture(e);
         }
     }
 
