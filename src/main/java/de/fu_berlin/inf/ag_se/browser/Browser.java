@@ -352,6 +352,7 @@ public class Browser implements IBrowser {
     @Override
     public IBrowserFunction createBrowserFunction(final JavascriptFunction function) {
         checkNotNull(function);
+        function.setBrowser(this);
         return internalBrowser.createBrowserFunction(function);
     }
 

@@ -8,7 +8,7 @@ import de.fu_berlin.inf.ag_se.browser.exception.ScriptExecutionException;
 import de.fu_berlin.inf.ag_se.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.Function;
 import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
-import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
+import de.fu_berlin.inf.ag_se.browser.functions.InternalJavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadAwareExecutor;
@@ -78,7 +78,7 @@ public class InternalBrowserWrapper<T extends IWrappedBrowser> {
 
         // throws exception that arise from calls within the browser,
         // meaning code that has not been invoked by Java but by JavaScript
-        createBrowserFunction(new JavascriptFunction("__error_callback") {
+        createBrowserFunction(new InternalJavascriptFunction("__error_callback") {
             @Override
             public Object function(Object[] arguments) {
                 JavaScriptException javaScriptException = JavaScriptException
@@ -199,7 +199,7 @@ public class InternalBrowserWrapper<T extends IWrappedBrowser> {
                 " && (" + pageLoadCheckExpression + ")" :
                 "");
         String randomFunctionName = BrowserUtils.createRandomFunctionName();
-        completionCheck = createBrowserFunction(new JavascriptFunction(randomFunctionName) {
+        completionCheck = createBrowserFunction(new InternalJavascriptFunction(randomFunctionName) {
             @Override
             public Object function(Object[] arguments) {
                 complete();
@@ -295,7 +295,7 @@ public class InternalBrowserWrapper<T extends IWrappedBrowser> {
                 //TODO Maybe we don't need the callback
                 final CountDownLatch countDownLatch = new CountDownLatch(1);
                 String randomFunctionName = BrowserUtils.createRandomFunctionName();
-                IBrowserFunction browserFunction = createBrowserFunction(new JavascriptFunction(randomFunctionName) {
+                IBrowserFunction browserFunction = createBrowserFunction(new InternalJavascriptFunction(randomFunctionName) {
                     public Object function(Object[] arguments) {
                         countDownLatch.countDown();
                         return null;
@@ -604,7 +604,7 @@ public class InternalBrowserWrapper<T extends IWrappedBrowser> {
     /**
      * May be called from whatever thread.
      */
-    IBrowserFunction createBrowserFunction(final JavascriptFunction function) {
+    IBrowserFunction createBrowserFunction(final InternalJavascriptFunction function) {
         return browser.createBrowserFunction(function);
     }
 

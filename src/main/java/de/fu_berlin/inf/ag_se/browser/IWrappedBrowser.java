@@ -1,6 +1,7 @@
 package de.fu_berlin.inf.ag_se.browser;
 
 import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.browser.functions.InternalJavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
 import org.eclipse.swt.browser.Browser;
@@ -79,7 +80,7 @@ public interface IWrappedBrowser {
      * @param function {@link JavascriptFunction} containing name in Javscript and the Java code
      * @return an instance of {@link IBrowserFunction} which can be used to dispose the function.
      */
-    IBrowserFunction createBrowserFunction(JavascriptFunction function);
+    IBrowserFunction createBrowserFunction(InternalJavascriptFunction function);
 
     /**
      * The wrapped browser may be part of different GUI toolkits like SWT, Swing, or JavaFx.

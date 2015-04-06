@@ -2,7 +2,7 @@ package de.fu_berlin.inf.ag_se.browser.swt;
 
 import de.fu_berlin.inf.ag_se.browser.IWrappedBrowser;
 import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
-import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
+import de.fu_berlin.inf.ag_se.browser.functions.InternalJavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.threading.NoCheckedExceptionCallable;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
 import de.fu_berlin.inf.ag_se.browser.utils.SWTUtils;
@@ -35,7 +35,7 @@ public class SWTFrameworkBrowser implements IWrappedBrowser {
      * May be called from whatever thread.
      */
     @Override
-    public IBrowserFunction createBrowserFunction(final JavascriptFunction function) {
+    public IBrowserFunction createBrowserFunction(final InternalJavascriptFunction function) {
         return uiThreadExecutor.syncExec(new NoCheckedExceptionCallable<IBrowserFunction>() {
             @Override
             public IBrowserFunction call() {
