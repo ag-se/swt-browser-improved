@@ -1,7 +1,8 @@
 package de.fu_berlin.inf.ag_se.browser.javafx;
 
-import de.fu_berlin.inf.ag_se.browser.IBrowserFunction;
-import de.fu_berlin.inf.ag_se.browser.IFrameworkBrowser;
+import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.browser.IWrappedBrowser;
+import de.fu_berlin.inf.ag_se.browser.functions.InternalJavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.threading.UIThreadExecutor;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -14,7 +15,7 @@ import netscape.javascript.JSObject;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class JavaFxFrameworkBrowser implements IFrameworkBrowser {
+public class JavaFxFrameworkBrowser implements IWrappedBrowser {
 
     private final WebView browser;
     private final WebEngine engine;
@@ -22,7 +23,7 @@ public class JavaFxFrameworkBrowser implements IFrameworkBrowser {
 
     private AtomicInteger index = new AtomicInteger(1);
 
-    private HashMap<String, IBrowserFunction> functionHashMap = new HashMap<String, IBrowserFunction>();
+    private HashMap<String, InternalJavascriptFunction> functionHashMap = new HashMap<>();
 
     public JavaFxFrameworkBrowser(Group root) {
         browser = new WebView();
@@ -35,7 +36,7 @@ public class JavaFxFrameworkBrowser implements IFrameworkBrowser {
     }
 
     @Override
-    public void addProgressListener(final Runnable runnable) {
+    public void addLoadedListener(final Runnable runnable) {
         engine.getLoadWorker().stateProperty().addListener(new ChangeListener<Worker.State>() {
             @Override
             public void changed(ObservableValue<? extends Worker.State> observableValue, Worker.State state, Worker.State state2) {
@@ -62,12 +63,27 @@ public class JavaFxFrameworkBrowser implements IFrameworkBrowser {
     }
 
     @Override
+    public void setSize(int width, int height) {
+
+    }
+
+    @Override
+    public void setText(String html) {
+
+    }
+
+    @Override
+    public boolean setFocus() {
+        return false;
+    }
+
+    @Override
     public boolean isDisposed() {
         return false;
     }
 
     @Override
-    public IBrowserFunction createBrowserFunction(IBrowserFunction function) {
+    public IBrowserFunction createBrowserFunction(InternalJavascriptFunction function) {
         String index = getNextIndex();
         functionHashMap.put(index, function);
 
@@ -79,7 +95,7 @@ public class JavaFxFrameworkBrowser implements IFrameworkBrowser {
         functionBuffer.append("', Array.prototype.slice.call(arguments));");
         functionBuffer.append("};");
         engine.executeScript(functionBuffer.toString());
-        return function;
+        return new JavaFxBrowserFunction(function);
     }
 
     private String getNextIndex() {
@@ -88,7 +104,13 @@ public class JavaFxFrameworkBrowser implements IFrameworkBrowser {
 
     @Override
     public void setUrl(String url) {
-        engine.load(url);
+        uiThreadExecutor.syncExec(new Runnable() {
+            @Override
+            public void run() {
+                engine.load(url);
+
+            }
+        });
     }
 
     @Override
@@ -98,7 +120,7 @@ public class JavaFxFrameworkBrowser implements IFrameworkBrowser {
 
     public class JavaCaller {
         public void callJava(int index, Object[] args) {
-            IBrowserFunction function = functionHashMap.get(Integer.toString(index));
+            InternalJavascriptFunction function = functionHashMap.get(Integer.toString(index));
             if (function != null) {
                 function.function(args);
             }

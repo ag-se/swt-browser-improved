@@ -3,6 +3,8 @@ package de.fu_berlin.inf.ag_se.browser;
 import com.sun.istack.internal.Nullable;
 import de.fu_berlin.inf.ag_se.browser.functions.CallbackFunction;
 import de.fu_berlin.inf.ag_se.browser.functions.Function;
+import de.fu_berlin.inf.ag_se.browser.functions.IBrowserFunction;
+import de.fu_berlin.inf.ag_se.browser.functions.JavascriptFunction;
 import de.fu_berlin.inf.ag_se.browser.javafx.JavaFxFrameworkBrowser;
 import de.fu_berlin.inf.ag_se.browser.listener.JavaScriptExceptionListener;
 import de.fu_berlin.inf.ag_se.browser.utils.IConverter;
@@ -243,7 +245,7 @@ public class JavaFxBrowser implements IBrowser {
     }
 
     @Override
-    public IBrowserFunction createBrowserFunction(IBrowserFunction function) {
+    public IBrowserFunction createBrowserFunction(JavascriptFunction function) {
         return browser.createBrowserFunction(function);
     }
 
@@ -255,5 +257,25 @@ public class JavaFxBrowser implements IBrowser {
     @Override
     public void removeJavaScriptExceptionListener(JavaScriptExceptionListener exceptionListener) {
         browser.removeJavaScriptExceptionListener(exceptionListener);
+    }
+
+    @Override
+    public void runOnDisposal(Runnable runnable) {
+        browser.runOnDisposal(runnable);
+    }
+
+    @Override
+    public void setSize(int width, int height) {
+        browser.setSize(width, height);
+    }
+
+    @Override
+    public void setText(String html) {
+        browser.setText(html);
+    }
+
+    @Override
+    public boolean setFocus() {
+        return browser.setFocus();
     }
 }
