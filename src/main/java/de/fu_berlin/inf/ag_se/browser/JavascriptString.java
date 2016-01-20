@@ -108,10 +108,10 @@ public class JavascriptString {
      * @return
      */
     public static String getExceptionReturningScript(String script) {
-        return "try { return new Function('"
-                + StringEscapeUtils.escapeJavaScript(script)
-                + "')(); } catch(e) { return [ '"
-                + BrowserUtils.ERROR_RETURN_MARKER
-                + "', e.sourceURL, e.line, e.column-6/* reduce column by the exception catching code */, e.name + \": \" + e.message ]; }";
+        return "(function() { try { "
+                + script
+                + "} catch(e) { "
+                + "return [ '" + BrowserUtils.ERROR_RETURN_MARKER + "', e.sourceURL, e.line, e.column-6/* reduce column by the exception catching code */, e.name + \": \" + e.message ];"
+                + "}})();";
     }
 }
