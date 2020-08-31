@@ -1,4 +1,6 @@
 # swt-browser-improved
+:warning: **This project is not maintained anymore** :warning:
+
 This is a wrapper for the SWT browser providing many convenient additions.
 
 ## License
